@@ -1,6 +1,6 @@
 function UpdateWorld() {
-	HandleCapsidOpenness();
-	//HandleVertexRearrangement();
+	//HandleCapsidOpenness();
+	HandleVertexRearrangement();
 }
 
 function render() {

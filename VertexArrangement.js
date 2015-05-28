@@ -101,7 +101,50 @@ function update_polyhedron(vertex_tobechanged) {
 	
 	//now we need to get the minimum angles
 	{
-		
+		for( var d_index = 3; d_index < 22; d_index++) {
+			var theta = minimum_angles[i] + capsidopenness * (TAU/2 - minimum_angles[i]);
+			
+			var a_index = vertices_derivations[i][0];
+			var b_index = vertices_derivations[i][1];
+			var c_index = vertices_derivations[i][2];
+			
+			var a_p = new THREE.Vector3(
+				polyhedron_vertices.array[a_index * 3 + 0],
+				polyhedron_vertices.array[a_index * 3 + 1],
+				polyhedron_vertices.array[a_index * 3 + 2] );
+			var b_p = new THREE.Vector3(
+				polyhedron_vertices.array[b_index * 3 + 0],
+				polyhedron_vertices.array[b_index * 3 + 1],
+				polyhedron_vertices.array[b_index * 3 + 2] );
+			var c_p = new THREE.Vector3(
+				polyhedron_vertices.array[c_index * 3 + 0],
+				polyhedron_vertices.array[c_index * 3 + 1],
+				polyhedron_vertices.array[c_index * 3 + 2] );
+			var d_p = new THREE.Vector3(
+				polyhedron_vertices.array[d_index * 3 + 0],
+				polyhedron_vertices.array[d_index * 3 + 1],
+				polyhedron_vertices.array[d_index * 3 + 2] );
+				
+			var a_to_b = new THREE.Vector3();
+			a_to_b.subVectors(b,a);
+			
+			var c_a = new THREE.Vector3();
+			var d_a = new THREE.Vector3();
+			c_a.subVectors(c,a);
+			d_a.subVectors(d,a);
+			
+			var c_hinge_origin = c_a.clone();
+			var d_hinge_origin = d_a.clone();			
+			d_hinge_origin.projectOnVector(a_to_b);
+			c_hinge_origin.projectOnVector(a_to_b);
+			
+			var d_hinge = new THREE.Vector3();
+			var c_hinge = new THREE.Vector3();
+			d_hinge.subVectors(d_a,d_hinge_origin);
+			c_hinge.subVectors(c_a,c_hinge_origin);
+			
+			minimum_angles(d_index) = Math.acos( d_hinge.dot(c_hinge) / c_hinge.length() / d_hinge.length() );
+		}
 	}
 }
 
@@ -133,8 +176,8 @@ function move_vertices(vertex_tobechanged, starting_movement_vector, initial_cha
 		V_angles[i] = TAU * 5/6 - W_surrounding_angles[W_index] - V_angles_subtraction[i];
 	}
 	
-	flatnet_vertices_numbers[vertex_tobechanged * 3 + 0 ] += starting_movement_vector.x;
-	flatnet_vertices_numbers[vertex_tobechanged * 3 + 1 ] += starting_movement_vector.y;
+	flatnet_vertices.array[vertex_tobechanged * 3 + 0 ] += starting_movement_vector.x;
+	flatnet_vertices.array[vertex_tobechanged * 3 + 1 ] += starting_movement_vector.y;
 	
 	var triangle_done = [0,0,0,0,0];
 	
@@ -186,21 +229,21 @@ function move_vertices(vertex_tobechanged, starting_movement_vector, initial_cha
 		}
 		
 		var vertex_to_use = new THREE.Vector2(
-			flatnet_vertices_numbers[vertex_to_use_index * 3 + 0 ],
-			flatnet_vertices_numbers[vertex_to_use_index * 3 + 1 ] );
+			flatnet_vertices.array[vertex_to_use_index * 3 + 0 ],
+			flatnet_vertices.array[vertex_to_use_index * 3 + 1 ] );
 		var vertex_to_fix = new THREE.Vector2(
-			flatnet_vertices_numbers[vertex_to_fix_index * 3 + 0 ],
-			flatnet_vertices_numbers[vertex_to_fix_index * 3 + 1 ] );		
+			flatnet_vertices.array[vertex_to_fix_index * 3 + 0 ],
+			flatnet_vertices.array[vertex_to_fix_index * 3 + 1 ] );		
 		
 		var outside_vertex_to_use = new THREE.Vector2(
-			flatnet_vertices_numbers[outside_vertex_to_use_index * 3 + 0 ],
-			flatnet_vertices_numbers[outside_vertex_to_use_index * 3 + 1 ]);
+			flatnet_vertices.array[outside_vertex_to_use_index * 3 + 0 ],
+			flatnet_vertices.array[outside_vertex_to_use_index * 3 + 1 ]);
 		var outside_vertex_to_fix = new THREE.Vector2(
-			flatnet_vertices_numbers[outside_vertex_to_fix_index * 3 + 0 ],
-			flatnet_vertices_numbers[outside_vertex_to_fix_index * 3 + 1 ]);
+			flatnet_vertices.array[outside_vertex_to_fix_index * 3 + 0 ],
+			flatnet_vertices.array[outside_vertex_to_fix_index * 3 + 1 ]);
 		var outside_vertex_opposing = new THREE.Vector2(
-			flatnet_vertices_numbers[outside_vertex_opposing_index * 3 + 0 ],
-			flatnet_vertices_numbers[outside_vertex_opposing_index * 3 + 1 ]);
+			flatnet_vertices.array[outside_vertex_opposing_index * 3 + 0 ],
+			flatnet_vertices.array[outside_vertex_opposing_index * 3 + 1 ]);
 			
 		var identified_edge_to_use = new THREE.Vector2();
 		
@@ -219,8 +262,8 @@ function move_vertices(vertex_tobechanged, starting_movement_vector, initial_cha
 		var final_edge = vector_from_bearing(triangle_tofix_side, identified_edge_to_use.length(), imposed_angle );
 		final_edge.add(outside_vertex_to_fix);		
 		
-		flatnet_vertices_numbers[vertex_to_fix_index * 3 + 0 ] = final_edge.x;
-		flatnet_vertices_numbers[vertex_to_fix_index * 3 + 1 ] = final_edge.y;
+		flatnet_vertices.array[vertex_to_fix_index * 3 + 0 ] = final_edge.x;
+		flatnet_vertices.array[vertex_to_fix_index * 3 + 1 ] = final_edge.y;
 		
 		triangle_done[triangle_to_fix] = 1;
 		for( var i = 0; i < 5; i++ ) {
@@ -250,18 +293,18 @@ function corner_angle_from_indices(triangle_index, corner_vertex_index) {
 	}
 	
 	sideA = new THREE.Vector2( 
-		flatnet_vertices_numbers[ 0 + 3 * cornerAindex ] - flatnet_vertices_numbers[ 0 + 3 * corner_vertex_index ],
-		flatnet_vertices_numbers[ 1 + 3 * cornerAindex ] - flatnet_vertices_numbers[ 1 + 3 * corner_vertex_index ] );
+		flatnet_vertices.array[ 0 + 3 * cornerAindex ] - flatnet_vertices.array[ 0 + 3 * corner_vertex_index ],
+		flatnet_vertices.array[ 1 + 3 * cornerAindex ] - flatnet_vertices.array[ 1 + 3 * corner_vertex_index ] );
 	sideB = new THREE.Vector2( 
-		flatnet_vertices_numbers[ 0 + 3 * cornerBindex ] - flatnet_vertices_numbers[ 0 + 3 * corner_vertex_index ],
-		flatnet_vertices_numbers[ 1 + 3 * cornerBindex ] - flatnet_vertices_numbers[ 1 + 3 * corner_vertex_index ] );
+		flatnet_vertices.array[ 0 + 3 * cornerBindex ] - flatnet_vertices.array[ 0 + 3 * corner_vertex_index ],
+		flatnet_vertices.array[ 1 + 3 * cornerBindex ] - flatnet_vertices.array[ 1 + 3 * corner_vertex_index ] );
 		
 	return Math.acos(get_cos( sideA, sideB) );
 }
 
 function update_surface() {
 	for(var i = 0; i < 22*3; i++)
-		surface_vertices.array[i] = flatnet_vertices_numbers[i];
+		surface_vertices.array[i] = flatnet_vertices.array[i];
 	surface_vertices.needsUpdate = true;
 }
 
@@ -269,15 +312,15 @@ function HandleVertexRearrangement() {
 	var movement_vector = new THREE.Vector2(0,0);
 	
 	if( isMouseDown ) {
-		movement_vector.x = MousePosition.x - flatnet_vertices_numbers[vertex_tobechanged * 3 + 0];
-		movement_vector.y = MousePosition.y - flatnet_vertices_numbers[vertex_tobechanged * 3 + 1];
+		movement_vector.x = MousePosition.x - flatnet_vertices.array[vertex_tobechanged * 3 + 0];
+		movement_vector.y = MousePosition.y - flatnet_vertices.array[vertex_tobechanged * 3 + 1];
 		
 		if( vertex_tobechanged === 666) {
 			var lowest_quadrance_so_far = 10;
 			var closest_vertex_so_far = 666;
 			for( var i = 0; i < 22; i++) {
-				var quadrance = (flatnet_vertices_numbers[i*3+0] - MousePosition.x) * (flatnet_vertices_numbers[i*3+0] - MousePosition.x)
-								+ (flatnet_vertices_numbers[i*3+1] - MousePosition.y) * (flatnet_vertices_numbers[i*3+0] - MousePosition.y);
+				var quadrance = (flatnet_vertices.array[i*3+0] - MousePosition.x) * (flatnet_vertices.array[i*3+0] - MousePosition.x)
+								+ (flatnet_vertices.array[i*3+1] - MousePosition.y) * (flatnet_vertices.array[i*3+0] - MousePosition.y);
 				if( quadrance < lowest_quadrance_so_far) {
 					lowest_quadrance_so_far = quadrance;
 					closest_vertex_so_far = i;
@@ -291,8 +334,8 @@ function HandleVertexRearrangement() {
 		}
 		
 		if( vertex_tobechanged !== 666) {
-			movement_vector.x = MousePosition.x - flatnet_vertices_numbers[vertex_tobechanged * 3 + 0];
-			movement_vector.y = MousePosition.y - flatnet_vertices_numbers[vertex_tobechanged * 3 + 1];
+			movement_vector.x = MousePosition.x - flatnet_vertices.array[vertex_tobechanged * 3 + 0];
+			movement_vector.y = MousePosition.y - flatnet_vertices.array[vertex_tobechanged * 3 + 1];
 		}
 	}
 	else {		
@@ -305,7 +348,7 @@ function HandleVertexRearrangement() {
 	//log the current positions
 	var net_log = new Array(66);
 	for( var i = 0; i < 66; i++)
-		net_log[i] = flatnet_vertices_numbers[i];
+		net_log[i] = flatnet_vertices.array[i];
 	
 	//preparation: get the angles surrounding the corners of the stitched-up W, which will remain constant
 	for( var corner = 0; corner < 6; corner++ ) {
@@ -348,11 +391,11 @@ function HandleVertexRearrangement() {
 		var corner2index = W_vertex_indices[vertex_tobechanged][ i * 2 + 1 ];
 		
 		var corner1 = new THREE.Vector2( 
-			flatnet_vertices_numbers[     3 * corner1index ],
-			flatnet_vertices_numbers[ 1 + 3 * corner1index ] );
+			flatnet_vertices.array[     3 * corner1index ],
+			flatnet_vertices.array[ 1 + 3 * corner1index ] );
 		var corner2 = new THREE.Vector2( 
-			flatnet_vertices_numbers[     3 * corner2index ],
-			flatnet_vertices_numbers[ 1 + 3 * corner2index ] );
+			flatnet_vertices.array[     3 * corner2index ],
+			flatnet_vertices.array[ 1 + 3 * corner2index ] );
 			
 		var side_Vector = corner2.clone();
 		side_Vector.sub(corner1);
@@ -379,8 +422,8 @@ function HandleVertexRearrangement() {
 	move_vertices(vertex_tobechanged, movement_vector, vertex_tobechanged);
 	
 	var left_defect = new THREE.Vector2(
-		flatnet_vertices_numbers[     3 * vertex_tobechanged ],
-		flatnet_vertices_numbers[ 1 + 3 * vertex_tobechanged ] );
+		flatnet_vertices.array[     3 * vertex_tobechanged ],
+		flatnet_vertices.array[ 1 + 3 * vertex_tobechanged ] );
 	left_defect.sub(origin_absolute);
 	
 	var nonexistant_corner = new THREE.Vector2(
@@ -402,8 +445,8 @@ function HandleVertexRearrangement() {
 	var right_defect_index = W_vertex_indices[vertex_tobechanged][ RIGHT_DEFECT ];
 	
 	var imposed_movement_vector = new THREE.Vector2(
-		right_defect_absolute.x - flatnet_vertices_numbers[right_defect_index * 3 + 0 ],
-		right_defect_absolute.y - flatnet_vertices_numbers[right_defect_index * 3 + 1 ]);
+		right_defect_absolute.x - flatnet_vertices.array[right_defect_index * 3 + 0 ],
+		right_defect_absolute.y - flatnet_vertices.array[right_defect_index * 3 + 1 ]);
 		
 	//if(!logged) console.log(right_defect_index);
 		
@@ -411,8 +454,10 @@ function HandleVertexRearrangement() {
 	
 	if(!correct_defects()) {
 		for( var i = 0; i < 66; i++)
-			flatnet_vertices_numbers[i] = net_log[i];
+			flatnet_vertices.array[i] = net_log[i];
 	}		
 	
-	update_surface();
+	update_polyhedron();
+	
+	flatnet_vertices.needsUpdate = true;
 }

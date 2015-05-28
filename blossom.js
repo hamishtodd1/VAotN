@@ -32,6 +32,7 @@ function HandleCapsidOpenness() {
 		surface_vertices_numbers[3 + 2] = surface_vertices_numbers[2] - Math.cos(theta);*/
 	}
 	
+	//TODO change all the "surface_vertices_numbers" to "surface_vertices.array"
 	for( var i = 3; i < 22; i++) {
 		var theta = minimum_angles[i] + capsidopenness * (TAU/2 - minimum_angles[i]);
 		
