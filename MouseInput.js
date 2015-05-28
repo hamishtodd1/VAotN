@@ -5,7 +5,7 @@ function onDocumentMouseDown(event) {
 	event.preventDefault();
 	isMouseDown = true;
 	circleGeometry.vertices[0].x = 1;
-	console.log(circle);
+	//console.log(circle);
 }
 function onDocumentMouseUp(event) {
 	event.preventDefault();

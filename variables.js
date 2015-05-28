@@ -32,15 +32,18 @@ var line_index_pairs = new Uint16Array(60 * 2);
 
 var flatnet;
 var flatnet_vertices_numbers;
+var flatnet_vertices;
 var flatnet_geometry;
 
 //we need the polyhedron both to be seen and to help us get the minimum angles
 var polyhedron;
 var polyhedron_vertices_numbers;
+var polyhedron_vertices;
 var polyhedron_geometry;
 
 var surface;
 var surface_vertices_numbers;
+var surface_vertices;
 var surface_geometry;
 
 var vertices_derivations;

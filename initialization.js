@@ -33,6 +33,17 @@ function init() {
 		surface_vertices_numbers[i] = flatnet_vertices_numbers[i];
 	
 	//polyhedron_vertices_numbers[i] = surface_vertices_numbers[i];
+	polyhedron_vertices_numbers = new Float32Array(22 * 3);
+
+	polyhedron_vertices_numbers[ 0 * 3 + 0] = 0;
+	polyhedron_vertices_numbers[ 0 * 3 + 1] = 1;
+	polyhedron_vertices_numbers[ 0 * 3 + 2] = 0;
+
+	polyhedron_vertices_numbers[ 1 * 3 + 0] = 0;
+	polyhedron_vertices_numbers[ 1 * 3 + 1] = 0;
+	polyhedron_vertices_numbers[ 1 * 3 + 2] = 0;
+	
+	//HandleCapsidOpenness();
 	
 	var default_minimum_angle = 2 * Math.atan(PHI/(PHI-1));
 	for( var i = 0; i < 22 * 3; i++ )
@@ -66,18 +77,6 @@ function init() {
 		[18,14,0],
 		[18,19,14],
 		[20,19,18]);
-
-	polyhedron_vertices_numbers = new Float32Array(22 * 3);
-
-	polyhedron_vertices_numbers[ 0 * 3 + 0] = 0;
-	polyhedron_vertices_numbers[ 0 * 3 + 1] = 1;
-	polyhedron_vertices_numbers[ 0 * 3 + 2] = 0;
-
-	polyhedron_vertices_numbers[ 1 * 3 + 0] = 0;
-	polyhedron_vertices_numbers[ 1 * 3 + 1] = 0;
-	polyhedron_vertices_numbers[ 1 * 3 + 2] = 0;
-	
-	HandleCapsidOpenness();
 
 	net_triangle_vertex_indices = new Uint16Array([
 		2,1,0,

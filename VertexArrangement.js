@@ -13,7 +13,7 @@ function correct_defects() {
 		var wiggleroom = 0.00001;
 		if( Math.abs( angular_defect - TAU * 5/6 ) > wiggleroom ) {
 			var error = angular_defect - TAU * 5/6;
-			console.log( "Error: defect at net vertex " + corner + " off by " + error);
+			console.log( "Warning: defect at net vertex " + corner + " off by " + error);
 			return 0;
 		}
 	}
@@ -198,7 +198,7 @@ function move_vertices(vertex_tobechanged, starting_movement_vector, initial_cha
 		var triangle_to_use;
 		var triangle_to_fix; //note that these are entries in the "V vertices" array. The ACTUAL indices will come later.
 		for( var i = 0; i < 4; i++) {
-			if( triangle_done[i] === 1 && triangle_done[i+1] === 0) {
+			if( triangle_done[i] && !triangle_done[i+1] ) {
 				triangle_to_use = i;
 				triangle_to_fix = i+1;
 				break;
@@ -249,7 +249,7 @@ function move_vertices(vertex_tobechanged, starting_movement_vector, initial_cha
 		
 		identified_edge_to_use.subVectors(outside_vertex_to_use, vertex_to_use);
 		
-		var angle_to_use = corner_angle_from_indices( V_triangle_indices[Vmode][initial_changed_vertex][ triangle_to_use ], V_vertex_indices[Vmode][initial_changed_vertex][triangle_to_use * 3 + 1] );
+		var angle_to_use = corner_angle_from_indices( V_triangle_indices[Vmode][initial_changed_vertex][ triangle_to_use ], outside_vertex_to_use_index );
 		var imposed_angle;
 		if( triangle_to_fix > triangle_to_use )
 			imposed_angle = V_angles[ triangle_to_use ] - angle_to_use;
@@ -312,31 +312,34 @@ function HandleVertexRearrangement() {
 	var movement_vector = new THREE.Vector2(0,0);
 	
 	if( isMouseDown ) {
-		movement_vector.x = MousePosition.x - flatnet_vertices.array[vertex_tobechanged * 3 + 0];
-		movement_vector.y = MousePosition.y - flatnet_vertices.array[vertex_tobechanged * 3 + 1];
+		// movement_vector.x = MousePosition.x - flatnet_vertices.array[vertex_tobechanged * 3 + 0];
+		// movement_vector.y = MousePosition.y - flatnet_vertices.array[vertex_tobechanged * 3 + 1];
 		
-		if( vertex_tobechanged === 666) {
-			var lowest_quadrance_so_far = 10;
-			var closest_vertex_so_far = 666;
-			for( var i = 0; i < 22; i++) {
-				var quadrance = (flatnet_vertices.array[i*3+0] - MousePosition.x) * (flatnet_vertices.array[i*3+0] - MousePosition.x)
-								+ (flatnet_vertices.array[i*3+1] - MousePosition.y) * (flatnet_vertices.array[i*3+0] - MousePosition.y);
-				if( quadrance < lowest_quadrance_so_far) {
-					lowest_quadrance_so_far = quadrance;
-					closest_vertex_so_far = i;
-				}
-			}
+		// if( vertex_tobechanged === 666) {
+			// var lowest_quadrance_so_far = 10;
+			// var closest_vertex_so_far = 666;
+			// for( var i = 0; i < 22; i++) {
+				// var quadrance = (flatnet_vertices.array[i*3+0] - MousePosition.x) * (flatnet_vertices.array[i*3+0] - MousePosition.x)
+								// + (flatnet_vertices.array[i*3+1] - MousePosition.y) * (flatnet_vertices.array[i*3+0] - MousePosition.y);
+				// if( quadrance < lowest_quadrance_so_far) {
+					// lowest_quadrance_so_far = quadrance;
+					// closest_vertex_so_far = i;
+				// }
+			// }
 			
-			var maximum_quadrance_to_be_selected = 0.25;
-			if( lowest_quadrance_so_far < maximum_quadrance_to_be_selected) {
-				vertex_tobechanged = closest_vertex_so_far;
-			}
-		}
+			// var maximum_quadrance_to_be_selected = 0.25;
+			// if( lowest_quadrance_so_far < maximum_quadrance_to_be_selected) {
+				// vertex_tobechanged = closest_vertex_so_far;
+			// }
+		// }
 		
-		if( vertex_tobechanged !== 666) {
-			movement_vector.x = MousePosition.x - flatnet_vertices.array[vertex_tobechanged * 3 + 0];
-			movement_vector.y = MousePosition.y - flatnet_vertices.array[vertex_tobechanged * 3 + 1];
-		}
+		// if( vertex_tobechanged !== 666) {
+			// movement_vector.x = MousePosition.x - flatnet_vertices.array[vertex_tobechanged * 3 + 0];
+			// movement_vector.y = MousePosition.y - flatnet_vertices.array[vertex_tobechanged * 3 + 1];
+		// }
+		movement_vector.x = 0.01 * HS3;
+		movement_vector.y = -0.01 * 0.5;
+		vertex_tobechanged = 0;
 	}
 	else {		
 		vertex_tobechanged = 666;
@@ -417,7 +420,7 @@ function HandleVertexRearrangement() {
 		if( i === 5 ) finalside_absolute = side_Vector.clone(); //absolute in the sense of it being a side
 		if( i === 5 ) ultimate_vector_absolute = corner2.clone();
 	}
-	//console.log(ultimate_vector.y);
+	//console.log(ultimate_vector);
 	
 	move_vertices(vertex_tobechanged, movement_vector, vertex_tobechanged);
 	
@@ -448,8 +451,6 @@ function HandleVertexRearrangement() {
 		right_defect_absolute.x - flatnet_vertices.array[right_defect_index * 3 + 0 ],
 		right_defect_absolute.y - flatnet_vertices.array[right_defect_index * 3 + 1 ]);
 		
-	//if(!logged) console.log(right_defect_index);
-		
 	move_vertices(right_defect_index, imposed_movement_vector, vertex_tobechanged);
 	
 	if(!correct_defects()) {
@@ -457,7 +458,7 @@ function HandleVertexRearrangement() {
 			flatnet_vertices.array[i] = net_log[i];
 	}		
 	
-	update_polyhedron();
+	//update_polyhedron();
 	
 	flatnet_vertices.needsUpdate = true;
 }
