@@ -1,5 +1,5 @@
 function UpdateWorld() {
-	//HandleCapsidOpenness();
+	HandleCapsidOpenness(capsidopenness, surface_vertices.array);
 	HandleVertexRearrangement();
 }
 
