@@ -1,5 +1,4 @@
-function HandleCapsidOpenness() {
-		
+function HandleCapsidOpenness(openness, vertices_numbers) {
 	var capsidopeningspeed = 0.01;
 
 	if( !isMouseDown ) {
@@ -41,9 +40,9 @@ function HandleCapsidOpenness() {
 		var c_index = vertices_derivations[i][2];
 		
 		var a = new THREE.Vector3( //this is our origin
-			surface_vertices_numbers[a_index * 3 + 0],
-			surface_vertices_numbers[a_index * 3 + 1],
-			surface_vertices_numbers[a_index * 3 + 2]);	
+			vertices_numbers[a_index * 3 + 0],
+			vertices_numbers[a_index * 3 + 1],
+			vertices_numbers[a_index * 3 + 2]);	
 			
 		var a_net = new THREE.Vector3( //this is our origin
 			flatnet_vertices_numbers[a_index * 3 + 0],
@@ -51,9 +50,9 @@ function HandleCapsidOpenness() {
 			flatnet_vertices_numbers[a_index * 3 + 2]);	
 		
 		var crossbar_unit = new THREE.Vector3(
-			surface_vertices_numbers[b_index * 3 + 0],
-			surface_vertices_numbers[b_index * 3 + 1],
-			surface_vertices_numbers[b_index * 3 + 2]);
+			vertices_numbers[b_index * 3 + 0],
+			vertices_numbers[b_index * 3 + 1],
+			vertices_numbers[b_index * 3 + 2]);
 		crossbar_unit.sub(a);			
 		crossbar_unit.normalize();
 		
@@ -85,9 +84,9 @@ function HandleCapsidOpenness() {
 		final_vector_hinge_net.sub( final_vector_hinge_origin_net );
 
 		var C = new THREE.Vector3(
-			surface_vertices_numbers[c_index * 3 + 0],
-			surface_vertices_numbers[c_index * 3 + 1],
-			surface_vertices_numbers[c_index * 3 + 2]);
+			vertices_numbers[c_index * 3 + 0],
+			vertices_numbers[c_index * 3 + 1],
+			vertices_numbers[c_index * 3 + 2]);
 		C.sub(a);
 		var C_hinge_origin_length = C.length() * get_cos(crossbar_unit, C);		
 		var C_hinge_origin = new THREE.Vector3(
@@ -112,16 +111,9 @@ function HandleCapsidOpenness() {
 		final_vector.add( final_vector_hinge_origin );
 		final_vector.add( a );
 		
-		surface_vertices.array[ i * 3 + 0] = final_vector.x;
-		surface_vertices.array[ i * 3 + 1] = final_vector.y;
-		surface_vertices.array[ i * 3 + 2] = final_vector.z;
-		surface_vertices.needsUpdate = true;
-		
-		if(capsidopenness = 0) {
-			polyhedron_vertices.array[ i * 3 + 0] = final_vector.x;
-			polyhedron_vertices.array[ i * 3 + 1] = final_vector.y;
-			polyhedron_vertices.array[ i * 3 + 2] = final_vector.z;
-			polyhedron_vertices.needsUpdate = true;
-		}
-	}	
+		vertices_numbers[ i * 3 + 0] = final_vector.x;
+		vertices_numbers[ i * 3 + 1] = final_vector.y;
+		vertices_numbers[ i * 3 + 2] = final_vector.z;
+	}
+	console.log(polyhedron_vertices.array);
 }

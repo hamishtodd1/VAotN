@@ -39,6 +39,8 @@ function onMouseMove( event ) {
 	circleGeometry.vertices[0].y = MousePosition.y;
 	
 	circle.needsUpdate = true;
+	
+	//if this doesn't work out you could just temporarily put the canvas in the top left
 }
 
 window.addEventListener( 'mousemove', onMouseMove, false );

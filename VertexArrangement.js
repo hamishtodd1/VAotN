@@ -146,6 +146,7 @@ function update_polyhedron(vertex_tobechanged) {
 			minimum_angles(d_index) = Math.acos( d_hinge.dot(c_hinge) / c_hinge.length() / d_hinge.length() );
 		}
 	}
+	polyhedron_vertices.needsUpdate = true;
 }
 
 function move_vertices(vertex_tobechanged, starting_movement_vector, initial_changed_vertex)
@@ -312,34 +313,31 @@ function HandleVertexRearrangement() {
 	var movement_vector = new THREE.Vector2(0,0);
 	
 	if( isMouseDown ) {
-		// movement_vector.x = MousePosition.x - flatnet_vertices.array[vertex_tobechanged * 3 + 0];
-		// movement_vector.y = MousePosition.y - flatnet_vertices.array[vertex_tobechanged * 3 + 1];
-		
-		// if( vertex_tobechanged === 666) {
-			// var lowest_quadrance_so_far = 10;
-			// var closest_vertex_so_far = 666;
-			// for( var i = 0; i < 22; i++) {
-				// var quadrance = (flatnet_vertices.array[i*3+0] - MousePosition.x) * (flatnet_vertices.array[i*3+0] - MousePosition.x)
-								// + (flatnet_vertices.array[i*3+1] - MousePosition.y) * (flatnet_vertices.array[i*3+0] - MousePosition.y);
-				// if( quadrance < lowest_quadrance_so_far) {
-					// lowest_quadrance_so_far = quadrance;
-					// closest_vertex_so_far = i;
-				// }
-			// }
+		if( vertex_tobechanged === 666) {
+			var lowest_quadrance_so_far = 10;
+			var closest_vertex_so_far = 666;
+			for( var i = 0; i < 22; i++) {
+				var quadrance = (flatnet_vertices.array[i*3+0] - MousePosition.x) * (flatnet_vertices.array[i*3+0] - MousePosition.x)
+								+ (flatnet_vertices.array[i*3+1] - MousePosition.y) * (flatnet_vertices.array[i*3+0] - MousePosition.y);
+				if( quadrance < lowest_quadrance_so_far) {
+					lowest_quadrance_so_far = quadrance;
+					closest_vertex_so_far = i;
+				}
+			}
 			
-			// var maximum_quadrance_to_be_selected = 0.25;
-			// if( lowest_quadrance_so_far < maximum_quadrance_to_be_selected) {
-				// vertex_tobechanged = closest_vertex_so_far;
-			// }
-		// }
+			var maximum_quadrance_to_be_selected = 0.1;
+			if( lowest_quadrance_so_far < maximum_quadrance_to_be_selected) {
+				vertex_tobechanged = closest_vertex_so_far;
+			}
+		}
 		
-		// if( vertex_tobechanged !== 666) {
-			// movement_vector.x = MousePosition.x - flatnet_vertices.array[vertex_tobechanged * 3 + 0];
-			// movement_vector.y = MousePosition.y - flatnet_vertices.array[vertex_tobechanged * 3 + 1];
-		// }
-		movement_vector.x = 0.01 * HS3;
-		movement_vector.y = -0.01 * 0.5;
-		vertex_tobechanged = 0;
+		if( vertex_tobechanged !== 666) {
+			movement_vector.x = MousePosition.x - flatnet_vertices.array[vertex_tobechanged * 3 + 0];
+			movement_vector.y = MousePosition.y - flatnet_vertices.array[vertex_tobechanged * 3 + 1];
+		}
+		// movement_vector.x = 0.01 * HS3;
+		// movement_vector.y = -0.01 * 0.5;
+		// vertex_tobechanged = 0;
 	}
 	else {		
 		vertex_tobechanged = 666;
@@ -458,7 +456,6 @@ function HandleVertexRearrangement() {
 			flatnet_vertices.array[i] = net_log[i];
 	}		
 	
-	//update_polyhedron();
-	
+	update_polyhedron();	
 	flatnet_vertices.needsUpdate = true;
 }

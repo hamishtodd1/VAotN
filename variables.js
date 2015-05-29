@@ -5,7 +5,7 @@ var window_width = 600, window_height = 600;
 
 var camera = new THREE.PerspectiveCamera( 75, window_width / window_height, 0.1, 1000 );
 camera.position.z = 5;
-var renderer = new THREE.WebGLRenderer();
+var renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize( window_width, window_height );
 document.body.appendChild( renderer.domElement );
 
@@ -19,7 +19,7 @@ var HS3 = Math.sqrt(3)/2;
 var PHI = (Math.sqrt(5) + 1) / 2;
 var TAU = Math.PI * 2;
 
-var capsidopenness = 0;
+var capsidopenness = 1;
 
 var logged = 0;
 

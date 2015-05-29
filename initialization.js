@@ -34,16 +34,10 @@ function init() {
 	
 	//polyhedron_vertices_numbers[i] = surface_vertices_numbers[i];
 	polyhedron_vertices_numbers = new Float32Array(22 * 3);
-
-	polyhedron_vertices_numbers[ 0 * 3 + 0] = 0;
-	polyhedron_vertices_numbers[ 0 * 3 + 1] = 1;
-	polyhedron_vertices_numbers[ 0 * 3 + 2] = 0;
-
-	polyhedron_vertices_numbers[ 1 * 3 + 0] = 0;
-	polyhedron_vertices_numbers[ 1 * 3 + 1] = 0;
-	polyhedron_vertices_numbers[ 1 * 3 + 2] = 0;
 	
-	//HandleCapsidOpenness();
+	for( var i = 0; i < 3 * 3; i++)
+		polyhedron_vertices_numbers[i] = surface_vertices_numbers[i];	
+	//HandleCapsidOpenness(0, polyhedron_vertices_numbers);
 	
 	var default_minimum_angle = 2 * Math.atan(PHI/(PHI-1));
 	for( var i = 0; i < 22 * 3; i++ )
@@ -128,7 +122,8 @@ function init() {
 		surface_geometry.addAttribute( 'position', surface_vertices );
 		surface_geometry.addAttribute( 'index', new THREE.BufferAttribute( line_index_pairs, 1 ) ); //allowed to put that in there?
 
-		surface = new THREE.Line( surface_geometry, material1, THREE.LinePieces );		
+		surface = new THREE.Line( surface_geometry, material1, THREE.LinePieces );
+		surface.position.x = 1;
 		scene.add(surface);
 		
 		flatnet_vertices = new THREE.BufferAttribute( flatnet_vertices_numbers, 3 );
@@ -138,7 +133,7 @@ function init() {
 		flatnet_geometry.addAttribute( 'index', new THREE.BufferAttribute( line_index_pairs, 1 ) ); //allowed to put that in there?
 
 		flatnet = new THREE.Line( flatnet_geometry, material1, THREE.LinePieces );
-		scene.add(flatnet);
+		//scene.add(flatnet);
 		
 		polyhedron_vertices = new THREE.BufferAttribute( polyhedron_vertices_numbers, 3 );
 		
@@ -159,8 +154,6 @@ function init() {
 		circleGeometry = new THREE.CircleGeometry( radius );				
 		circle = new THREE.Mesh( circleGeometry, material2 );
 		scene.add( circle );
-		
-		
 	}
 	
 	//---------------------------------------------------Vertex Rearrangement stuff
