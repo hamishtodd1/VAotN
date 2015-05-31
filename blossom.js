@@ -1,26 +1,55 @@
 function HandleCapsidOpenness(openness, vertices_numbers) {
 	var capsidopeningspeed = 0.01;
 
-	if( !isMouseDown ) {
-		if( capsidopenness === 1)
- 			return;
+	// if( !isMouseDown ) {
+		// if( capsidopenness === 1)
+ 			// return;
+		// capsidopenness += capsidopeningspeed;
+		// if( capsidopenness >= 1 )
+			// capsidopenness = 1;
+	// }
+	// else {
+		// if( capsidopenness === 0)
+ 			// return;
+		// capsidopenness -= capsidopeningspeed;
+		// if( capsidopenness <= 0 )
+			// capsidopenness = 0;
+	// }
+	
+	capsidclock += 1;
+	var static_capsid_wait = 70;
+	var moving_capsid_wait = 1/capsidopeningspeed;
+	if(capsidclock < static_capsid_wait )
+		capsidopenness = 0;
+	else if(capsidclock < static_capsid_wait + moving_capsid_wait ) {
 		capsidopenness += capsidopeningspeed;
-		if( capsidopenness >= 1 )
+		if(capsidopenness > 1) {
 			capsidopenness = 1;
+			capsidclock = static_capsid_wait + moving_capsid_wait + 1;
+		}
 	}
-	else {
-		if( capsidopenness === 0)
- 			return;
+	else if( capsidclock > static_capsid_wait * 2 + moving_capsid_wait){
 		capsidopenness -= capsidopeningspeed;
-		if( capsidopenness <= 0 )
+		if(capsidopenness < 0) {
 			capsidopenness = 0;
+			capsidclock = 0;
+		}
 	}
 	
+	deduce_surface(capsidopenness, surface_vertices_numbers);
+	
+	surface_vertices.needsUpdate = true;
+}
+	
+function deduce_surface(openness, vertices_numbers) {	
 	//the first three vertices
 	{
 		var startingangle = 2 * Math.atan(PHI/(PHI-1));
 		var theta = startingangle * capsidopenness / 2;
 		//remember edge length is 1
+		
+		for( var i = 0; i < 22 * 3; i++ )
+			surface_vertices_numbers[i] = flatnet_vertices_numbers[i];
 		
 		/*surface_vertices_numbers[0 + 0] = 0;
 		surface_vertices_numbers[0 + 1] = 0;
@@ -33,7 +62,7 @@ function HandleCapsidOpenness(openness, vertices_numbers) {
 	
 	//TODO change all the "surface_vertices_numbers" to "surface_vertices.array"
 	for( var i = 3; i < 22; i++) {
-		var theta = minimum_angles[i] + capsidopenness * (TAU/2 - minimum_angles[i]);
+		var theta = minimum_angles[i] + openness * (TAU/2 - minimum_angles[i]);
 		
 		var a_index = vertices_derivations[i][0];
 		var b_index = vertices_derivations[i][1];
@@ -93,7 +122,7 @@ function HandleCapsidOpenness(openness, vertices_numbers) {
 			crossbar_unit.x * C_hinge_origin_length,
 			crossbar_unit.y * C_hinge_origin_length,
 			crossbar_unit.z * C_hinge_origin_length);
-		
+			
 		var C_hinge_unit = new THREE.Vector3();
 		C_hinge_unit.subVectors( C, C_hinge_origin);
 		C_hinge_unit.normalize();
@@ -114,6 +143,7 @@ function HandleCapsidOpenness(openness, vertices_numbers) {
 		vertices_numbers[ i * 3 + 0] = final_vector.x;
 		vertices_numbers[ i * 3 + 1] = final_vector.y;
 		vertices_numbers[ i * 3 + 2] = final_vector.z;
+		
+		logged = 1;
 	}
-	console.log(polyhedron_vertices.array);
 }

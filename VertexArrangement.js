@@ -21,13 +21,36 @@ function correct_defects() {
 }
 
 //we're going to assume the net is sorted.
-function update_polyhedron(vertex_tobechanged) {
+function update_polyhedron(vertex_tobechanged, initial_changed_vertex) {
 	//update that one vertex
 	{
-		//it's triangle 1 and 2 (array indices) in the V diagram
-		var o_index;
-		var a_index;
-		var b_index;
+		var Vmode;
+		if( initial_changed_vertex === vertex_tobechanged)
+			Vmode = CORE;
+		else
+			Vmode = ASSOCIATED;
+		
+		var o_index = V_vertex_indices[Vmode][initial_changed_vertex][4];
+		var a_index = V_vertex_indices[Vmode][initial_changed_vertex][3];
+		var b_index = V_vertex_indices[Vmode][initial_changed_vertex][7];
+		
+		//it's triangle 1 and 2 (array indices) in the V diagram		
+		var c_side = new THREE.Vector3(
+			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][5] * 3 + 0]	-	flatnet_vertices.array[o_index * 3 + 0],
+			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][5] * 3 + 1]	-	flatnet_vertices.array[o_index * 3 + 1],
+			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][5] * 3 + 2]	-	flatnet_vertices.array[o_index * 3 + 2] );
+		var a_side = new THREE.Vector3(
+			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][5] * 3 + 0]	-	flatnet_vertices.array[a_index * 3 + 0],
+			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][5] * 3 + 1]	-	flatnet_vertices.array[a_index * 3 + 1],
+			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][5] * 3 + 2]	-	flatnet_vertices.array[a_index * 3 + 2] );
+		var b_side = new THREE.Vector3(
+			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][8] * 3 + 0]	-	flatnet_vertices.array[b_index * 3 + 0],
+			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][8] * 3 + 1]	-	flatnet_vertices.array[b_index * 3 + 1],
+			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][8] * 3 + 2]	-	flatnet_vertices.array[b_index * 3 + 2] );
+			
+		var right_sidelength = b_side.length();
+		var left_sidelength = a_side.length();
+		var c_sidelength = c_side.length();
 		
 		var op = new THREE.Vector3(
 			polyhedron_vertices.array[o_index * 3 + 0],
@@ -41,13 +64,11 @@ function update_polyhedron(vertex_tobechanged) {
 			polyhedron_vertices.array[b_index * 3 + 0],
 			polyhedron_vertices.array[b_index * 3 + 1],
 			polyhedron_vertices.array[b_index * 3 + 2] );
-			
-		var right_sidelength = 666;
-		var left_sidelength = 666; //something from the triangles on the V diagram
 		
 		var ap_to_bp = new THREE.Vector3();
 		ap_to_bp.subVectors(bp,ap);
-		crosslength = ap_to_bp.length();
+		var crosslength = ap_to_bp.length();
+		console.log(crosslength);
 		
 		var ap_to_x1_length = (	Math.pow(left_sidelength, 2)
 							  -	Math.pow(right_sidelength, 2)
@@ -58,28 +79,28 @@ function update_polyhedron(vertex_tobechanged) {
 		var ap_to_x1 = ap_to_bp.clone();
 		ap_to_x1.normalize();
 		ap_to_x1.multiplyScalar(ap_to_x1_length);
-		x1.addVectors(a_p, ap_to_x1);
+		x1.addVectors(ap, ap_to_x1);
 		
-		h1 = Math.sqrt(Math.pow(left_sidelength,2) + ap_to_x1_length);
+		h1 = Math.sqrt(Math.pow(left_sidelength,2) - Math.pow(ap_to_x1_length,2));
 		
 		var xo = new THREE.Vector3();
 		xo.subVectors(x1, op);
 		
-		var costheta =	( Math.pow( c_sidelength, 2)
-						- Math.pow(h1, 2)
-						- Math.pow(xo.length()) )
+		var costheta =	( Math.pow( h1, 2)
+						+ Math.pow(xo.length(), 2)
+						- Math.pow(c_sidelength, 2) )
 						/ (2*h1*xo.length());
-		
-		var x2_subtraction = xo.clone();
-		x2_subtraction.normalize();
-		x2_subtraction.multiplyScalar(h1*costheta);
+						
+		var xo_to_x2 = xo.clone();
+		xo_to_x2.normalize();
+		xo_to_x2.multiplyScalar(-costheta * h1);
 		var x2 = new THREE.Vector3();
-		x2.subVectors(xo, x2_subtraction);
+		x2.addVectors(xo, xo_to_x2);
 		
-		var h2 = Math.sqrt(h1*h1- Math.pow( Math.abs(x2.length() - x1.length() ),2));
+		var h2 = Math.sqrt(h1*h1 - Math.pow( xo_to_x2.length(),2));
 		
-		var b_relative = THREE.Vector3();
-		var a_relative = THREE.Vector3();		
+		var a_relative = new THREE.Vector3();
+		var b_relative = new THREE.Vector3();		
 		a_relative.subVectors(ap,op);
 		b_relative.subVectors(bp,op);
 		var upward_vector = new THREE.Vector3();
@@ -91,6 +112,18 @@ function update_polyhedron(vertex_tobechanged) {
 		cp.addVectors(x2, upward_vector);
 		cp.add(op);
 		
+		//if(Vmode === ASSOCIATED && !(cp.x < 1000)) console.log(); //there *appears* to be a problem with moving vertex 0 towards vertex 14. Also minimum angles are screwed.
+		
+		var polyhedron_edge = new THREE.Vector3(
+			polyhedron_vertices.array[vertex_tobechanged * 3 + 0] - polyhedron_vertices.array[o_index * 3 + 0],
+			polyhedron_vertices.array[vertex_tobechanged * 3 + 1] - polyhedron_vertices.array[o_index * 3 + 1],
+			polyhedron_vertices.array[vertex_tobechanged * 3 + 2] - polyhedron_vertices.array[o_index * 3 + 2] );
+		var net_edge = new THREE.Vector3(
+			flatnet_vertices.array[vertex_tobechanged * 3 + 0] - flatnet_vertices.array[o_index * 3 + 0],
+			flatnet_vertices.array[vertex_tobechanged * 3 + 1] - flatnet_vertices.array[o_index * 3 + 1],
+			flatnet_vertices.array[vertex_tobechanged * 3 + 2] - flatnet_vertices.array[o_index * 3 + 2] );
+		//console.log(net_edge.length() - polyhedron_edge.length()); //rubbish
+		
 		for( var i = 0; i < 22; i++) {
 			if(vertex_identifications[vertex_tobechanged][i]) {
 				polyhedron_vertices.array[i * 3 + 0] = cp.x;
@@ -99,14 +132,16 @@ function update_polyhedron(vertex_tobechanged) {
 		}
 	}
 	
+	polyhedron_vertices.needsUpdate = true;
+	
 	//now we need to get the minimum angles
 	{
 		for( var d_index = 3; d_index < 22; d_index++) {
 			var theta = minimum_angles[i] + capsidopenness * (TAU/2 - minimum_angles[i]);
 			
-			var a_index = vertices_derivations[i][0];
-			var b_index = vertices_derivations[i][1];
-			var c_index = vertices_derivations[i][2];
+			var a_index = vertices_derivations[d_index][0];
+			var b_index = vertices_derivations[d_index][1];
+			var c_index = vertices_derivations[d_index][2];
 			
 			var a_p = new THREE.Vector3(
 				polyhedron_vertices.array[a_index * 3 + 0],
@@ -126,12 +161,12 @@ function update_polyhedron(vertex_tobechanged) {
 				polyhedron_vertices.array[d_index * 3 + 2] );
 				
 			var a_to_b = new THREE.Vector3();
-			a_to_b.subVectors(b,a);
+			a_to_b.subVectors(b_p,a_p);
 			
 			var c_a = new THREE.Vector3();
 			var d_a = new THREE.Vector3();
-			c_a.subVectors(c,a);
-			d_a.subVectors(d,a);
+			c_a.subVectors(c_p,a_p);
+			d_a.subVectors(d_p,a_p);
 			
 			var c_hinge_origin = c_a.clone();
 			var d_hinge_origin = d_a.clone();			
@@ -143,10 +178,9 @@ function update_polyhedron(vertex_tobechanged) {
 			d_hinge.subVectors(d_a,d_hinge_origin);
 			c_hinge.subVectors(c_a,c_hinge_origin);
 			
-			minimum_angles(d_index) = Math.acos( d_hinge.dot(c_hinge) / c_hinge.length() / d_hinge.length() );
+			minimum_angles[d_index] = Math.acos( d_hinge.dot(c_hinge) / c_hinge.length() / d_hinge.length() );
 		}
 	}
-	polyhedron_vertices.needsUpdate = true;
 }
 
 function move_vertices(vertex_tobechanged, starting_movement_vector, initial_changed_vertex)
@@ -311,33 +345,29 @@ function update_surface() {
 
 function HandleVertexRearrangement() {
 	var movement_vector = new THREE.Vector2(0,0);
-	
 	if( isMouseDown ) {
 		if( vertex_tobechanged === 666) {
 			var lowest_quadrance_so_far = 10;
 			var closest_vertex_so_far = 666;
 			for( var i = 0; i < 22; i++) {
-				var quadrance = (flatnet_vertices.array[i*3+0] - MousePosition.x) * (flatnet_vertices.array[i*3+0] - MousePosition.x)
-								+ (flatnet_vertices.array[i*3+1] - MousePosition.y) * (flatnet_vertices.array[i*3+0] - MousePosition.y);
+				var quadrance = (flatnet_vertices.array[i*3+0] - (MousePosition.x+5)) * (flatnet_vertices.array[i*3+0] - (MousePosition.x+5))
+								+ (flatnet_vertices.array[i*3+1] - MousePosition.y) * (flatnet_vertices.array[i*3+1] - MousePosition.y);
 				if( quadrance < lowest_quadrance_so_far) {
 					lowest_quadrance_so_far = quadrance;
 					closest_vertex_so_far = i;
 				}
 			}
 			
-			var maximum_quadrance_to_be_selected = 0.1;
+			var maximum_quadrance_to_be_selected = 0.005;
 			if( lowest_quadrance_so_far < maximum_quadrance_to_be_selected) {
 				vertex_tobechanged = closest_vertex_so_far;
 			}
 		}
 		
 		if( vertex_tobechanged !== 666) {
-			movement_vector.x = MousePosition.x - flatnet_vertices.array[vertex_tobechanged * 3 + 0];
+			movement_vector.x = (MousePosition.x+5) - flatnet_vertices.array[vertex_tobechanged * 3 + 0];
 			movement_vector.y = MousePosition.y - flatnet_vertices.array[vertex_tobechanged * 3 + 1];
 		}
-		// movement_vector.x = 0.01 * HS3;
-		// movement_vector.y = -0.01 * 0.5;
-		// vertex_tobechanged = 0;
 	}
 	else {		
 		vertex_tobechanged = 666;
@@ -345,7 +375,7 @@ function HandleVertexRearrangement() {
 	
 	if( vertex_tobechanged === 666 || (movement_vector.x === 0 && movement_vector.y === 0) )
 		return;
-
+	
 	//log the current positions
 	var net_log = new Array(66);
 	for( var i = 0; i < 66; i++)
@@ -407,8 +437,6 @@ function HandleVertexRearrangement() {
 		else
 			side_AdditionToUltimate = vector_from_bearing(prev_vector, side_Vector.length(), TAU*5/6 - W_surrounding_angles[i-1]);
 		
-		//if(!logged)console.log(side_AdditionToUltimate);
-		
 		ultimate_vector.add(side_AdditionToUltimate);
 		
 		prev_vector = side_AdditionToUltimate.clone();
@@ -421,6 +449,7 @@ function HandleVertexRearrangement() {
 	//console.log(ultimate_vector);
 	
 	move_vertices(vertex_tobechanged, movement_vector, vertex_tobechanged);
+	//return;
 	
 	var left_defect = new THREE.Vector2(
 		flatnet_vertices.array[     3 * vertex_tobechanged ],
@@ -454,8 +483,10 @@ function HandleVertexRearrangement() {
 	if(!correct_defects()) {
 		for( var i = 0; i < 66; i++)
 			flatnet_vertices.array[i] = net_log[i];
+		return;
 	}		
 	
-	update_polyhedron();	
+	update_polyhedron(vertex_tobechanged, vertex_tobechanged);
+	update_polyhedron(right_defect_index, vertex_tobechanged);
 	flatnet_vertices.needsUpdate = true;
 }

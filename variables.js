@@ -1,9 +1,10 @@
-
 //--------------Fundamental shit
 var scene = new THREE.Scene();
-var window_width = 600, window_height = 600;
+var window_width = 1200, window_height = 600;
 
-var camera = new THREE.PerspectiveCamera( 75, window_width / window_height, 0.1, 1000 );
+//var camera = new THREE.PerspectiveCamera( 75, window_width / window_height, 0.1, 1000 );
+var orthographic_cuboid_width = 16;
+var camera = new THREE.OrthographicCamera( orthographic_cuboid_width / -2, orthographic_cuboid_width / 2, orthographic_cuboid_width / 4, orthographic_cuboid_width / -4, 0.1, 1000 );
 camera.position.z = 5;
 var renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize( window_width, window_height );
@@ -20,10 +21,9 @@ var PHI = (Math.sqrt(5) + 1) / 2;
 var TAU = Math.PI * 2;
 
 var capsidopenness = 1;
+var capsidclock = 0;
 
 var logged = 0;
-
-//still have yet to experiment with the sending of the arrays.
 
 //-----------not just constants
 var net_triangle_vertex_indices;

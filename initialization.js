@@ -1,4 +1,37 @@
 function init() {
+	vertices_derivations = new Array(
+		[666,666,666],
+		[666,666,666],
+		[666,666,666],
+		
+		[2,1,0],
+		[2,3,1],
+		[4,3,2],
+		
+		[0,2,1],
+		[6,2,0],
+		[6,7,2],
+		[8,7,6],
+		
+		[0,6,2],
+		[10,6,0],
+		[10,11,6],
+		[12,11,10],
+		
+		[0,10,6],
+		[14,10,0],
+		[14,15,10],
+		[16,15,14],
+		
+		[0,14,10],
+		[18,14,0],
+		[18,19,14],
+		[20,19,18]);
+		
+	var default_minimum_angle = 2 * Math.atan(PHI/(PHI-1));
+	for( var i = 0; i < 22 * 3; i++ )
+		minimum_angles[i] = default_minimum_angle;
+		
 	flatnet_vertices_numbers = new Float32Array([
 		0,0,0,
 		HS3,-0.5,0,
@@ -33,45 +66,11 @@ function init() {
 		surface_vertices_numbers[i] = flatnet_vertices_numbers[i];
 	
 	//polyhedron_vertices_numbers[i] = surface_vertices_numbers[i];
-	polyhedron_vertices_numbers = new Float32Array(22 * 3);
-	
+	polyhedron_vertices_numbers = new Float32Array(22 * 3);	
 	for( var i = 0; i < 3 * 3; i++)
 		polyhedron_vertices_numbers[i] = surface_vertices_numbers[i];	
-	//HandleCapsidOpenness(0, polyhedron_vertices_numbers);
+	deduce_surface(0, polyhedron_vertices_numbers);
 	
-	var default_minimum_angle = 2 * Math.atan(PHI/(PHI-1));
-	for( var i = 0; i < 22 * 3; i++ )
-		minimum_angles[i] = default_minimum_angle;
-	
-	vertices_derivations = new Array(
-		[666,666,666],
-		[666,666,666],
-		[666,666,666],
-		
-		[2,1,0],
-		[2,3,1],
-		[4,3,2],
-		
-		[0,2,1],
-		[6,2,0],
-		[6,7,2],
-		[8,7,6],
-		
-		[0,6,2],
-		[10,6,0],
-		[10,11,6],
-		[12,11,10],
-		
-		[0,10,6],
-		[14,10,0],
-		[14,15,10],
-		[16,15,14],
-		
-		[0,14,10],
-		[18,14,0],
-		[18,19,14],
-		[20,19,18]);
-
 	net_triangle_vertex_indices = new Uint16Array([
 		2,1,0,
 		1,2,3,
@@ -116,16 +115,6 @@ function init() {
 		});
 		
 		
-		surface_vertices = new THREE.BufferAttribute( surface_vertices_numbers, 3 ); //note the 3 means 3 numbers to a vector, not three vectors to a triangle
-		
-		surface_geometry = new THREE.BufferGeometry();
-		surface_geometry.addAttribute( 'position', surface_vertices );
-		surface_geometry.addAttribute( 'index', new THREE.BufferAttribute( line_index_pairs, 1 ) ); //allowed to put that in there?
-
-		surface = new THREE.Line( surface_geometry, material1, THREE.LinePieces );
-		surface.position.x = 1;
-		scene.add(surface);
-		
 		flatnet_vertices = new THREE.BufferAttribute( flatnet_vertices_numbers, 3 );
 		
 		flatnet_geometry = new THREE.BufferGeometry();
@@ -133,7 +122,17 @@ function init() {
 		flatnet_geometry.addAttribute( 'index', new THREE.BufferAttribute( line_index_pairs, 1 ) ); //allowed to put that in there?
 
 		flatnet = new THREE.Line( flatnet_geometry, material1, THREE.LinePieces );
-		//scene.add(flatnet);
+		flatnet.position.x = -5;
+		scene.add(flatnet);
+		
+		surface_vertices = new THREE.BufferAttribute( surface_vertices_numbers, 3 ); //note the 3 means 3 numbers to a vector, not three vectors to a triangle
+		
+		surface_geometry = new THREE.BufferGeometry();
+		surface_geometry.addAttribute( 'position', surface_vertices );
+		surface_geometry.addAttribute( 'index', new THREE.BufferAttribute( line_index_pairs, 1 ) ); //allowed to put that in there?
+
+		surface = new THREE.Line( surface_geometry, material1, THREE.LinePieces );
+		//scene.add(surface);
 		
 		polyhedron_vertices = new THREE.BufferAttribute( polyhedron_vertices_numbers, 3 );
 		
@@ -142,8 +141,8 @@ function init() {
 		polyhedron_geometry.addAttribute( 'index', new THREE.BufferAttribute( line_index_pairs, 1 ) ); //allowed to put that in there?
 
 		polyhedron = new THREE.Line( polyhedron_geometry, material1, THREE.LinePieces );
-		scene.add(polyhedron);
-		
+		polyhedron.position.x = 5;
+		scene.add(polyhedron);		
 		
 		var material2 = new THREE.MeshBasicMaterial({
 			color: 0xff00ff
