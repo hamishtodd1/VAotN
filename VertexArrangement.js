@@ -68,7 +68,6 @@ function update_polyhedron(vertex_tobechanged, initial_changed_vertex) {
 		var ap_to_bp = new THREE.Vector3();
 		ap_to_bp.subVectors(bp,ap);
 		var crosslength = ap_to_bp.length();
-		console.log(crosslength);
 		
 		var ap_to_x1_length = (	Math.pow(left_sidelength, 2)
 							  -	Math.pow(right_sidelength, 2)
@@ -310,6 +309,8 @@ function move_vertices(vertex_tobechanged, starting_movement_vector, initial_cha
 			}
 		}
 	}
+	
+	flatnet_vertices.needsUpdate = true;
 }
 
 function corner_angle_from_indices(triangle_index, corner_vertex_index) {
@@ -446,10 +447,9 @@ function HandleVertexRearrangement() {
 		if( i === 5 ) finalside_absolute = side_Vector.clone(); //absolute in the sense of it being a side
 		if( i === 5 ) ultimate_vector_absolute = corner2.clone();
 	}
-	//console.log(ultimate_vector);
+	console.log(ultimate_vector); //the first arm is fine, at least
 	
-	move_vertices(vertex_tobechanged, movement_vector, vertex_tobechanged);
-	//return;
+	//move_vertices(vertex_tobechanged, movement_vector, vertex_tobechanged);
 	
 	var left_defect = new THREE.Vector2(
 		flatnet_vertices.array[     3 * vertex_tobechanged ],
@@ -480,13 +480,12 @@ function HandleVertexRearrangement() {
 		
 	move_vertices(right_defect_index, imposed_movement_vector, vertex_tobechanged);
 	
-	if(!correct_defects()) {
-		for( var i = 0; i < 66; i++)
-			flatnet_vertices.array[i] = net_log[i];
-		return;
-	}		
+	// if(!correct_defects()) {
+		// for( var i = 0; i < 66; i++)
+			// flatnet_vertices.array[i] = net_log[i];
+		// return;
+	// }		
 	
 	update_polyhedron(vertex_tobechanged, vertex_tobechanged);
 	update_polyhedron(right_defect_index, vertex_tobechanged);
-	flatnet_vertices.needsUpdate = true;
 }
