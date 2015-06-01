@@ -93,6 +93,7 @@ function update_polyhedron(vertex_tobechanged, initial_changed_vertex) {
 		var xo_to_x2 = xo.clone();
 		xo_to_x2.normalize();
 		xo_to_x2.multiplyScalar(-costheta * h1);
+		
 		var x2 = new THREE.Vector3();
 		x2.addVectors(xo, xo_to_x2);
 		
@@ -111,24 +112,26 @@ function update_polyhedron(vertex_tobechanged, initial_changed_vertex) {
 		cp.addVectors(x2, upward_vector);
 		cp.add(op);
 		
-		//if(Vmode === ASSOCIATED && !(cp.x < 1000)) console.log(); //there *appears* to be a problem with moving vertex 0 towards vertex 14. Also minimum angles are screwed.
-		
-		var polyhedron_edge = new THREE.Vector3(
-			polyhedron_vertices.array[vertex_tobechanged * 3 + 0] - polyhedron_vertices.array[o_index * 3 + 0],
-			polyhedron_vertices.array[vertex_tobechanged * 3 + 1] - polyhedron_vertices.array[o_index * 3 + 1],
-			polyhedron_vertices.array[vertex_tobechanged * 3 + 2] - polyhedron_vertices.array[o_index * 3 + 2] );
-		var net_edge = new THREE.Vector3(
-			flatnet_vertices.array[vertex_tobechanged * 3 + 0] - flatnet_vertices.array[o_index * 3 + 0],
-			flatnet_vertices.array[vertex_tobechanged * 3 + 1] - flatnet_vertices.array[o_index * 3 + 1],
-			flatnet_vertices.array[vertex_tobechanged * 3 + 2] - flatnet_vertices.array[o_index * 3 + 2] );
-		//console.log(net_edge.length() - polyhedron_edge.length()); //rubbish
-		
 		for( var i = 0; i < 22; i++) {
 			if(vertex_identifications[vertex_tobechanged][i]) {
 				polyhedron_vertices.array[i * 3 + 0] = cp.x;
 				polyhedron_vertices.array[i * 3 + 1] = cp.y;
 			}
 		}
+		
+		//if(Vmode === ASSOCIATED && !(cp.x < 1000)) console.log(); //there *appears* to be a problem with moving vertex 0 towards vertex 14. Also minimum angles are screwed.
+		
+		//you were silly to think that the second triangle is perpendicular to the first
+		
+		var op_to_cp = new THREE.Vector3();
+		op_to_cp.subVectors(cp,op);
+		var ap_to_cp = new THREE.Vector3();
+		ap_to_cp.subVectors(cp, ap);
+		var bp_to_cp = new THREE.Vector3();
+		bp_to_cp.subVectors(cp, bp);
+		//console.log(ap_to_cp.length() - left_sidelength, bp_to_cp.length() - right_sidelength); //cp is fine, ap and bp get pretty bad
+		//an idea: get the triangles from the net, compare them to the triangles on the polyhedron
+		//make sure left_sidelength and right_sidelength accord!
 	}
 	
 	polyhedron_vertices.needsUpdate = true;
@@ -447,9 +450,9 @@ function HandleVertexRearrangement() {
 		if( i === 5 ) finalside_absolute = side_Vector.clone(); //absolute in the sense of it being a side
 		if( i === 5 ) ultimate_vector_absolute = corner2.clone();
 	}
-	console.log(ultimate_vector); //the first arm is fine, at least
+	//console.log(ultimate_vector); //the first arm is fine, at least
 	
-	//move_vertices(vertex_tobechanged, movement_vector, vertex_tobechanged);
+	move_vertices(vertex_tobechanged, movement_vector, vertex_tobechanged);
 	
 	var left_defect = new THREE.Vector2(
 		flatnet_vertices.array[     3 * vertex_tobechanged ],
