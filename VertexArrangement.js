@@ -35,10 +35,6 @@ function update_polyhedron(vertex_tobechanged, initial_changed_vertex) {
 		var b_index = V_vertex_indices[Vmode][initial_changed_vertex][7];
 		
 		//it's triangle 1 and 2 (array indices) in the V diagram		
-		var c_side = new THREE.Vector3(
-			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][5] * 3 + 0]	-	flatnet_vertices.array[o_index * 3 + 0],
-			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][5] * 3 + 1]	-	flatnet_vertices.array[o_index * 3 + 1],
-			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][5] * 3 + 2]	-	flatnet_vertices.array[o_index * 3 + 2] );
 		var a_side = new THREE.Vector3(
 			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][5] * 3 + 0]	-	flatnet_vertices.array[a_index * 3 + 0],
 			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][5] * 3 + 1]	-	flatnet_vertices.array[a_index * 3 + 1],
@@ -47,10 +43,17 @@ function update_polyhedron(vertex_tobechanged, initial_changed_vertex) {
 			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][8] * 3 + 0]	-	flatnet_vertices.array[b_index * 3 + 0],
 			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][8] * 3 + 1]	-	flatnet_vertices.array[b_index * 3 + 1],
 			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][8] * 3 + 2]	-	flatnet_vertices.array[b_index * 3 + 2] );
+		var c_side = new THREE.Vector3(
+			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][5] * 3 + 0]	-	flatnet_vertices.array[o_index * 3 + 0],
+			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][5] * 3 + 1]	-	flatnet_vertices.array[o_index * 3 + 1],
+			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][5] * 3 + 2]	-	flatnet_vertices.array[o_index * 3 + 2] );
 			
-		var right_sidelength = b_side.length();
-		var left_sidelength = a_side.length();
-		var c_sidelength = c_side.length();
+		var l_a = a_side.length();
+		var l_b = b_side.length();
+		var l_c = c_side.length();
+		
+		var a_angle = corner_angle_from_indices(V_triangle_indices[Vmode][initial_changed_vertex][1], V_vertex_indices[Vmode][initial_changed_vertex][4]);
+		var b_angle = corner_angle_from_indices(V_triangle_indices[Vmode][initial_changed_vertex][2], V_vertex_indices[Vmode][initial_changed_vertex][6]);
 		
 		var op = new THREE.Vector3(
 			polyhedron_vertices.array[o_index * 3 + 0],
@@ -64,48 +67,64 @@ function update_polyhedron(vertex_tobechanged, initial_changed_vertex) {
 			polyhedron_vertices.array[b_index * 3 + 0],
 			polyhedron_vertices.array[b_index * 3 + 1],
 			polyhedron_vertices.array[b_index * 3 + 2] );
+			
+		var upward_vector = new THREE.Vector3();
+		upward_vector.crossVectors(bp,ap);
+		upward_vector.normalize();
+		
+		ap.sub(op);
+		bp.sub(op);
+		var a_unit = ap.clone();
+		var b_unit = bp.clone();
+		a_unit.normalize();
+		b_unit.normalize();
+		var ap_bp_angle = Math.acos(a_unit.dot(b_unit));
 		
 		var ap_to_bp = new THREE.Vector3();
 		ap_to_bp.subVectors(bp,ap);
+		var ap_to_bp_unit = ap_to_bp.clone();
+		ap_to_bp_unit.normalize();
 		var crosslength = ap_to_bp.length();
 		
-		var ap_to_x1_length = (	Math.pow(left_sidelength, 2)
-							  -	Math.pow(right_sidelength, 2)
-							  + Math.pow(crosslength, 2) )
-							  / (2*crosslength);
+		var conecenter_to_steeringvector_length = Math.tan(TAU/4-ap_bp_angle)*(Math.cos(a_angle)/Math.cos(ap_bp_angle) - Math.cos(a_angle));
+		var conecenter_to_steeringvector = new THREE.Vector3();
+		conecenter_to_steeringvector.crossVectors(a_unit,upward_vector);
+		conecenter_to_steeringvector.multiplyScalar(conecenter_to_steeringvector_length);
+		var steeringvector = a_unit.clone();
+		steeringvector.multiplyScalar(Math.cos(a_angle));
+		steeringvector.add(conecenter_to_steeringvector);
+		steeringvector.normalize();
+		
+		var angle_1 = Math.acos(a_unit.dot(steeringvector));
+		var angle_2 = Math.acos(-ap_to_bp_unit.dot(a_unit));
+		var angle_3 = TAU/2 - angle_1 - angle_2;
+		var ap_to_x1_length = Math.sin(angle_1) * ap.length() / Math.sin(angle_3);
+		console.log(a_unit); //problem with angle 1, not 2.
 							  
 		var x1 = new THREE.Vector3();
-		var ap_to_x1 = ap_to_bp.clone();
-		ap_to_x1.normalize();
+		var ap_to_x1 = ap_to_bp_unit.clone();
 		ap_to_x1.multiplyScalar(ap_to_x1_length);
 		x1.addVectors(ap, ap_to_x1);
 		
-		h1 = Math.sqrt(Math.pow(left_sidelength,2) - Math.pow(ap_to_x1_length,2));
+		var cospsi = ( l_a*l_a + crosslength*crosslength - l_b*l_b ) / (2*l_a*crosslength);
 		
-		var xo = new THREE.Vector3();
-		xo.subVectors(x1, op);
+		var h1_squared = l_a*l_a + Math.pow(ap_to_x1_length,2) - 2 * l_a * ap_to_x1_length * cospsi;
+		var h1 = Math.sqrt(h1_squared);
 		
-		var costheta =	( Math.pow( h1, 2)
-						+ Math.pow(xo.length(), 2)
-						- Math.pow(c_sidelength, 2) )
-						/ (2*h1*xo.length());
-						
-		var xo_to_x2 = xo.clone();
-		xo_to_x2.normalize();
-		xo_to_x2.multiplyScalar(-costheta * h1);
+		var cos_recline = 	( h1_squared
+							+ x1.lengthSq()
+							- l_a*l_a )
+							/ (2*h1*x1.length());
 		
-		var x2 = new THREE.Vector3();
-		x2.addVectors(xo, xo_to_x2);
+		var x_addition = x1.clone();
+		x_addition.normalize();
+		x_addition.multiplyScalar(-h1 * cos_recline);
 		
-		var h2 = Math.sqrt(h1*h1 - Math.pow( xo_to_x2.length(),2));
+		var x2 = x1.clone();
+		x2.add(x_addition);
 		
-		var a_relative = new THREE.Vector3();
-		var b_relative = new THREE.Vector3();		
-		a_relative.subVectors(ap,op);
-		b_relative.subVectors(bp,op);
-		var upward_vector = new THREE.Vector3();
-		upward_vector.crossVectors(b_relative, a_relative);
-		upward_vector.normalize();
+		var h2 = Math.sqrt(h1_squared - x_addition.lengthSq());
+		
 		upward_vector.multiplyScalar(h2);
 		
 		var cp = new THREE.Vector3();
@@ -116,12 +135,11 @@ function update_polyhedron(vertex_tobechanged, initial_changed_vertex) {
 			if(vertex_identifications[vertex_tobechanged][i]) {
 				polyhedron_vertices.array[i * 3 + 0] = cp.x;
 				polyhedron_vertices.array[i * 3 + 1] = cp.y;
+				polyhedron_vertices.array[i * 3 + 2] = cp.z;
 			}
 		}
 		
 		//if(Vmode === ASSOCIATED && !(cp.x < 1000)) console.log(); //there *appears* to be a problem with moving vertex 0 towards vertex 14. Also minimum angles are screwed.
-		
-		//you were silly to think that the second triangle is perpendicular to the first
 		
 		var op_to_cp = new THREE.Vector3();
 		op_to_cp.subVectors(cp,op);
