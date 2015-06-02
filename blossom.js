@@ -142,8 +142,6 @@ function deduce_surface(openness, vertices_numbers) {
 		
 		vertices_numbers[ i * 3 + 0] = final_vector.x;
 		vertices_numbers[ i * 3 + 1] = final_vector.y;
-		vertices_numbers[ i * 3 + 2] = final_vector.z;
-		
-		logged = 1;
+		vertices_numbers[ i * 3 + 2] = final_vector.z
 	}
 }

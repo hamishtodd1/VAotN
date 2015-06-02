@@ -132,7 +132,7 @@ function init() {
 		surface_geometry.addAttribute( 'index', new THREE.BufferAttribute( line_index_pairs, 1 ) ); //allowed to put that in there?
 
 		surface = new THREE.Line( surface_geometry, material1, THREE.LinePieces );
-		//scene.add(surface);
+		scene.add(surface);
 		
 		polyhedron_vertices = new THREE.BufferAttribute( polyhedron_vertices_numbers, 3 );
 		
@@ -156,24 +156,24 @@ function init() {
 	}
 	
 	//---------------------------------------------------Vertex Rearrangement stuff
-	associated_vertices = Array(
+	associated_vertices = Array( //where there is a choice of index, you must have the version of the vertex in the 5th triangle of the W
 		1,
 		0,
 		
-		4, //you could also have 7 here, it doesn't matter as 4 and 7 are identified
-		1,
+		7,
+		18,
 		2,
-		15,
+		12,
 		
-		8,
+		11,
 		2,
 		6,
-		19,
+		16,
 		
-		12,
+		15,
 		6,
 		10,
-		3,
+		20,
 		
 		19,
 		10,
@@ -182,7 +182,7 @@ function init() {
 		
 		3,
 		14,
-		1,
+		18,
 		8
 		);
 	
@@ -229,8 +229,7 @@ function init() {
 			if( vertex_identifications[i][j] != 0 )
 				vertex_identifications[j][i] = -vertex_identifications[i][j];
 		}
-	}
-	
+	}	
 	
 	W_triangle_indices = Array(
 		[4,8,12,17,18,1,	16,0], //the last numbers are the central triangle and the top triangle. The top is only to help the V's, so no vertices needed
@@ -287,7 +286,7 @@ function init() {
 						vertex_identifications[associated_vertex][next_vertex_index] !== 0
 					   ) {
 						W_vertex_indices[vertex_tobechanged][triangle_index_in_W * 2] = net_triangle_vertex_indices[triangle*3 + (i+2)%3 ];
-						W_vertex_indices[vertex_tobechanged][RIGHT_DEFECT] = net_triangle_vertex_indices[associated_vertex ]; //this doesn't have to be *here*, but they're side-by-side in the array, so.
+						W_vertex_indices[vertex_tobechanged][RIGHT_DEFECT] = associated_vertex; //this doesn't have to be *here*, but they're side-by-side in the array, so.
 					}
 				}
 			}
