@@ -132,7 +132,7 @@ function init() {
 		surface_geometry.addAttribute( 'index', new THREE.BufferAttribute( line_index_pairs, 1 ) ); //allowed to put that in there?
 
 		surface = new THREE.Line( surface_geometry, material1, THREE.LinePieces );
-		scene.add(surface);
+		//scene.add(surface);
 		
 		polyhedron_vertices = new THREE.BufferAttribute( polyhedron_vertices_numbers, 3 );
 		

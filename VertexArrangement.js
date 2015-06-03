@@ -31,8 +31,9 @@ function update_polyhedron(vertex_tobechanged, initial_changed_vertex) {
 			Vmode = ASSOCIATED;
 		
 		var P1_index = V_vertex_indices[Vmode][initial_changed_vertex][4];
-		var P2_index = V_vertex_indices[Vmode][initial_changed_vertex][7];
+		var P2_index = V_vertex_indices[Vmode][initial_changed_vertex][10]; //P2 could also be 9.
 		var P3_index = V_vertex_indices[Vmode][initial_changed_vertex][3];
+		var P4_index = V_vertex_indices[Vmode][initial_changed_vertex][9];
 		
 		//it's triangle 1 and 2 (array indices) in the V diagram		
 		var P1_side_net = new THREE.Vector3(
@@ -40,17 +41,22 @@ function update_polyhedron(vertex_tobechanged, initial_changed_vertex) {
 			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][5] * 3 + 1]	-	flatnet_vertices.array[P1_index * 3 + 1],
 			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][5] * 3 + 2]	-	flatnet_vertices.array[P1_index * 3 + 2] );
 		var P2_side_net = new THREE.Vector3(
-			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][8] * 3 + 0]	-	flatnet_vertices.array[P2_index * 3 + 0],
-			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][8] * 3 + 1]	-	flatnet_vertices.array[P2_index * 3 + 1],
-			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][8] * 3 + 2]	-	flatnet_vertices.array[P2_index * 3 + 2] );
+			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][11] * 3 + 0]	-	flatnet_vertices.array[P2_index * 3 + 0],
+			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][11] * 3 + 1]	-	flatnet_vertices.array[P2_index * 3 + 1],
+			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][11] * 3 + 2]	-	flatnet_vertices.array[P2_index * 3 + 2] );
 		var P3_side_net = new THREE.Vector3(
 			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][5] * 3 + 0]	-	flatnet_vertices.array[P3_index * 3 + 0],
 			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][5] * 3 + 1]	-	flatnet_vertices.array[P3_index * 3 + 1],
 			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][5] * 3 + 2]	-	flatnet_vertices.array[P3_index * 3 + 2] );
+		var P4_side_net = new THREE.Vector3(
+			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][11] * 3 + 0]	-	flatnet_vertices.array[P4_index * 3 + 0],
+			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][11] * 3 + 1]	-	flatnet_vertices.array[P4_index * 3 + 1],
+			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][11] * 3 + 2]	-	flatnet_vertices.array[P4_index * 3 + 2] );
 			
 		var r1 = P1_side_net.length();
 		var r2 = P2_side_net.length();
 		var r3 = P3_side_net.length();
+		var r4 = P4_side_net.length();
 		
 		var P1 = new THREE.Vector3(
 			polyhedron_vertices.array[P1_index * 3 + 0],
@@ -64,6 +70,10 @@ function update_polyhedron(vertex_tobechanged, initial_changed_vertex) {
 			polyhedron_vertices.array[P3_index * 3 + 0],
 			polyhedron_vertices.array[P3_index * 3 + 1],
 			polyhedron_vertices.array[P3_index * 3 + 2] );
+		var P4 = new THREE.Vector3(
+			polyhedron_vertices.array[P4_index * 3 + 0],
+			polyhedron_vertices.array[P4_index * 3 + 1],
+			polyhedron_vertices.array[P4_index * 3 + 2] );
 			
 		P3.sub(P1);
 		P2.sub(P1);
@@ -73,14 +83,38 @@ function update_polyhedron(vertex_tobechanged, initial_changed_vertex) {
 		var P2_t = new THREE.Vector3(P2.length(),0,0); //r2
 		var P3_t = new THREE.Vector3(P3.length() * Math.cos(P3_P2_angle), P3.length() * Math.sin(P3_P2_angle),0);
 		
-		var cp_t = new THREE.Vector3();
+		//let's see whether there actually is a solution.
+		var circles_crossing_point = new THREE.Vector3((r2*r2-r1*r1-P2_t.x*P2_t.x)/(2*-P2_t.x),0,0);
+		circles_crossing_point.y = Math.sqrt(r1*r1 - circles_crossing_point.x * circles_crossing_point.x);
+		if(P3_t.distanceTo(circles_crossing_point) > r3 ) {
+			console.log("the sphere is too small to intersect the circle");
+			return;
+		}
+		circles_crossing_point.y = -circles_crossing_point.y;
+		if(P3_t.distanceTo(circles_crossing_point) < r3 ) {
+			console.log("the sphere is too big to intersect the circle");
+			console.log(P1_t, r1, P2_t, r2, P3_t, r3);
+			console.log(circles_crossing_point);
+			console.log(P3_t.distanceTo(circles_crossing_point));
+			console.log(P3_t.x - circles_crossing_point.x, P3_t.y - circles_crossing_point.y);
+			return;
+		}
+		
+		var cp_t = new THREE.Vector3(0,0,0);
 		cp_t.x = ( r1*r1 - r2*r2 + P2_t.x * P2_t.x ) / ( 2 * P2_t.x );
 		cp_t.y = ( r1*r1 - r3*r3 + P3_t.x * P3_t.x + P3_t.y * P3_t.y ) / ( P3_t.y * 2 ) - ( P3_t.x / P3_t.y ) * cp_t.x;
-		cp_t.z = Math.sqrt(r1*r1 - cp_t.x*cp_t.x - cp_t.y*cp_t.y);
-		//console.log(cp_t);
+		//console.log(-circles_crossing_point.y,cp_t.y,circles_crossing_point.y)
+		//console.log(cp_t.x,cp_t.y);
+		//if(r1*r1 - cp_t.x*cp_t.x - cp_t.y*cp_t.y < 0) {
+			// console.log(P1_t);
+			// console.log(P2_t);
+			// console.log(P3_t);
+			
+			// console.log(cp_t.distanceTo(P3_t) - r3); //we wish it was negative. Given the bug, we expect positive
+		//}
+		cp_t.z = Math.sqrt(r1*r1 - cp_t.x*cp_t.x - cp_t.y*cp_t.y); //this is an imaginary number is the thing, so we're to believe there's no solution
 		
 		//console.log(cp_t.distanceTo(P1_t) - r1, cp_t.distanceTo(P2_t) - r2, cp_t.distanceTo(P3_t) - r3);
-		//console.log(cp_t.distanceTo(P3_t) - r3);
 		
 		var cp = new THREE.Vector3(0,0,0);
 		
@@ -99,24 +133,20 @@ function update_polyhedron(vertex_tobechanged, initial_changed_vertex) {
 		y_direction.crossVectors(z_direction,x_direction);
 		y_direction.normalize();
 		y_direction.multiplyScalar(cp_t.y);
-		cp.add(y_direction);
-		
+		cp.add(y_direction);		
 		cp.add(P1);
 		
 		P2.add(P1);
 		P3.add(P1);
-		//console.log(cp.distanceTo(P3) - r3,cp.distanceTo(P2) - r2,cp.distanceTo(P1) - r1);
-		
-		var P4_index = V_vertex_indices[Vmode][initial_changed_vertex][10];	
-		var P4_side_net = new THREE.Vector3(
-			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][11] * 3 + 0]	-	flatnet_vertices.array[P4_index * 3 + 0],
-			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][11] * 3 + 1]	-	flatnet_vertices.array[P4_index * 3 + 1],
-			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][11] * 3 + 2]	-	flatnet_vertices.array[P4_index * 3 + 2] );
-		var P4 = new THREE.Vector3(
-			polyhedron_vertices.array[P4_index * 3 + 0],
-			polyhedron_vertices.array[P4_index * 3 + 1],
-			polyhedron_vertices.array[P4_index * 3 + 2] );
-		//console.log(cp.distanceTo(P4) - P4_side_net.length());
+		var P1toofar, P2toofar,P3toofar, P4toofar;
+		if( cp.distanceTo(P1) - r1 > 0.005 ) P1toofar = true; else P1toofar = false;
+		if( cp.distanceTo(P2) - r2 > 0.005 ) P2toofar = true; else P2toofar = false;
+		if( cp.distanceTo(P3) - r3 > 0.005 ) P3toofar = true; else P3toofar = false;
+		if( cp.distanceTo(P4) - r4 > 0.005 ) P4toofar = true; else P4toofar = false;
+		if(P1toofar) console.log("vertex " + P1_index + " dist error: " + (cp.distanceTo(P1) - r1));
+		if(P2toofar) console.log("vertex " + P2_index + " dist error: " + (cp.distanceTo(P2) - r2));
+		if(P3toofar) console.log("vertex " + P3_index + " dist error: " + (cp.distanceTo(P3) - r3));
+		if(P4toofar) console.log("vertex " + P4_index + " dist error: " + (cp.distanceTo(P4) - r4));
 		
 		//there's a lot not working here
 		//One possible option is to use different vertices around the V diagram, as it's possible that having a bunch too close together makes a small difference(not a big one though, don't get your hopes up)
@@ -495,14 +525,14 @@ function HandleVertexRearrangement() {
 		right_defect_absolute.x - flatnet_vertices.array[right_defect_index * 3 + 0 ],
 		right_defect_absolute.y - flatnet_vertices.array[right_defect_index * 3 + 1 ]);
 		
-	move_vertices(right_defect_index, imposed_movement_vector, vertex_tobechanged);
+	//move_vertices(right_defect_index, imposed_movement_vector, vertex_tobechanged);
 	
-	if(!correct_defects()) {
-		for( var i = 0; i < 66; i++)
-			flatnet_vertices.array[i] = net_log[i];
-		return;
-	}		
+	// if(!correct_defects()) {
+		// for( var i = 0; i < 66; i++)
+			// flatnet_vertices.array[i] = net_log[i];
+		// return;
+	// }		
 	
 	update_polyhedron(vertex_tobechanged, vertex_tobechanged);
-	update_polyhedron(right_defect_index, vertex_tobechanged);
+	//update_polyhedron(right_defect_index, vertex_tobechanged);
 }
