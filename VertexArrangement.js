@@ -536,13 +536,13 @@ function HandleVertexRearrangement() {
 		
 	move_vertices(right_defect_index, imposed_movement_vector, vertex_tobechanged);
 	
-	if(		!correct_defects()
-		 ||	!update_polyhedron(vertex_tobechanged, vertex_tobechanged)
-		 ||	!update_polyhedron(right_defect_index, vertex_tobechanged)
-		) {
-		for( var i = 0; i < 66; i++)
-			flatnet_vertices.array[i] = net_log[i];
-		return;
-	}
-	compare_polyhedron_with_net();
+	// if(		!correct_defects()
+		 // ||	!update_polyhedron(vertex_tobechanged, vertex_tobechanged)
+		 // ||	!update_polyhedron(right_defect_index, vertex_tobechanged)
+		// ) {
+		// for( var i = 0; i < 66; i++)
+			// flatnet_vertices.array[i] = net_log[i];
+		// return;
+	// }
+	// compare_polyhedron_with_net();
 }
