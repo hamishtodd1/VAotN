@@ -12,6 +12,31 @@ function get_angle(side1, side2) {
 	return Math.acos(get_cos(side1, side2));
 }
 
+function get_vector(index, vertex_array) {
+	var ourvector = new THREE.Vector3();
+	if(vertex_array = FLATNET) {
+		ourvector.set(
+			flatnet_vertices.array[index * 3 + 0],
+			flatnet_vertices.array[index * 3 + 1],
+			flatnet_vertices.array[index * 3 + 2] );
+		return;
+	}
+	if(vertex_array = SURFACE) {
+		ourvector.set(
+			flatnet_vertices.array[index * 3 + 0],
+			flatnet_vertices.array[index * 3 + 1],
+			flatnet_vertices.array[index * 3 + 2] );
+		return;
+	}
+	if(vertex_array = POLYHEDRON) {
+		ourvector.set(
+			flatnet_vertices.array[index * 3 + 0],
+			flatnet_vertices.array[index * 3 + 1],
+			flatnet_vertices.array[index * 3 + 2] );
+		return;
+	}
+}
+
 //a is the length of the side that is opposite the desired angle
 function get_cos_rule(a,b,c)
 {

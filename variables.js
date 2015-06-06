@@ -25,6 +25,9 @@ var capsidclock = 0;
 
 var logged = 0;
 
+var showdebugstuff = 0;
+var net_warnings = 0;
+
 //-----------not just constants
 var net_triangle_vertex_indices;
 
@@ -35,9 +38,13 @@ var flatnet_vertices_numbers;
 var flatnet_vertices;
 var flatnet_geometry;
 
+var FLATNET = 0;
+var SURFACE = 1;
+var POLYHEDRON = 2;
+
 //we need the polyhedron both to be seen and to help us get the minimum angles
 var polyhedron;
-var polyhedron_vertices_numbers;
+var polyhedron_vertices_numbers = new Float32Array(22 * 3);
 var polyhedron_vertices;
 var polyhedron_geometry;
 
@@ -47,7 +54,7 @@ var surface_vertices;
 var surface_geometry;
 
 var vertices_derivations;
-var minimum_angles = new Array(); //between these two, we derive the polyhedron and surface
+var minimum_angles = new Array(22); //between these two, we derive the polyhedron and surface
 
 var circle;
 var circleGeometry;
@@ -58,6 +65,7 @@ var W_vertex_indices = new Array();
 var W_surrounding_angles = new Float32Array([0,0,0,0,0,0]);
 var V_vertex_indices = new Array();
 var V_triangle_indices = new Array();
+var V_angles = new Array(22);
 
 var CENTRAL_TRIANGLE = 6;
 var CENTRAL_TRIANGLE_CORNER = 12;

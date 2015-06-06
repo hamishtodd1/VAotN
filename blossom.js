@@ -36,7 +36,7 @@ function HandleCapsidOpenness(openness, vertices_numbers) {
 		}
 	}
 	
-	deduce_surface(capsidopenness, surface_vertices_numbers);
+	deduce_surface(capsidopenness, surface_vertices.array);
 	
 	surface_vertices.needsUpdate = true;
 }
@@ -60,7 +60,7 @@ function deduce_surface(openness, vertices_numbers) {
 		surface_vertices_numbers[3 + 2] = surface_vertices_numbers[2] - Math.cos(theta);*/
 	}
 	
-	//TODO change all the "surface_vertices_numbers" to "surface_vertices.array"
+	//if there's a mismatch between the poly and the net, then there'll be one between the poly and the surface, because the surface is the net folded up
 	for( var i = 3; i < 22; i++) {
 		var theta = minimum_angles[i] + openness * (TAU/2 - minimum_angles[i]);
 		
@@ -74,9 +74,9 @@ function deduce_surface(openness, vertices_numbers) {
 			vertices_numbers[a_index * 3 + 2]);	
 			
 		var a_net = new THREE.Vector3( //this is our origin
-			flatnet_vertices_numbers[a_index * 3 + 0],
-			flatnet_vertices_numbers[a_index * 3 + 1],
-			flatnet_vertices_numbers[a_index * 3 + 2]);	
+			flatnet_vertices.array[a_index * 3 + 0],
+			flatnet_vertices.array[a_index * 3 + 1],
+			0);	
 		
 		var crossbar_unit = new THREE.Vector3(
 			vertices_numbers[b_index * 3 + 0],
@@ -86,62 +86,62 @@ function deduce_surface(openness, vertices_numbers) {
 		crossbar_unit.normalize();
 		
 		var net_crossbar_unit = new THREE.Vector3(
-			flatnet_vertices_numbers[b_index*3+0],
-			flatnet_vertices_numbers[b_index*3+1],
-			flatnet_vertices_numbers[b_index*3+2]);
+			flatnet_vertices.array[b_index*3+0],
+			flatnet_vertices.array[b_index*3+1],
+			0);
 		net_crossbar_unit.sub(a_net);
 		net_crossbar_unit.normalize();
 		
-		var final_vector_net = new THREE.Vector3( 
-			flatnet_vertices_numbers[i*3+0],
-			flatnet_vertices_numbers[i*3+1],
-			flatnet_vertices_numbers[i*3+2]);
-		final_vector_net.sub(a_net);
-		var final_vector_hinge_origin_length = final_vector_net.length() * get_cos( final_vector_net, net_crossbar_unit);	
+		var d_net = new THREE.Vector3( 
+			flatnet_vertices.array[i*3+0],
+			flatnet_vertices.array[i*3+1],
+			0);
+		d_net.sub(a_net);
+		var d_hinge_origin_length = d_net.length() * get_cos( d_net, net_crossbar_unit);	
 		
-		var final_vector_hinge_origin = new THREE.Vector3(
-			crossbar_unit.x * final_vector_hinge_origin_length,
-			crossbar_unit.y * final_vector_hinge_origin_length,
-			crossbar_unit.z * final_vector_hinge_origin_length);
+		var d_hinge_origin = new THREE.Vector3(
+			crossbar_unit.x * d_hinge_origin_length,
+			crossbar_unit.y * d_hinge_origin_length,
+			crossbar_unit.z * d_hinge_origin_length);
 			
-		var final_vector_hinge_origin_net = new THREE.Vector3(
-			net_crossbar_unit.x * final_vector_hinge_origin_length,
-			net_crossbar_unit.y * final_vector_hinge_origin_length,
-			net_crossbar_unit.z * final_vector_hinge_origin_length);
+		var d_hinge_origin_net = new THREE.Vector3(
+			net_crossbar_unit.x * d_hinge_origin_length,
+			net_crossbar_unit.y * d_hinge_origin_length,
+			net_crossbar_unit.z * d_hinge_origin_length);
 			
-		var final_vector_hinge_net = final_vector_net.clone();
-		final_vector_hinge_net.sub( final_vector_hinge_origin_net );
+		var d_hinge_net = d_net.clone();
+		d_hinge_net.sub( d_hinge_origin_net );
 
-		var C = new THREE.Vector3(
+		var c = new THREE.Vector3(
 			vertices_numbers[c_index * 3 + 0],
 			vertices_numbers[c_index * 3 + 1],
 			vertices_numbers[c_index * 3 + 2]);
-		C.sub(a);
-		var C_hinge_origin_length = C.length() * get_cos(crossbar_unit, C);		
-		var C_hinge_origin = new THREE.Vector3(
-			crossbar_unit.x * C_hinge_origin_length,
-			crossbar_unit.y * C_hinge_origin_length,
-			crossbar_unit.z * C_hinge_origin_length);
+		c.sub(a);
+		var c_hinge_origin_length = c.length() * get_cos(crossbar_unit, c);		
+		var c_hinge_origin = new THREE.Vector3(
+			crossbar_unit.x * c_hinge_origin_length,
+			crossbar_unit.y * c_hinge_origin_length,
+			crossbar_unit.z * c_hinge_origin_length);
 			
-		var C_hinge_unit = new THREE.Vector3();
-		C_hinge_unit.subVectors( C, C_hinge_origin);
-		C_hinge_unit.normalize();
-		var C_hinge_component = C_hinge_unit.clone();
-		C_hinge_component.multiplyScalar( Math.cos(theta) * final_vector_hinge_net.length());
+		var c_hinge_unit = new THREE.Vector3();
+		c_hinge_unit.subVectors( c, c_hinge_origin);
+		c_hinge_unit.normalize();
+		var c_hinge_component = c_hinge_unit.clone();
+		c_hinge_component.multiplyScalar( Math.cos(theta) * d_hinge_net.length());
 			
 		var downward_vector_unit = new THREE.Vector3();		
-		downward_vector_unit.crossVectors(crossbar_unit, C);
+		downward_vector_unit.crossVectors(crossbar_unit, c);
 		downward_vector_unit.normalize();
 		var downward_component = downward_vector_unit.clone();
-		downward_component.multiplyScalar(Math.sin(theta) * final_vector_hinge_net.length())
+		downward_component.multiplyScalar(Math.sin(theta) * d_hinge_net.length())
 		
-		var final_vector = new THREE.Vector3();
-		final_vector.addVectors(downward_component, C_hinge_component);
-		final_vector.add( final_vector_hinge_origin );
-		final_vector.add( a );
+		var d = new THREE.Vector3();
+		d.addVectors(downward_component, c_hinge_component);
+		d.add( d_hinge_origin );
+		d.add( a );
 		
-		vertices_numbers[ i * 3 + 0] = final_vector.x;
-		vertices_numbers[ i * 3 + 1] = final_vector.y;
-		vertices_numbers[ i * 3 + 2] = final_vector.z
+		vertices_numbers[ i * 3 + 0] = d.x;
+		vertices_numbers[ i * 3 + 1] = d.y;
+		vertices_numbers[ i * 3 + 2] = d.z
 	}
 }

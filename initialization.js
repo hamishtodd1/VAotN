@@ -29,8 +29,9 @@ function init() {
 		[20,19,18]);
 		
 	var default_minimum_angle = 2 * Math.atan(PHI/(PHI-1));
-	for( var i = 0; i < 22 * 3; i++ )
+	for( var i = 0; i < 22; i++ )
 		minimum_angles[i] = default_minimum_angle;
+	//minimum_angles[3] = 
 		
 	flatnet_vertices_numbers = new Float32Array([
 		0,0,0,
@@ -64,12 +65,6 @@ function init() {
 	surface_vertices_numbers = new Float32Array(22*3);
 	for( var i = 0; i < 22 * 3; i++)
 		surface_vertices_numbers[i] = flatnet_vertices_numbers[i];
-	
-	//polyhedron_vertices_numbers[i] = surface_vertices_numbers[i];
-	polyhedron_vertices_numbers = new Float32Array(22 * 3);	
-	for( var i = 0; i < 3 * 3; i++)
-		polyhedron_vertices_numbers[i] = surface_vertices_numbers[i];	
-	deduce_surface(0, polyhedron_vertices_numbers);
 	
 	net_triangle_vertex_indices = new Uint16Array([
 		2,1,0,
@@ -108,6 +103,12 @@ function init() {
 		line_index_pairs[i*6 + 5] = net_triangle_vertex_indices[i*3 + 0];
 	}
 	
+	for(var i = 0; i < 22; i++) {
+		V_angles[i] = Array(4);
+		for(var j = 0; j < 4; j++)
+			V_angles[i][j] = TAU /3;
+	}
+	
 	//-------------stuff that goes in the scene
 	{
 		var material1 = new THREE.LineBasicMaterial({
@@ -132,7 +133,7 @@ function init() {
 		surface_geometry.addAttribute( 'index', new THREE.BufferAttribute( line_index_pairs, 1 ) ); //allowed to put that in there?
 
 		surface = new THREE.Line( surface_geometry, material1, THREE.LinePieces );
-		//scene.add(surface);
+		scene.add(surface);
 		
 		polyhedron_vertices = new THREE.BufferAttribute( polyhedron_vertices_numbers, 3 );
 		
@@ -154,6 +155,10 @@ function init() {
 		circle = new THREE.Mesh( circleGeometry, material2 );
 		scene.add( circle );
 	}
+	
+	for( var i = 0; i < 3 * 3; i++)
+		polyhedron_vertices.array[i] = surface_vertices.array[i];
+	deduce_surface(0, polyhedron_vertices.array);
 	
 	//---------------------------------------------------Vertex Rearrangement stuff
 	associated_vertices = Array( //where there is a choice of index, you must have the version of the vertex in the 5th triangle of the W
