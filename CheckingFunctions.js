@@ -20,9 +20,7 @@ function correct_defects() {
 	return 1;
 }
 
-function compare_polyhedron_with_net() {
-	//if(logged) return;
-	
+function compare_polyhedron_with_net() {	
 	var all_ok = true;
 	
 	var comparison_done = Array(22)
@@ -109,7 +107,6 @@ function compare_polyhedron_with_net() {
 			}
 		}
 	}
-	logged = 1;
 	
 	if(all_ok) return true;
 	else return false;

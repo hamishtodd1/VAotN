@@ -372,10 +372,10 @@ function corner_angle_from_indices(triangle_index, corner_vertex_index) {
 		}
 	}
 	
-	sideA = new THREE.Vector2( 
+	sideA = new THREE.Vector2(
 		flatnet_vertices.array[ 0 + 3 * cornerAindex ] - flatnet_vertices.array[ 0 + 3 * corner_vertex_index ],
 		flatnet_vertices.array[ 1 + 3 * cornerAindex ] - flatnet_vertices.array[ 1 + 3 * corner_vertex_index ] );
-	sideB = new THREE.Vector2( 
+	sideB = new THREE.Vector2(
 		flatnet_vertices.array[ 0 + 3 * cornerBindex ] - flatnet_vertices.array[ 0 + 3 * corner_vertex_index ],
 		flatnet_vertices.array[ 1 + 3 * cornerBindex ] - flatnet_vertices.array[ 1 + 3 * corner_vertex_index ] );
 		
@@ -386,6 +386,40 @@ function update_surface() {
 	for(var i = 0; i < 22*3; i++)
 		surface_vertices.array[i] = flatnet_vertices.array[i];
 	surface_vertices.needsUpdate = true;
+}
+
+function squash_mouse(vertex_tobechanged ) {
+	var using_right_side = 0;
+	if(V_squasher[vertex_tobechanged][6] === 666 )
+		using_right_side = 1;
+	
+	var vertex_tobechanged_vector = new THREE.Vector2(
+		flatnet_vertices.array[ 0 + 3 * vertex_tobechanged ],
+		flatnet_vertices.array[ 1 + 3 * vertex_tobechanged ] );
+	
+	var angleA = corner_angle_from_indices(V_squasher[vertex_tobechanged][1], V_squasher[vertex_tobechanged][3]);
+	var angleB = corner_angle_from_indices(V_squasher[vertex_tobechanged][2], V_squasher[vertex_tobechanged][4]);
+	
+	var side_to_locus_angle = TAU*5/12 - angleA - angleB;
+	if( using_right_side ) side_to_locus_angle = corner_angle_from_indices(V_squasher[vertex_tobechanged][0], V_squasher[vertex_tobechanged][5]) - side_to_locus_angle;
+	
+	var side = new THREE.Vector2(
+		flatnet_vertices.array[ 0 + 3 * V_squasher[vertex_tobechanged][6+using_right_side] ],
+		flatnet_vertices.array[ 1 + 3 * V_squasher[vertex_tobechanged][6+using_right_side] ] );
+	side.sub(vertex_tobechanged_vector);
+	side.negate();
+		
+	var locus_unit_vector = vector_from_bearing(side, 1, -side_to_locus_angle * ( 1 - 2*using_right_side) );
+	
+	var MousePosition_relative = MousePosition.clone();
+	MousePosition_relative.x += 5; //coz that's where the net is
+	MousePosition_relative.sub(vertex_tobechanged_vector);
+		
+	var projected_position = locus_unit_vector.clone();
+	projected_position.multiplyScalar( MousePosition_relative.dot(locus_unit_vector) );
+	projected_position.add(vertex_tobechanged_vector);
+	
+	return projected_position;
 }
 
 function HandleVertexRearrangement() {

@@ -53,6 +53,24 @@ var surface_vertices_numbers;
 var surface_vertices;
 var surface_geometry;
 
+var surface_triangle_side_unit_vectors = new Array();
+var shear_matrix = new Array(20);
+
+//Not including the central vertex.
+var number_of_hexagon_rings = 10; //mimivirus needs exactly 100. Try and work out how many a human can distinguish though
+var number_of_lattice_points = 1 + 3 * number_of_hexagon_rings*(number_of_hexagon_rings+1);
+var flatlattice;
+var flatlattice_vertices_numbers = new Float32Array(3 * number_of_lattice_points);
+var flatlattice_vertices;
+var flatlattice_default_vertices = Array(number_of_lattice_points*3);
+var flatlattice_geometry;
+var flatlattice_center = new THREE.Vector2(-5,0)
+
+var surflattice;
+var surflattice_vertices_numbers = new Float32Array(3 * number_of_lattice_points);
+var surflattice_vertices;
+var surflattice_geometry;
+
 var vertices_derivations;
 var minimum_angles = new Array(22); //between these two, we derive the polyhedron and surface
 
@@ -66,6 +84,8 @@ var W_surrounding_angles = new Float32Array([0,0,0,0,0,0]);
 var V_vertex_indices = new Array();
 var V_triangle_indices = new Array();
 var V_angles = new Array(22);
+
+var V_squasher;
 
 var CENTRAL_TRIANGLE = 6;
 var CENTRAL_TRIANGLE_CORNER = 12;

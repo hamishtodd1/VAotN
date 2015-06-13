@@ -1,3 +1,48 @@
+//aka ourpoint and ourline_top are lines originating from ourline_bottom and we wish to know which line is clockwise of other
+function point_to_the_right_of_line_vecs(ourpoint, line_top, line_bottom) {
+	//Say you have two 2D vectors p and q with same origin. p will be "clockwise of" q if z-component of cross product is positive
+	if( 	(ourpoint.x-line_bottom.x) * (line_top.y-line_bottom.y)
+		  <=(ourpoint.y-line_bottom.y) * (line_top.x-line_bottom.x)
+	  ) return false;
+	else
+		return true;
+}
+//so if it's ON the line, it ISN'T to the right.
+function point_to_the_right_of_line(ourpointx,ourpointy,
+									line_topx,line_topy, line_bottomx,line_bottomy) {
+	if( 	(ourpointx * line_topy + line_bottomx *-line_topy + ourpointx *-line_bottomy + line_bottomx * line_bottomy)
+		 <=	(ourpointy * line_topx + line_bottomy *-line_topx + ourpointy *-line_bottomx + line_bottomy * line_bottomx)
+	  ) return false;
+	else
+		return true;
+}
+
+function point_in_triangle( ourpointx,ourpointy,
+							cornerAx, cornerAy,cornerBx, cornerBy, cornerCx,cornerCy, 
+							clockwise)
+{
+	if(clockwise === 'undefined') {
+		if( point_to_the_right_of_line(cornerC, cornerA, cornerB))
+			clockwise = true;
+		else
+			clockwise = false;		
+	}
+	
+	if( clockwise ) {
+		if( 	!point_to_the_right_of_line(ourpointx, ourpointy, cornerAx, cornerAy, cornerBx, cornerBy)
+			&&	!point_to_the_right_of_line(ourpointx, ourpointy, cornerBx, cornerBy, cornerCx, cornerCy)
+			&&	!point_to_the_right_of_line(ourpointx, ourpointy, cornerCx, cornerCy, cornerAx, cornerAy)
+			) return true;
+	}
+	else {
+		if( 	!point_to_the_right_of_line(ourpointx, ourpointy, cornerAx, cornerAy, cornerCx, cornerCy)
+			||	!point_to_the_right_of_line(ourpointx, ourpointy, cornerCx, cornerCy, cornerBx, cornerBy)
+			||	!point_to_the_right_of_line(ourpointx, ourpointy, cornerBx, cornerBy, cornerAx, cornerAy)
+			) return false;
+	}
+	return false;
+}
+
 function get_sin_Vector2(side1, side2)
 {
 	return (side1.x * side2.y - side1.y * side2.x ) / side1.length() / side2.length();
