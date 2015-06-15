@@ -1,15 +1,44 @@
-function updatelattice(theta, scale) {
-	var costheta = Math.cos(theta);
-	var sintheta = Math.sin(theta);
+function updatelattice() {
+	var costheta = Math.cos(LatticeAngle);
+	var sintheta = Math.sin(LatticeAngle);
 	
 	for(var i = 0; i < number_of_lattice_points; i++) {		
-		flatlattice_vertices.setX(i, (flatlattice_default_vertices[i*3] * costheta - flatlattice_default_vertices[i*3+1] * sintheta) * scale);
-		flatlattice_vertices.setY(i, (flatlattice_default_vertices[i*3] * sintheta + flatlattice_default_vertices[i*3+1] * costheta) * scale);
+		flatlattice_vertices.setX(i, (flatlattice_default_vertices[i*3] * costheta - flatlattice_default_vertices[i*3+1] * sintheta) * LatticeScale);
+		flatlattice_vertices.setY(i, (flatlattice_default_vertices[i*3] * sintheta + flatlattice_default_vertices[i*3+1] * costheta) * LatticeScale);
 	}
+	
+	flatlattice_vertices.needsUpdate = true;
+}
+
+function Lattice_freewheel() {
+	return;
 }
 
 //you could move the net. There again, the lattice has to move on the screen, so.
 function HandleLatticeMovement() {
+	if(!isMouseDown){
+		LatticeGrabbed = false;
+		Lattice_freewheel();
+	} else {
+		if( vertex_tobechanged !== 666) //temporary, think of a better system
+			return;
+			
+		var Mousedist = MousePosition.distanceTo(flatlattice_center);
+		if( Mousedist < HS3 * 10/3) {
+			LatticeGrabbed = true;
+			
+			var OldMousedist = OldMousePosition.distanceTo(flatlattice_center); //unless the center is going to change?
+			
+			LatticeScale *= Mousedist / OldMousedist;
+			
+			var MouseAngle = Math.atan2( (MousePosition.x - flatlattice_center.x), (MousePosition.y - flatlattice_center.y) );
+			var OldMouseAngle = Math.atan2( (OldMousePosition.x - flatlattice_center.x), (OldMousePosition.y - flatlattice_center.y) );
+			
+			LatticeAngle += OldMouseAngle - MouseAngle;
+		}
+	}
+	
+	updatelattice();
 }
 
 function Map_lattice() {

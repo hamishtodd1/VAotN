@@ -8,13 +8,15 @@ function Map_everything() {
 
 function UpdateWorld() {
 	HandleVertexRearrangement();
-	HandleCapsidOpenness();
 	HandleLatticeMovement();
+	HandleCapsidOpenness();
 	Update_net_vectors();
 	Map_everything();
 }
 
 function render() {
+	ProcessMouse();
+	
 	UpdateWorld();
 	
 	requestAnimationFrame( render );	

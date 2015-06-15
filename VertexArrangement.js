@@ -424,7 +424,7 @@ function squash_mouse(vertex_tobechanged ) {
 
 function HandleVertexRearrangement() {
 	var movement_vector = new THREE.Vector2(0,0);
-	if( isMouseDown ) {
+	if( isMouseDown && !LatticeGrabbed ) {
 		if( vertex_tobechanged === 666) {
 			var lowest_quadrance_so_far = 10;
 			var closest_vertex_so_far = 666;

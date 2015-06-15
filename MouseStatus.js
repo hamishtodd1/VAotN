@@ -30,6 +30,11 @@ function onMouseMove( event ) {
 	// OldMousePosition.copy( MousePosition );
 	// MousePosition.copy( camera.position.clone().add( dir.multiplyScalar( distance ) ) );
 	
+	InputObject.mousex = (event.clientX-window_width/2) * (orthographic_cuboid_width / window_width);
+	InputObject.mousey = -(event.clientY-window_height/2) * (orthographic_cuboid_width / window_width);
+}
+
+function ProcessMouse() {
 	var Xdists_from_center = Array(circleGeometry.vertices.length);
 	var Ydists_from_center = Array(circleGeometry.vertices.length);
 	for(var i = 0; i < circleGeometry.vertices.length; i++) {
@@ -37,15 +42,17 @@ function onMouseMove( event ) {
 		Ydists_from_center[i] = circleGeometry.vertices[i].y - circleGeometry.vertices[0].y;
 	}
 	
-	MousePosition.x = (event.clientX-window_width/2) * (orthographic_cuboid_width / window_width);
-	MousePosition.y = -(event.clientY-window_height/2) * (orthographic_cuboid_width / window_width);
+	OldMousePosition.copy( MousePosition );
+	Mouse_delta.set( MousePosition.x - OldMousePosition.x, MousePosition.y - OldMousePosition.y);
+	MousePosition.x = InputObject.mousex;
+	MousePosition.y = InputObject.mousey;
 	
 	for(var i = 0; i < circleGeometry.vertices.length; i++) {
 		circleGeometry.vertices[i].x = MousePosition.x + Xdists_from_center[i];
 		circleGeometry.vertices[i].y = MousePosition.y + Ydists_from_center[i];
 	}
 	
-	circleGeometry.verticesNeedUpdate = true;
+	circleGeometry.verticesNeedUpdate = true;	
 }
 
 window.addEventListener( 'mousemove', onMouseMove, false );

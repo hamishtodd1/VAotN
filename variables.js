@@ -57,7 +57,7 @@ var surface_triangle_side_unit_vectors = new Array();
 var shear_matrix = new Array(20);
 
 //Not including the central vertex.
-var number_of_hexagon_rings = 10; //mimivirus needs exactly 100. Try and work out how many a human can distinguish though
+var number_of_hexagon_rings = 30; //mimivirus needs exactly 100. Try and work out how many a human can distinguish though
 var number_of_lattice_points = 1 + 3 * number_of_hexagon_rings*(number_of_hexagon_rings+1);
 var flatlattice;
 var flatlattice_vertices_numbers = new Float32Array(3 * number_of_lattice_points);
@@ -71,11 +71,19 @@ var surflattice_vertices_numbers = new Float32Array(3 * number_of_lattice_points
 var surflattice_vertices;
 var surflattice_geometry;
 
+var LatticeScale = 10/3 * HS3 / number_of_hexagon_rings;
+var LatticeAngle = TAU/12;
+var LatticeGrabbed = false;
+
 var vertices_derivations;
 var minimum_angles = new Array(22); //between these two, we derive the polyhedron and surface
 
 var circle;
 var circleGeometry;
+
+var InputObject = {};
+InputObject.mousex = 0;
+InputObject.mousey = 0;
 
 var vertex_identifications = new Array();
 var W_triangle_indices = new Array();
@@ -96,3 +104,4 @@ var ASSOCIATED = 1;
 var raycaster = new THREE.Raycaster();
 var MousePosition = new THREE.Vector2();
 var OldMousePosition = new THREE.Vector2();
+var Mouse_delta = new THREE.Vector2();

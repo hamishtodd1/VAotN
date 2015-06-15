@@ -449,7 +449,7 @@ function init() {
 			}
 		}
 	}
-	updatelattice(TAU/12, 10/3 * HS3 / number_of_hexagon_rings);
+	updatelattice();
 	
 	for(var i = 0; i<20; i++)
 		shear_matrix[i] = new Array(4);
