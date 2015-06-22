@@ -23,7 +23,7 @@ function correct_defects() {
 function compare_polyhedron_with_net() {	
 	var all_ok = true;
 	
-	var comparison_done = Array(22)
+	var comparison_done = Array(22);
 	for(var i = 0; i < 22; i++) {
 		comparison_done[i] = Array(22);
 		for(var j = 0; j < 22; j++)

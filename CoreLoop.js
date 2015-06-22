@@ -15,12 +15,17 @@ function UpdateWorld() {
 }
 
 function render() {
-	ProcessMouse();
+	delta_t = ourclock.getDelta();
+	if(delta_t > 0.1) delta_t = 0.1;
 	
+	ReadInput();
 	UpdateWorld();
+	UpdateCamera();
+	logged++;
 	
-	requestAnimationFrame( render );	
+	requestAnimationFrame( render );
 	renderer.render( scene, camera );
+	
 }
 init();
 render();

@@ -1,11 +1,22 @@
-//--------------Fundamental shit
-var scene = new THREE.Scene();
-var window_width = 1200, window_height = 600;
+//--------------Mathematically fundamental
+var HS3 = Math.sqrt(3)/2;
+var PHI = (Math.sqrt(5) + 1) / 2;
+var TAU = Math.PI * 2;
 
-//var camera = new THREE.PerspectiveCamera( 75, window_width / window_height, 0.1, 1000 );
-var orthographic_cuboid_width = 16;
-var camera = new THREE.OrthographicCamera( orthographic_cuboid_width / -2, orthographic_cuboid_width / 2, orthographic_cuboid_width / 4, orthographic_cuboid_width / -4, 0.1, 1000 );
-camera.position.z = 5;
+//--------------Technologically fundamental
+var scene = new THREE.Scene();
+var playing_field_width = 7*HS3;
+var playing_field_height = 6;
+var window_height = 600;
+var window_width = 600 * playing_field_width / playing_field_height;
+var min_cameradist = 10;
+var cameradist = min_cameradist;
+var vertical_fov = 2 * Math.atan(playing_field_height/(2*cameradist));
+var horizontal_fov = 2 * Math.atan(playing_field_width/(2*cameradist));
+
+var camera = new THREE.PerspectiveCamera( vertical_fov * 360 / TAU, window_width / window_height, 0.1, 1000 );
+//var camera = new THREE.OrthographicCamera( playing_field_width / -2, playing_field_width / 2, playing_field_height / 2, playing_field_height / -2, 0.1, 1000 );
+camera.position.z = cameradist;
 var renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize( window_width, window_height );
 document.body.appendChild( renderer.domElement );
@@ -13,12 +24,7 @@ document.body.appendChild( renderer.domElement );
 
 
 //--------------Still quite fundamental
-var isMouseDown = false;
 var vertex_tobechanged = 666;
-
-var HS3 = Math.sqrt(3)/2;
-var PHI = (Math.sqrt(5) + 1) / 2;
-var TAU = Math.PI * 2;
 
 var capsidopenness = 1;
 var capsidclock = 0;
@@ -27,6 +33,8 @@ var logged = 0;
 
 var showdebugstuff = 0;
 var net_warnings = 0;
+var ourclock = new THREE.Clock( true );
+var delta_t = 0;
 
 //-----------not just constants
 var net_triangle_vertex_indices;
@@ -49,7 +57,7 @@ var polyhedron_vertices;
 var polyhedron_geometry;
 
 var surface;
-var surface_vertices_numbers;
+var surface_vertices_numbers = new Float32Array(22*3);
 var surface_vertices;
 var surface_geometry;
 
@@ -57,14 +65,21 @@ var surface_triangle_side_unit_vectors = new Array();
 var shear_matrix = new Array(20);
 
 //Not including the central vertex.
-var number_of_hexagon_rings = 30; //mimivirus needs exactly 100. Try and work out how many a human can distinguish though
+//mimivirus needs exactly 100. Try and work out how many a human can distinguish though
+//you need 40 for phyconaviridae, which is pushing distinguishability
+var number_of_hexagon_rings = 30;
 var number_of_lattice_points = 1 + 3 * number_of_hexagon_rings*(number_of_hexagon_rings+1);
 var flatlattice;
-var flatlattice_vertices_numbers = new Float32Array(3 * number_of_lattice_points);
 var flatlattice_vertices;
 var flatlattice_default_vertices = Array(number_of_lattice_points*3);
 var flatlattice_geometry;
-var flatlattice_center = new THREE.Vector2(-5,0)
+var flatlattice_center = new THREE.Vector2(0,0);
+var flatlattice_vertices_numbers = new Float32Array(3 * number_of_lattice_points);
+var flatlattice_vertices_destinations = new Float32Array(3 * number_of_lattice_points);
+var flatlattice_vertices_velocities = new Float32Array(3 * number_of_lattice_points);
+
+var lattice_colors = new Float32Array(number_of_lattice_points * 3);
+var lattice_alphas = new Float32Array(number_of_lattice_points);
 
 var surflattice;
 var surflattice_vertices_numbers = new Float32Array(3 * number_of_lattice_points);
@@ -81,9 +96,12 @@ var minimum_angles = new Array(22); //between these two, we derive the polyhedro
 var circle;
 var circleGeometry;
 
+var cutout_mode = true;
+
 var InputObject = {};
 InputObject.mousex = 0;
 InputObject.mousey = 0;
+InputObject.isMouseDown = false;
 
 var vertex_identifications = new Array();
 var W_triangle_indices = new Array();

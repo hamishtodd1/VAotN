@@ -1,25 +1,37 @@
 function HandleCapsidOpenness(openness, vertices_numbers) {
-	var capsidopeningspeed = 0.01;
+	var capsidopeningspeed = 0.04;
 	
-	capsidclock += 1;
-	var static_capsid_wait = 70;
-	var moving_capsid_wait = 1/capsidopeningspeed;
-	if(capsidclock < static_capsid_wait )
-		capsidopenness = 0;
-	else if(capsidclock < static_capsid_wait + moving_capsid_wait ) {
+	if(InputObject.isMouseDown) {
 		capsidopenness += capsidopeningspeed;
-		if(capsidopenness > 1) {
+		if(capsidopenness > 1)
 			capsidopenness = 1;
-			capsidclock = static_capsid_wait + moving_capsid_wait + 1;
-		}
 	}
-	else if( capsidclock > static_capsid_wait * 2 + moving_capsid_wait){
+	else {
 		capsidopenness -= capsidopeningspeed;
-		if(capsidopenness < 0) {
+		if(capsidopenness < 0)
 			capsidopenness = 0;
-			capsidclock = 0;
-		}
 	}
+	
+//	capsidclock += 1;
+//	var capsidopeningspeed = 0.01;
+//	var static_capsid_wait = 70;
+//	var moving_capsid_wait = 1/capsidopeningspeed;
+//	if(capsidclock < static_capsid_wait )
+//		capsidopenness = 0;
+//	else if(capsidclock < static_capsid_wait + moving_capsid_wait ) {
+//		capsidopenness += capsidopeningspeed;
+//		if(capsidopenness > 1) {
+//			capsidopenness = 1;
+//			capsidclock = static_capsid_wait + moving_capsid_wait + 1;
+//		}
+//	}
+//	else if( capsidclock > static_capsid_wait * 2 + moving_capsid_wait){
+//		capsidopenness -= capsidopeningspeed;
+//		if(capsidopenness < 0) {
+//			capsidopenness = 0;
+//			capsidclock = 0;
+//		}
+//	}
 	
 	deduce_surface(capsidopenness, surface_vertices);
 	
@@ -27,7 +39,7 @@ function HandleCapsidOpenness(openness, vertices_numbers) {
 }
 
 function deduce_first_triangle(openness, vertices_numbers, rotation) {
-	var origin_height = capsidopenness * Math.sqrt( (5 + Math.sqrt(5) ) / 2);
+	var origin_height = (1-capsidopenness) * Math.sqrt( (5 + Math.sqrt(5) ) / 2);
 	
 	vertices_numbers.setXYZ(0, 0, 0, origin_height);
 	
@@ -140,7 +152,7 @@ function deduce_surface(openness, vertices_numbers) {
 		downward_vector_unit.crossVectors(crossbar_unit, c);
 		downward_vector_unit.normalize();
 		var downward_component = downward_vector_unit.clone();
-		downward_component.multiplyScalar(Math.sin(theta) * d_hinge_net.length())
+		downward_component.multiplyScalar(Math.sin(theta) * d_hinge_net.length());
 		
 		var d = new THREE.Vector3();
 		d.addVectors(downward_component, c_hinge_component);

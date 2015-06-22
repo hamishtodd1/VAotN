@@ -3,11 +3,11 @@ document.addEventListener( 'mouseup', onDocumentMouseUp, false);
 
 function onDocumentMouseDown(event) {
 	event.preventDefault();
-	isMouseDown = true;
+	InputObject.isMouseDown = true;
 }
 function onDocumentMouseUp(event) {
 	event.preventDefault();
-	isMouseDown = false;
+	InputObject.isMouseDown = false;
 }
 
 function onMouseMove( event ) {
@@ -30,11 +30,11 @@ function onMouseMove( event ) {
 	// OldMousePosition.copy( MousePosition );
 	// MousePosition.copy( camera.position.clone().add( dir.multiplyScalar( distance ) ) );
 	
-	InputObject.mousex = (event.clientX-window_width/2) * (orthographic_cuboid_width / window_width);
-	InputObject.mousey = -(event.clientY-window_height/2) * (orthographic_cuboid_width / window_width);
+	InputObject.mousex = (event.clientX-window_width/2) * (playing_field_width / window_width);
+	InputObject.mousey = -(event.clientY-window_height/2) * (playing_field_height / window_height);
 }
 
-function ProcessMouse() {
+function ReadInput() {
 	var Xdists_from_center = Array(circleGeometry.vertices.length);
 	var Ydists_from_center = Array(circleGeometry.vertices.length);
 	for(var i = 0; i < circleGeometry.vertices.length; i++) {

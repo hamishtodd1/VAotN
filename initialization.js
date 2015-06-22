@@ -31,7 +31,6 @@ function init() {
 	var default_minimum_angle = 2 * Math.atan(PHI/(PHI-1));
 	for( var i = 0; i < 22; i++ )
 		minimum_angles[i] = default_minimum_angle;
-	//minimum_angles[3] = 
 		
 	flatnet_vertices_numbers = new Float32Array([
 		0,0,0,
@@ -61,10 +60,6 @@ function init() {
 		-HS3,-1.5,0,
 		0,-2,0,
 		-HS3,-2.5,0]);
-		
-	surface_vertices_numbers = new Float32Array(22*3);
-	for( var i = 0; i < 22 * 3; i++)
-		surface_vertices_numbers[i] = flatnet_vertices_numbers[i];
 	
 	net_triangle_vertex_indices = new Uint16Array([
 		2,1,0,
@@ -123,7 +118,7 @@ function init() {
 
 		flatnet = new THREE.Line( flatnet_geometry, material1, THREE.LinePieces );
 		flatnet.position.x = -5;
-		scene.add(flatnet);
+		//scene.add(flatnet);
 		
 		surface_vertices = new THREE.BufferAttribute( surface_vertices_numbers, 3 ); //note the 3 means 3 numbers to a vector, not three vectors to a triangle
 		
@@ -132,7 +127,7 @@ function init() {
 		surface_geometry.addAttribute( 'index', new THREE.BufferAttribute( line_index_pairs, 1 ) );
 
 		surface = new THREE.Line( surface_geometry, material1, THREE.LinePieces );
-		//scene.add(surface);
+		scene.add(surface);
 		
 		polyhedron_vertices = new THREE.BufferAttribute( polyhedron_vertices_numbers, 3 );
 		
@@ -142,29 +137,59 @@ function init() {
 
 		polyhedron = new THREE.Line( polyhedron_geometry, material1, THREE.LinePieces );
 		polyhedron.position.x = 5;
-		scene.add(polyhedron);
+		//scene.add(polyhedron);
 		
-		var material2 = new THREE.PointCloudMaterial({
-			color: 0xffff00,
-			size: 0.01
+		var flatlatticematerial = new THREE.PointCloudMaterial({
+			size: 0.1,
+			vertexColors: THREE.VertexColors
 		});
+		for( var i = 0; i < number_of_lattice_points; i++){
+			lattice_colors[i*3+0] = 1;
+			lattice_colors[i*3+1] = 1;
+			lattice_colors[i*3+2] = 0;
+		}
 
 		flatlattice_vertices = new THREE.BufferAttribute( flatlattice_vertices_numbers, 3 );
 		
 		flatlattice_geometry = new THREE.BufferGeometry();
 		flatlattice_geometry.addAttribute( 'position', flatlattice_vertices );
+		flatlattice_geometry.addAttribute( 'color', new THREE.BufferAttribute(lattice_colors, 3) );
 
-		flatlattice = new THREE.PointCloud( flatlattice_geometry, material2 );
+		flatlattice = new THREE.PointCloud( flatlattice_geometry, flatlatticematerial );
 		flatlattice.position.x = flatlattice_center.x;
-		scene.add(flatlattice);
+		//scene.add(flatlattice);
 		
+		
+		var surflatticematerial_attributes = {
+				alpha: { type: 'f', value: [] },
+	    };
+		for( var i = 0; i < number_of_lattice_points; i++ ) {
+			surflatticematerial_attributes.alpha.value[ i ] = 1;
+			lattice_alphas[ i ] = 1;
+		}
+	    var surflatticematerial_uniforms = {
+	    		vertexColors:	THREE.VertexColors,
+	    		size:			0.1,
+	    };		
+		var surflatticematerial = new THREE.ShaderMaterial( {
+				uniforms:       surflatticematerial_uniforms,
+		        attributes:     surflatticematerial_attributes,
+		        vertexShader:   document.getElementById( 'vertexshader' ).textContent,
+		        fragmentShader: document.getElementById( 'fragmentshader' ).textContent,
+		        transparent:    true
+	    });
 		surflattice_vertices = new THREE.BufferAttribute( surflattice_vertices_numbers, 3 );
+		
 		
 		surflattice_geometry = new THREE.BufferGeometry();
 		surflattice_geometry.addAttribute( 'position', surflattice_vertices );
+		surflattice_geometry.addAttribute( 'color', new THREE.BufferAttribute(lattice_colors, 3) );
+		surflattice_geometry.addAttribute( 'alpha', new THREE.BufferAttribute(lattice_alphas, 1) );
 
-		surflattice = new THREE.PointCloud( surflattice_geometry, material2 );
+		surflattice = new THREE.PointCloud( surflattice_geometry, surflatticematerial );
 		scene.add(surflattice);
+		
+		
 		
 		var material3 = new THREE.MeshBasicMaterial({
 			color: 0xff00ff
@@ -180,6 +205,7 @@ function init() {
 	for( var i = 0; i < 3 * 3; i++)
 		polyhedron_vertices.array[i] = surface_vertices.array[i];
 	deduce_surface(0, polyhedron_vertices);
+	deduce_surface(capsidopenness, surface_vertices);
 	for( var i = 0; i < 20; i++) {
 		surface_triangle_side_unit_vectors[i] = new Array(2);
 		surface_triangle_side_unit_vectors[i][0] = new THREE.Vector3();
@@ -328,7 +354,6 @@ function init() {
 	//[2,6, 6,10, 10,14, 14,19, 19,20, 3,2,		14,1]
 	//vertices going around the perimeter. The last two are the central triangle corner, and then the right defect. 
 	
-	//TODO: get triangle 8 in W's
 	V_triangle_indices[CORE] = [];
 	V_triangle_indices[ASSOCIATED] = [];
 	for( var i = 0; i < 22; i++) {
@@ -417,40 +442,54 @@ function init() {
 		[1,		2,3,	3,3,	3,666,18],
 		[21,	19,3,	7,5,	9,21,20]);
 		
-	//this goes in initialization
-	var lattice_generator = Array(6);
-	lattice_generator[0] = new THREE.Vector2(0,1);			//up
-	lattice_generator[1] = new THREE.Vector2(HS3,0.5);		//bottom right
-	lattice_generator[2] = new THREE.Vector2(HS3,-0.5);	//bottom left
-	lattice_generator[3] = new THREE.Vector2(0,-1);			//left
-	lattice_generator[4] = new THREE.Vector2(-HS3,-0.5);		//top left
-	lattice_generator[5] = new THREE.Vector2(-HS3,0.5);		//top right
-	
-	flatlattice_default_vertices[0] = 0;
-	flatlattice_default_vertices[1] = 0;
-	flatlattice_default_vertices[2] = 0;
-	var index = 1;	
-	for(var hexagon_ring = 1; hexagon_ring < number_of_hexagon_rings+1; hexagon_ring++) {
-		for( var slice = 0; slice < 6; slice++) {
-			var slice_rightmost_point = lattice_generator[slice].clone();
-			slice_rightmost_point.multiplyScalar(hexagon_ring);
-			
-			for( var length_along = 0; length_along < hexagon_ring; length_along++) {
-				var ourpoint = lattice_generator[(slice + 2)%6].clone();
-				ourpoint.multiplyScalar(length_along);				
-				ourpoint.add(slice_rightmost_point );
+	{
+		var lattice_generator = Array(6);
+		lattice_generator[0] = new THREE.Vector2(0,1);			//up
+		lattice_generator[1] = new THREE.Vector2(HS3,0.5);		//bottom right
+		lattice_generator[2] = new THREE.Vector2(HS3,-0.5);	//bottom left
+		lattice_generator[3] = new THREE.Vector2(0,-1);			//left
+		lattice_generator[4] = new THREE.Vector2(-HS3,-0.5);		//top left
+		lattice_generator[5] = new THREE.Vector2(-HS3,0.5);		//top right
+		
+		flatlattice_default_vertices[0] = 0;
+		flatlattice_default_vertices[1] = 0;
+		flatlattice_default_vertices[2] = 0;
+		var index = 1;	
+		for(var hexagon_ring = 1; hexagon_ring < number_of_hexagon_rings+1; hexagon_ring++) {
+			for( var slice = 0; slice < 6; slice++) {
+				var slice_rightmost_point = lattice_generator[slice].clone();
+				slice_rightmost_point.multiplyScalar(hexagon_ring);
 				
-				flatlattice_default_vertices[index*3+0] = ourpoint.x;
-				flatlattice_default_vertices[index*3+1] = ourpoint.y;
-				flatlattice_default_vertices[index*3+2] = 0;
-				flatlattice_vertices.setXYZ(index, 0,0,0);
-				surflattice_vertices.setXYZ(index, 0,0,0);
-				index++;
+				for( var length_along = 0; length_along < hexagon_ring; length_along++) {
+					var ourpoint = lattice_generator[(slice + 2)%6].clone();
+					ourpoint.multiplyScalar(length_along);				
+					ourpoint.add(slice_rightmost_point );
+					
+					flatlattice_default_vertices[index*3+0] = ourpoint.x; flatlattice_default_vertices[index*3+1] = ourpoint.y; flatlattice_default_vertices[index*3+2] = 0;
+					surflattice_vertices.setXYZ(index, 0,0,0);
+					flatlattice_vertices_velocities[index*3+0] = 0; flatlattice_vertices_velocities[index*3+1] = 0; flatlattice_vertices_velocities[index*3+2] = 0;
+					
+					index++;
+				}
 			}
 		}
+		var costheta = Math.cos(LatticeAngle);
+		var sintheta = Math.sin(LatticeAngle);
+		for(var i = 0; i < number_of_lattice_points; i++) {
+			flatlattice_vertices.setXYZ(i, 	(flatlattice_default_vertices[i*3+0] * costheta - flatlattice_default_vertices[i*3+1] * sintheta) * LatticeScale,
+											(flatlattice_default_vertices[i*3+0] * sintheta + flatlattice_default_vertices[i*3+1] * costheta) * LatticeScale, 0 );
+		}
 	}
-	updatelattice();
 	
 	for(var i = 0; i<20; i++)
 		shear_matrix[i] = new Array(4);
+	
+	{
+//		this.engine = new ParticleEngine();
+//		engine.setValues( Examples.fountain );
+//		engine.initialize();
+	}
+	
+	//------------------need this so there's something in there for the first frame
+	ourclock.getDelta();
 }

@@ -157,7 +157,7 @@ function update_polyhedron(vertex_tobechanged, initial_changed_vertex) {
 		
 		var cp_without_4 = tetrahedron_top(P1,P2,P3, r1,r2,r3).clone();
 		var cp_without_1 = tetrahedron_top(P2,P3,P4, r2,r3,r4).clone();
-		var tetrahedron_wiggle_room = 0.01
+		var tetrahedron_wiggle_room = 0.01;
 		if( !cp_without_4 || !cp_without_1 || cp_without_4.distanceTo(cp_without_1) > tetrahedron_wiggle_room) {
 			var discrepancy_percentage = cp_without_4.distanceTo(cp_without_1) / ((r1+r4)/2) * 100;
 			discrepancy_percentage = Math.floor(discrepancy_percentage * 10) / 10;
@@ -358,7 +358,7 @@ function move_vertices(vertex_tobechanged, starting_movement_vector, initial_cha
 }
 
 function corner_angle_from_indices(triangle_index, corner_vertex_index) {
-	var cornerAindex, cornerBindex;
+	var cornerAindex = 666, cornerBindex = 666;
 	for( var i = 0; i < 3; i++) {
 		if( corner_vertex_index === net_triangle_vertex_indices[ triangle_index * 3 + i ]) {
 			cornerAindex = net_triangle_vertex_indices[ triangle_index * 3 + (i+1)%3 ];
@@ -424,7 +424,7 @@ function squash_mouse(vertex_tobechanged ) {
 
 function HandleVertexRearrangement() {
 	var movement_vector = new THREE.Vector2(0,0);
-	if( isMouseDown && !LatticeGrabbed ) {
+	if( InputObject.isMouseDown && !LatticeGrabbed ) {
 		if( vertex_tobechanged === 666) {
 			var lowest_quadrance_so_far = 10;
 			var closest_vertex_so_far = 666;
