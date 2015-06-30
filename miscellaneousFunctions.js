@@ -7,16 +7,17 @@ function point_to_the_right_of_line_vecs(ourpoint, line_top, line_bottom) {
 	else
 		return true;
 }
-//so if it's ON the line, it ISN'T to the right.
+
 function point_to_the_right_of_line(ourpointx,ourpointy,
 									line_topx,line_topy, line_bottomx,line_bottomy) {
-	if( 	(ourpointx * line_topy + line_bottomx *-line_topy + ourpointx *-line_bottomy + line_bottomx * line_bottomy)
-		 <=	(ourpointy * line_topx + line_bottomy *-line_topx + ourpointy *-line_bottomx + line_bottomy * line_bottomx)
-	  ) return false;
-	else
-		return true;
+	var z_coord = 	(ourpointx * line_topy + line_bottomx *-line_topy + ourpointx *-line_bottomy + line_bottomx * line_bottomy)
+				  -	(ourpointy * line_topx + line_bottomy *-line_topx + ourpointy *-line_bottomx + line_bottomy * line_bottomx);
+	if( z_coord < 0 ) return 0;
+	else if( z_coord > 0 ) return 1;
+	else return 2; //on the line
 }
 
+//if it's on the line segments, it's in
 function point_in_triangle( ourpointx,ourpointy,
 							cornerAx, cornerAy,cornerBx, cornerBy, cornerCx,cornerCy, 
 							clockwise)
@@ -29,16 +30,16 @@ function point_in_triangle( ourpointx,ourpointy,
 	}
 	
 	if( clockwise ) {
-		if( 	!point_to_the_right_of_line(ourpointx, ourpointy, cornerAx, cornerAy, cornerBx, cornerBy)
-			&&	!point_to_the_right_of_line(ourpointx, ourpointy, cornerBx, cornerBy, cornerCx, cornerCy)
-			&&	!point_to_the_right_of_line(ourpointx, ourpointy, cornerCx, cornerCy, cornerAx, cornerAy)
+		if( 	point_to_the_right_of_line(ourpointx, ourpointy, cornerAx, cornerAy, cornerBx, cornerBy) != 1
+			&&	point_to_the_right_of_line(ourpointx, ourpointy, cornerBx, cornerBy, cornerCx, cornerCy) != 1
+			&&	point_to_the_right_of_line(ourpointx, ourpointy, cornerCx, cornerCy, cornerAx, cornerAy) != 1
 			) return true;
 	}
 	else {
-		if( 	!point_to_the_right_of_line(ourpointx, ourpointy, cornerAx, cornerAy, cornerCx, cornerCy)
-			||	!point_to_the_right_of_line(ourpointx, ourpointy, cornerCx, cornerCy, cornerBx, cornerBy)
-			||	!point_to_the_right_of_line(ourpointx, ourpointy, cornerBx, cornerBy, cornerAx, cornerAy)
-			) return false;
+		if( 	point_to_the_right_of_line(ourpointx, ourpointy, cornerAx, cornerAy, cornerCx, cornerCy) != 0
+			&&	point_to_the_right_of_line(ourpointx, ourpointy, cornerCx, cornerCy, cornerBx, cornerBy) != 0
+			&&	point_to_the_right_of_line(ourpointx, ourpointy, cornerBx, cornerBy, cornerAx, cornerAy) != 0
+			) return true;
 	}
 	return false;
 }
@@ -64,22 +65,24 @@ function get_vector(index, vertex_array) {
 			flatnet_vertices.array[index * 3 + 0],
 			flatnet_vertices.array[index * 3 + 1],
 			flatnet_vertices.array[index * 3 + 2] );
-		return;
+		return ourvector;
 	}
 	if(vertex_array = SURFACE) {
 		ourvector.set(
-			flatnet_vertices.array[index * 3 + 0],
-			flatnet_vertices.array[index * 3 + 1],
-			flatnet_vertices.array[index * 3 + 2] );
-		return;
+			surface_vertices.array[index * 3 + 0],
+			surface_vertices.array[index * 3 + 1],
+			surface_vertices.array[index * 3 + 2] );
+		return ourvector;
 	}
 	if(vertex_array = POLYHEDRON) {
 		ourvector.set(
-			flatnet_vertices.array[index * 3 + 0],
-			flatnet_vertices.array[index * 3 + 1],
-			flatnet_vertices.array[index * 3 + 2] );
-		return;
+			polyhedron_vertices.array[index * 3 + 0],
+			polyhedron_vertices.array[index * 3 + 1],
+			polyhedron_vertices.array[index * 3 + 2] );
+		return ourvector;
 	}
+	
+	console.log("Error: array unrecognized");
 }
 
 //a is the length of the side that is opposite the desired angle

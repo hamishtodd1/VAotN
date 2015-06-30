@@ -1,13 +1,13 @@
 function UpdateCamera() {
-	if(InputObject.isMouseDown)
-		cameradist += 0.08;
-	else
-		cameradist -= 0.08;
+//	if(InputObject.isMouseDown)
+//		cameradist += 0.08;
+//	else
+//		cameradist -= 0.08;
 	
 	if(cameradist < min_cameradist)
 		cameradist = min_cameradist;
 	
-	//it should follow the mouse a little bit 
+	//it should follow the mouse a little bit. Finger?
 	//take distance of mouse from center of screen, square root that, and move the camera towards the mouse by a multiple of that amount
 	//maybe have screenshake "energy"? like things can cause it to vibrate until it stops.
 	//think of it as a wooden peg maybe, that is basically rigid, but can be twanged in any direction

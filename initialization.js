@@ -61,7 +61,7 @@ function init() {
 		0,-2,0,
 		-HS3,-2.5,0]);
 	
-	net_triangle_vertex_indices = new Uint16Array([
+	net_triangle_vertex_indices = new Uint32Array([
 		2,1,0,
 		1,2,3,
 		4,3,2,
@@ -72,17 +72,17 @@ function init() {
 		8,7,6,
 		7,8,9,
 		
-		10,6,0,
-		6,10,11,
+		10, 6, 0,
+		6, 10,11,
 		12,11,10,
 		11,12,13,
 		
-		14,10,0,
+		14,10, 0,
 		10,14,15,
 		16,15,14,
 		15,16,17,
 		
-		18,14,0,
+		18,14, 0,
 		14,18,19,
 		20,19,18,
 		19,20,21]);
@@ -106,6 +106,42 @@ function init() {
 	
 	//-------------stuff that goes in the scene
 	{
+//		backgroundtexture_file = THREE.ImageUtils.loadTexture( "Data/adenovirus256.jpg" );
+//		var backgroundtexture_material = new THREE.MeshBasicMaterial({
+//			map: backgroundtexture_file
+//		});
+//		var texturedist = -min_cameradist;
+//		var texturewidth = playing_field_width * 2;
+//		var textureheight = texturewidth; //currently we have a square texture
+//		var backgroundtexture_vertices_numbers = new Float32Array( [
+//		        -texturewidth/2, textureheight/2,texturedist,
+//				 texturewidth/2, textureheight/2,texturedist,
+//				 texturewidth/2,-textureheight/2,texturedist,
+//				-texturewidth/2,-textureheight/2,texturedist]);
+//		var backgroundtexture_triangle_vertices = new Uint32Array([0,1,2,0, 0,2,3,0]);		
+//		backgroundtexture_geometry = new THREE.BufferGeometry();
+//		backgroundtexture_geometry.addAttribute( 'index', new THREE.BufferAttribute( backgroundtexture_triangle_vertices, 1 ) );
+//		backgroundtexture_geometry.addAttribute( 'position', new THREE.BufferAttribute( backgroundtexture_vertices_numbers, 3 ) );
+//		backgroundtexture = new THREE.Mesh( backgroundtexture_geometry, backgroundtexture_material );
+//		scene.add(backgroundtexture);
+		
+		var surfacematerial = new THREE.MeshBasicMaterial({
+			color: 0x00ffff,
+			side:	THREE.DoubleSide
+		});
+		
+		surface_vertices = new THREE.BufferAttribute( surface_vertices_numbers, 3 ); //note the 3 means 3 numbers to a vector, not three vectors to a triangle
+		
+		surface_geometry = new THREE.BufferGeometry();
+		surface_geometry.addAttribute( 'index', new THREE.BufferAttribute( net_triangle_vertex_indices, 1 ) );
+		surface_geometry.addAttribute( 'position', surface_vertices );
+
+		surface = new THREE.Mesh( surface_geometry, surfacematerial );
+		surface.scale.x = 0.97;
+		surface.scale.y = 0.97;
+		surface.scale.z = 0.97;
+		scene.add(surface);
+		
 		var material1 = new THREE.LineBasicMaterial({
 			color: 0x0000ff
 		});
@@ -120,15 +156,6 @@ function init() {
 		flatnet.position.x = -5;
 		//scene.add(flatnet);
 		
-		surface_vertices = new THREE.BufferAttribute( surface_vertices_numbers, 3 ); //note the 3 means 3 numbers to a vector, not three vectors to a triangle
-		
-		surface_geometry = new THREE.BufferGeometry();
-		surface_geometry.addAttribute( 'position', surface_vertices );
-		surface_geometry.addAttribute( 'index', new THREE.BufferAttribute( line_index_pairs, 1 ) );
-
-		surface = new THREE.Line( surface_geometry, material1, THREE.LinePieces );
-		scene.add(surface);
-		
 		polyhedron_vertices = new THREE.BufferAttribute( polyhedron_vertices_numbers, 3 );
 		
 		polyhedron_geometry = new THREE.BufferGeometry();
@@ -140,7 +167,7 @@ function init() {
 		//scene.add(polyhedron);
 		
 		var flatlatticematerial = new THREE.PointCloudMaterial({
-			size: 0.1,
+			size: 0.065,
 			vertexColors: THREE.VertexColors
 		});
 		for( var i = 0; i < number_of_lattice_points; i++){
@@ -160,33 +187,14 @@ function init() {
 		//scene.add(flatlattice);
 		
 		
-		var surflatticematerial_attributes = {
-				alpha: { type: 'f', value: [] },
-	    };
-		for( var i = 0; i < number_of_lattice_points; i++ ) {
-			surflatticematerial_attributes.alpha.value[ i ] = 1;
-			lattice_alphas[ i ] = 1;
-		}
-	    var surflatticematerial_uniforms = {
-	    		vertexColors:	THREE.VertexColors,
-	    		size:			0.1,
-	    };		
-		var surflatticematerial = new THREE.ShaderMaterial( {
-				uniforms:       surflatticematerial_uniforms,
-		        attributes:     surflatticematerial_attributes,
-		        vertexShader:   document.getElementById( 'vertexshader' ).textContent,
-		        fragmentShader: document.getElementById( 'fragmentshader' ).textContent,
-		        transparent:    true
-	    });
 		surflattice_vertices = new THREE.BufferAttribute( surflattice_vertices_numbers, 3 );
 		
 		
 		surflattice_geometry = new THREE.BufferGeometry();
 		surflattice_geometry.addAttribute( 'position', surflattice_vertices );
 		surflattice_geometry.addAttribute( 'color', new THREE.BufferAttribute(lattice_colors, 3) );
-		surflattice_geometry.addAttribute( 'alpha', new THREE.BufferAttribute(lattice_alphas, 1) );
 
-		surflattice = new THREE.PointCloud( surflattice_geometry, surflatticematerial );
+		surflattice = new THREE.PointCloud( surflattice_geometry, flatlatticematerial );
 		scene.add(surflattice);
 		
 		
@@ -445,44 +453,66 @@ function init() {
 	{
 		var lattice_generator = Array(6);
 		lattice_generator[0] = new THREE.Vector2(0,1);			//up
-		lattice_generator[1] = new THREE.Vector2(HS3,0.5);		//bottom right
-		lattice_generator[2] = new THREE.Vector2(HS3,-0.5);	//bottom left
-		lattice_generator[3] = new THREE.Vector2(0,-1);			//left
-		lattice_generator[4] = new THREE.Vector2(-HS3,-0.5);		//top left
-		lattice_generator[5] = new THREE.Vector2(-HS3,0.5);		//top right
+		lattice_generator[1] = new THREE.Vector2(HS3,0.5);		//TR
+		lattice_generator[2] = new THREE.Vector2(HS3,-0.5);		//BR
+		lattice_generator[3] = new THREE.Vector2(0,-1);			//down
+		lattice_generator[4] = new THREE.Vector2(-HS3,-0.5);	//BL
+		lattice_generator[5] = new THREE.Vector2(-HS3,0.5);		//TL
 		
-		flatlattice_default_vertices[0] = 0;
-		flatlattice_default_vertices[1] = 0;
-		flatlattice_default_vertices[2] = 0;
+		var square_lattice_generator = Array(6);
+		square_lattice_generator[0] = new THREE.Vector2(1,1);		//up
+		square_lattice_generator[1] = new THREE.Vector2(1,0);		//TR
+		square_lattice_generator[2] = new THREE.Vector2(0,-1);		//BR
+		square_lattice_generator[3] = new THREE.Vector2(-1,-1);	//down
+		square_lattice_generator[4] = new THREE.Vector2(-1,0);		//BL
+		square_lattice_generator[5] = new THREE.Vector2(0,1);		//TL
+		
+		flatlattice_default_vertices[0] = 0; flatlattice_default_vertices[1] = 0; flatlattice_default_vertices[2] = 0;
+		surflattice_vertices.setXYZ(0, 0,0,0);
+		flatlattice_vertices_velocities[0*3+0] = 0; flatlattice_vertices_velocities[0*3+1] = 0; flatlattice_vertices_velocities[0*3+2] = 0;
+		squarelattice_vertices[0] = 0;squarelattice_vertices[1] = 0;
 		var index = 1;	
 		for(var hexagon_ring = 1; hexagon_ring < number_of_hexagon_rings+1; hexagon_ring++) {
 			for( var slice = 0; slice < 6; slice++) {
 				var slice_rightmost_point = lattice_generator[slice].clone();
 				slice_rightmost_point.multiplyScalar(hexagon_ring);
 				
+				var square_slice_rightmost_point = square_lattice_generator[slice].clone();
+				square_slice_rightmost_point.multiplyScalar(hexagon_ring);
+				
 				for( var length_along = 0; length_along < hexagon_ring; length_along++) {
 					var ourpoint = lattice_generator[(slice + 2)%6].clone();
 					ourpoint.multiplyScalar(length_along);				
 					ourpoint.add(slice_rightmost_point );
+					//if(ourpoint.length() > number_of_hexagon_rings * HS3 )
+						//continue;
 					
-					flatlattice_default_vertices[index*3+0] = ourpoint.x; flatlattice_default_vertices[index*3+1] = ourpoint.y; flatlattice_default_vertices[index*3+2] = 0;
+					var ourpointsquare = square_lattice_generator[(slice + 2)%6].clone();
+					ourpointsquare.multiplyScalar(length_along);				
+					ourpointsquare.add(square_slice_rightmost_point );
+					
+					flatlattice_default_vertices[index*3+0] = ourpoint.x; flatlattice_default_vertices[index*3+1] = ourpoint.y; flatlattice_default_vertices[index*3+2] = (1-capsidopenness) * camera.position.z * 1.5;
 					surflattice_vertices.setXYZ(index, 0,0,0);
+					squarelattice_vertices[index*2+0] = ourpointsquare.x; squarelattice_vertices[index*2+1] = ourpointsquare.y;
 					flatlattice_vertices_velocities[index*3+0] = 0; flatlattice_vertices_velocities[index*3+1] = 0; flatlattice_vertices_velocities[index*3+2] = 0;
 					
 					index++;
 				}
 			}
 		}
+		
 		var costheta = Math.cos(LatticeAngle);
 		var sintheta = Math.sin(LatticeAngle);
 		for(var i = 0; i < number_of_lattice_points; i++) {
 			flatlattice_vertices.setXYZ(i, 	(flatlattice_default_vertices[i*3+0] * costheta - flatlattice_default_vertices[i*3+1] * sintheta) * LatticeScale,
-											(flatlattice_default_vertices[i*3+0] * sintheta + flatlattice_default_vertices[i*3+1] * costheta) * LatticeScale, 0 );
+											(flatlattice_default_vertices[i*3+0] * sintheta + flatlattice_default_vertices[i*3+1] * costheta) * LatticeScale,
+											(1-capsidopenness) * camera.position.z * 1.5);
 		}
+		
+		for(var i = 0; i<20; i++)
+			shear_matrix[i] = new Array(4);
+		Update_net_variables();
 	}
-	
-	for(var i = 0; i<20; i++)
-		shear_matrix[i] = new Array(4);
 	
 	{
 //		this.engine = new ParticleEngine();

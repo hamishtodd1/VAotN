@@ -30,8 +30,8 @@ function onMouseMove( event ) {
 	// OldMousePosition.copy( MousePosition );
 	// MousePosition.copy( camera.position.clone().add( dir.multiplyScalar( distance ) ) );
 	
-	InputObject.mousex = (event.clientX-window_width/2) * (playing_field_width / window_width);
-	InputObject.mousey = -(event.clientY-window_height/2) * (playing_field_height / window_height);
+	InputObject.mousex = event.clientX;
+	InputObject.mousey = event.clientY;
 }
 
 function ReadInput() {
@@ -43,9 +43,12 @@ function ReadInput() {
 	}
 	
 	OldMousePosition.copy( MousePosition );
+	MousePosition.x = (InputObject.mousex-window_width/2) * (playing_field_width / window_width);
+	MousePosition.y = -(InputObject.mousey-window_height/2) * (playing_field_height / window_height);
+	//if(MousePosition.x===0) console.log("bah");
+	
 	Mouse_delta.set( MousePosition.x - OldMousePosition.x, MousePosition.y - OldMousePosition.y);
-	MousePosition.x = InputObject.mousex;
-	MousePosition.y = InputObject.mousey;
+	
 	
 	for(var i = 0; i < circleGeometry.vertices.length; i++) {
 		circleGeometry.vertices[i].x = MousePosition.x + Xdists_from_center[i];

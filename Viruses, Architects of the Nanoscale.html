@@ -1,6 +1,6 @@
 <html>
 	<head>
-		<title>Project.js app</title>
+		<title>VAotN</title>
 		<style>
 			body { margin: 0; }
 			canvas { style="border: none;" width="600" height="600" }
@@ -8,31 +8,12 @@
 	</head>
 	<body>
 		<script src="three.min.js"></script>
-		<script type="x-shader/x-vertex" id="vertexshader">
-			attribute float alpha;
-			varying float vAlpha;
-			void main() {
-				vAlpha = alpha;
-				vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
-				gl_Position = projectionMatrix * mvPosition;
-			}
-		</script>
-		<script type="x-shader/x-fragment" id="fragmentshader">
-			uniform vec3 color;
-			varying float vAlpha;
-			void main() {
-				gl_FragColor = vec4( color, vAlpha );
-			}
-		</script>
-		
-		
-		
 		<script src="variables.js"></script>
 		<script src="miscellaneousFunctions.js"></script>
 		<script src="Mapper.js"></script>
 		<script src="Lattice.js"></script>
 		<script src="initialization.js"></script>
-		<script src="blossom.js"></script>
+		<script src="surfacestuff.js"></script>
 		<script src="Inputgetter.js"></script>
 		<script src="CheckingFunctions.js"></script>
 		<script src="VertexArrangement.js"></script>

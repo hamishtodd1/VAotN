@@ -23,11 +23,30 @@ document.body.appendChild( renderer.domElement );
 
 
 
-//--------------Still quite fundamental
+//----------------Static
+var FLATNET = 0;
+var SURFACE = 1;
+var POLYHEDRON = 2;
+
+//Not including the central vertex.
+//mimivirus needs exactly 100. Try and work out how many a human can distinguish though
+//you need 40 for phyconaviridae, which is pushing distinguishability
+var number_of_hexagon_rings = 30;
+var number_of_lattice_points = 1 + 3 * number_of_hexagon_rings*(number_of_hexagon_rings+1);
+
+//----------------Initialized, then static
+var squarelattice_vertices = Array(number_of_lattice_points*2);
+var flatlattice_default_vertices = Array(number_of_lattice_points*3);
+
+var backgroundtexture_file;
+var backgroundtexture;
+
+//--------------
 var vertex_tobechanged = 666;
 
-var capsidopenness = 1;
+var capsidopenness = 0;
 var capsidclock = 0;
+var capsidopeningspeed = 0.018;
 
 var logged = 0;
 
@@ -36,7 +55,7 @@ var net_warnings = 0;
 var ourclock = new THREE.Clock( true );
 var delta_t = 0;
 
-//-----------not just constants
+var surfaceangle = 0.63;
 var net_triangle_vertex_indices;
 
 var line_index_pairs = new Uint16Array(60 * 2);
@@ -45,10 +64,6 @@ var flatnet;
 var flatnet_vertices_numbers;
 var flatnet_vertices;
 var flatnet_geometry;
-
-var FLATNET = 0;
-var SURFACE = 1;
-var POLYHEDRON = 2;
 
 //we need the polyhedron both to be seen and to help us get the minimum angles
 var polyhedron;
@@ -64,22 +79,16 @@ var surface_geometry;
 var surface_triangle_side_unit_vectors = new Array();
 var shear_matrix = new Array(20);
 
-//Not including the central vertex.
-//mimivirus needs exactly 100. Try and work out how many a human can distinguish though
-//you need 40 for phyconaviridae, which is pushing distinguishability
-var number_of_hexagon_rings = 30;
-var number_of_lattice_points = 1 + 3 * number_of_hexagon_rings*(number_of_hexagon_rings+1);
+var lattice_colors = new Float32Array(number_of_lattice_points * 3);
+
 var flatlattice;
 var flatlattice_vertices;
-var flatlattice_default_vertices = Array(number_of_lattice_points*3);
 var flatlattice_geometry;
 var flatlattice_center = new THREE.Vector2(0,0);
 var flatlattice_vertices_numbers = new Float32Array(3 * number_of_lattice_points);
-var flatlattice_vertices_destinations = new Float32Array(3 * number_of_lattice_points);
 var flatlattice_vertices_velocities = new Float32Array(3 * number_of_lattice_points);
 
-var lattice_colors = new Float32Array(number_of_lattice_points * 3);
-var lattice_alphas = new Float32Array(number_of_lattice_points);
+var net_vertices_closest_lattice_vertex = Array(22);
 
 var surflattice;
 var surflattice_vertices_numbers = new Float32Array(3 * number_of_lattice_points);
@@ -98,11 +107,6 @@ var circleGeometry;
 
 var cutout_mode = true;
 
-var InputObject = {};
-InputObject.mousex = 0;
-InputObject.mousey = 0;
-InputObject.isMouseDown = false;
-
 var vertex_identifications = new Array();
 var W_triangle_indices = new Array();
 var W_vertex_indices = new Array();
@@ -119,7 +123,12 @@ var RIGHT_DEFECT = 13;
 var CORE = 0;
 var ASSOCIATED = 1;
 
+var InputObject = {};
+InputObject.mousex = window_width/2+1;
+InputObject.mousey = window_height/2+1;
+InputObject.isMouseDown = false;
+
 var raycaster = new THREE.Raycaster();
-var MousePosition = new THREE.Vector2();
-var OldMousePosition = new THREE.Vector2();
-var Mouse_delta = new THREE.Vector2();
+var MousePosition = new THREE.Vector2(0,0);
+var OldMousePosition = new THREE.Vector2(0,0);
+var Mouse_delta = new THREE.Vector2(0,0);

@@ -1,37 +1,18 @@
 function HandleCapsidOpenness(openness, vertices_numbers) {
-	var capsidopeningspeed = 0.04;
-	
 	if(InputObject.isMouseDown) {
 		capsidopenness += capsidopeningspeed;
-		if(capsidopenness > 1)
+		if(capsidopenness > 1) {
 			capsidopenness = 1;
+			capsidopeningspeed = 0.018;
+		}
 	}
 	else {
 		capsidopenness -= capsidopeningspeed;
-		if(capsidopenness < 0)
+		if(capsidopenness < 0) {
 			capsidopenness = 0;
+			capsidopeningspeed = 0.018;
+		}
 	}
-	
-//	capsidclock += 1;
-//	var capsidopeningspeed = 0.01;
-//	var static_capsid_wait = 70;
-//	var moving_capsid_wait = 1/capsidopeningspeed;
-//	if(capsidclock < static_capsid_wait )
-//		capsidopenness = 0;
-//	else if(capsidclock < static_capsid_wait + moving_capsid_wait ) {
-//		capsidopenness += capsidopeningspeed;
-//		if(capsidopenness > 1) {
-//			capsidopenness = 1;
-//			capsidclock = static_capsid_wait + moving_capsid_wait + 1;
-//		}
-//	}
-//	else if( capsidclock > static_capsid_wait * 2 + moving_capsid_wait){
-//		capsidopenness -= capsidopeningspeed;
-//		if(capsidopenness < 0) {
-//			capsidopenness = 0;
-//			capsidclock = 0;
-//		}
-//	}
 	
 	deduce_surface(capsidopenness, surface_vertices);
 	
@@ -39,7 +20,7 @@ function HandleCapsidOpenness(openness, vertices_numbers) {
 }
 
 function deduce_first_triangle(openness, vertices_numbers, rotation) {
-	var origin_height = (1-capsidopenness) * Math.sqrt( (5 + Math.sqrt(5) ) / 2);
+	var origin_height = (1-capsidopenness) * Math.sqrt( PHI*PHI+1) / 2;
 	
 	vertices_numbers.setXYZ(0, 0, 0, origin_height);
 	
@@ -160,5 +141,47 @@ function deduce_surface(openness, vertices_numbers) {
 		d.add( a );
 		
 		vertices_numbers.setXYZ(i, d.x,d.y,d.z);
+	}
+}
+
+function HandleCapsidRotation() {
+	//plan: it rotates slowly on two axes, such that it is always ready to have an axis point directly up
+	//no, rotates just about the axis through vertices 6 and the origin
+	//when player clicks, it rotates so an axis points at them, then opens. Could be a nice anticipation, like the foot-stamp - make edges glow, or have particles from around it get sucked in
+	
+	var normalturningspeed = TAU/5/2; //this is the amount you want to do in a second
+	normalturningspeed *= delta_t;	
+	
+	if(capsidopenness ===0) {
+		surfaceangle += normalturningspeed;
+	}
+	else { //we want to get it to zero
+		while(surfaceangle > TAU / 10)
+			surfaceangle -= TAU/5; //unnoticeable
+		
+		//when capsidopenness = 1, we want turningspeed to be -surfaceangle. We also want it to be a minimum of TAU/5/2 
+		var turningspeed = Math.pow(capsidopenness, 5) * -surfaceangle;
+		if(Math.abs(turningspeed) < normalturningspeed) {
+			if(turningspeed > 0)
+				turningspeed = normalturningspeed;
+			else
+				turningspeed = -normalturningspeed;
+		}
+		
+		surfaceangle += turningspeed;
+		
+		if(Math.abs(surfaceangle) <= Math.abs(turningspeed) )
+			surfaceangle = 0;
+	}
+	
+	var axis = new THREE.Vector3( 	surface_vertices.array[6*3+0] - surface_vertices.array[19*3+0],
+									surface_vertices.array[6*3+1] - surface_vertices.array[19*3+1],
+									surface_vertices.array[6*3+2] - surface_vertices.array[19*3+2]);
+	axis.normalize();
+	
+	for( var i = 0; i < 22; i++){
+		var d = get_vector(i, SURFACE);
+		d.applyAxisAngle(axis, surfaceangle);
+		surface_vertices.setXYZ(i, d.x,d.y,d.z);
 	}
 }
