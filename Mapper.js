@@ -8,7 +8,6 @@ function Update_net_variables() {
 		net_vertices_closest_lattice_vertex[i] = index_of_closest_default_lattice_vertex(netvertex.x,netvertex.y);
 	}
 	
-	logged = 1;	
 	for(var i = 0; i < 20; i++) {
 		var side0vertex_index = vertices_derivations[i+2][0];
 		var side1vertex_index = vertices_derivations[i+2][1]; //always counter-clockwise

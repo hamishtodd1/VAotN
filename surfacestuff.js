@@ -185,3 +185,23 @@ function HandleCapsidRotation() {
 		surface_vertices.setXYZ(i, d.x,d.y,d.z);
 	}
 }
+
+function update_surfperimeter() {
+	for( var i = 0; i < surfperimeter_cylinders.length; i++) {
+		if(logged!=1)console.log(surfperimeter_cylinders[i].geometry.attributes.position.array);
+		//they zigzag, so odd i's will be at one end and even at the other
+		for( var j = 0; j < surfperimeter_cylinders[i].geometry.attributes.position.array.length / 3; j+=2) {
+			surfperimeter_cylinders[i].geometry.attributes.position.array[  j  *3+0] = surface_vertices.array[surfperimeter_line_index_pairs[i*2+0]*3+0];
+			surfperimeter_cylinders[i].geometry.attributes.position.array[  j  *3+1] = surface_vertices.array[surfperimeter_line_index_pairs[i*2+0]*3+1];
+			surfperimeter_cylinders[i].geometry.attributes.position.array[  j  *3+2] = surface_vertices.array[surfperimeter_line_index_pairs[i*2+0]*3+2];
+			
+			surfperimeter_cylinders[i].geometry.attributes.position.array[(j+1)*3+0] = surface_vertices.array[surfperimeter_line_index_pairs[i*2+1]*3+0];
+			surfperimeter_cylinders[i].geometry.attributes.position.array[(j+1)*3+1] = surface_vertices.array[surfperimeter_line_index_pairs[i*2+1]*3+1];
+			surfperimeter_cylinders[i].geometry.attributes.position.array[(j+1)*3+2] = surface_vertices.array[surfperimeter_line_index_pairs[i*2+1]*3+2];
+		}
+		
+		//they're infinitely thin. Ugh. Rotation to attach points?
+		surfperimeter_cylinders[i].geometry.attributes.position.needsUpdate = true;
+	}
+	logged = 1;
+}

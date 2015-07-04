@@ -137,10 +137,10 @@ function init() {
 		surface_geometry.addAttribute( 'position', surface_vertices );
 
 		surface = new THREE.Mesh( surface_geometry, surfacematerial );
-		surface.scale.x = 0.97;
-		surface.scale.y = 0.97;
-		surface.scale.z = 0.97;
-		scene.add(surface);
+		surface.scale.x = 0.995;
+		surface.scale.y = 0.995;
+		surface.scale.z = 0.995;
+		//scene.add(surface);
 		
 		var material1 = new THREE.LineBasicMaterial({
 			color: 0x0000ff
@@ -187,15 +187,60 @@ function init() {
 		//scene.add(flatlattice);
 		
 		
-		surflattice_vertices = new THREE.BufferAttribute( surflattice_vertices_numbers, 3 );
-		
-		
+		surflattice_vertices = new THREE.BufferAttribute( surflattice_vertices_numbers, 3 );		
 		surflattice_geometry = new THREE.BufferGeometry();
 		surflattice_geometry.addAttribute( 'position', surflattice_vertices );
 		surflattice_geometry.addAttribute( 'color', new THREE.BufferAttribute(lattice_colors, 3) );
 
 		surflattice = new THREE.PointCloud( surflattice_geometry, flatlatticematerial );
-		scene.add(surflattice);
+		//scene.add(surflattice);
+		
+		
+		var surfperimetermaterial = new THREE.LineBasicMaterial({
+			vertexColors: THREE.VertexColors
+		});
+		for( var i = 0; i < 5; i++) {
+			surfperimeter_line_index_pairs[2+ i*8+0] = Math.abs(4*i - 2);
+
+			surfperimeter_line_index_pairs[2+ i*8+1] = 4*i + 3;
+			surfperimeter_line_index_pairs[2+ i*8+2] = 4*i + 3;
+			
+			surfperimeter_line_index_pairs[2+ i*8+3] = 4*i + 5;
+			surfperimeter_line_index_pairs[2+ i*8+4] = 4*i + 5;
+			
+			surfperimeter_line_index_pairs[2+ i*8+5] = 4*i + 4;
+			surfperimeter_line_index_pairs[2+ i*8+6] = 4*i + 4;
+			
+			surfperimeter_line_index_pairs[2+ i*8+7] = 4*i + 2;
+		}
+		surfperimeter_line_index_pairs[0] = 0; surfperimeter_line_index_pairs[1] = 1;
+		surfperimeter_line_index_pairs[2] = 1;
+		surfperimeter_line_index_pairs[42] = 18; surfperimeter_line_index_pairs[43] = 0;
+		
+		for( var i = 0; i < 22; i++) {
+			surfperimeter_colors[i*3+0] = 0;
+			surfperimeter_colors[i*3+1] = 1;
+			surfperimeter_colors[i*3+2] = 1;
+		}
+		
+		surfperimeter_vertices = new THREE.BufferAttribute( surface_vertices_numbers, 3 );		
+		surfperimeter_geometry = new THREE.BufferGeometry();
+		surfperimeter_geometry.addAttribute( 'position', surfperimeter_vertices );
+		surfperimeter_geometry.addAttribute( 'index', new THREE.BufferAttribute( surfperimeter_line_index_pairs, 1 ) );
+		surfperimeter_geometry.addAttribute( 'color', new THREE.BufferAttribute( surfperimeter_colors, 3) );
+		surfperimeter = new THREE.Line( surfperimeter_geometry, surfperimetermaterial, THREE.LinePieces );
+		//scene.add(surfperimeter);
+		
+		var surfperimeter_cylindersmaterial = new THREE.LineBasicMaterial({
+			color: 0x00ccff
+		});
+		var cylinderradius = 0.03;
+		for( var i = 0; i < surfperimeter_cylinders.length; i++) {
+			surfperimeter_cylinders[i] = new THREE.Mesh( (new THREE.BufferGeometry()).fromGeometry(new THREE.CylinderGeometry(cylinderradius, cylinderradius, 1, 8, 1, true )), surfperimeter_cylindersmaterial );
+			surfperimeter_cylinders[i].position.x = 2*i;
+			scene.add(surfperimeter_cylinders[i]);
+		}
+		
 		
 		
 		

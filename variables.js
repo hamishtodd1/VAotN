@@ -76,6 +76,14 @@ var surface_vertices_numbers = new Float32Array(22*3);
 var surface_vertices;
 var surface_geometry;
 
+var surfperimeter;
+var surfperimeter_vertices;
+var surfperimeter_geometry;
+var surfperimeter_line_index_pairs = new Uint16Array(22 * 2);
+var surfperimeter_colors = new Float32Array(22*3);
+
+var surfperimeter_cylinders = Array(1);
+
 var surface_triangle_side_unit_vectors = new Array();
 var shear_matrix = new Array(20);
 
@@ -124,8 +132,8 @@ var CORE = 0;
 var ASSOCIATED = 1;
 
 var InputObject = {};
-InputObject.mousex = window_width/2+1;
-InputObject.mousey = window_height/2+1;
+InputObject.mousex = window_width/2+30;
+InputObject.mousey = window_height/2+30;
 InputObject.isMouseDown = false;
 
 var raycaster = new THREE.Raycaster();

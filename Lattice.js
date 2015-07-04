@@ -1,3 +1,7 @@
+//Optimization for many things to do with lattice: just work on one one-sixth slice
+
+//might things actually be better if the net got smaller?
+
 var inverse_vertex_mass = 150; //really just a constant that accel is multiplied by
 var dampingconstant = 0.05;
 var distunit = 10;
@@ -22,12 +26,10 @@ function get_accel(index,vertex_destinationX,vertex_destinationY,vertex_destinat
 	return accel;
 }
 
-var maxaccel = 0;
+var maxspeed = 34;
 function updatelattice() {
 	var costheta = Math.cos(LatticeAngle);
 	var sintheta = Math.sin(LatticeAngle);
-	
-	var oldmaxaccel = maxaccel;
 
 	for(var i = 1; i < number_of_lattice_points; i++) {
 		var vertex_destinationX = (flatlattice_default_vertices[i*3+0] * costheta - flatlattice_default_vertices[i*3+1] * sintheta) * LatticeScale;
@@ -64,18 +66,14 @@ function updatelattice() {
 		var speed = Math.pow(flatlattice_vertices_velocities[i*3+0]*flatlattice_vertices_velocities[i*3+0]
 							+flatlattice_vertices_velocities[i*3+1]*flatlattice_vertices_velocities[i*3+1]
 							+flatlattice_vertices_velocities[i*3+2]*flatlattice_vertices_velocities[i*3+2], 0.5);
-		if(speed > 0.1 )
-			lattice_colors[i*3+1] = 0;
-		else
-			lattice_colors[i*3+1] = 1;
+		if(speed > maxspeed ) {
+			//flatlattice_vertices_velocities[i*3+0] *= maxspeed/speed;
+			speed = maxspeed;
+		}
+		lattice_colors[i*3+1] = speed/maxspeed;		
 		
-		if(speed > maxaccel )
-			maxaccel = speed;
-		if(speed > maxaccel )
-			maxaccel = speed;
+		//it's more like you want to limit how far away they get from their neighbours, pretty hard
 	}
-	
-	//if(maxaccel>oldmaxaccel) console.log(maxaccel); TODO color stuff
 	
 	flatlattice.geometry.attributes.position.needsUpdate = true;
 	flatlattice.geometry.attributes.color.needsUpdate = true;
@@ -113,9 +111,12 @@ function HandleLatticeMovement() {
 			
 			var OldMousedist = OldMousePosition.distanceTo(flatlattice_center); //unless the center is going to change?
 			
-			LatticeScaleChange = Mousedist / OldMousedist;
-			if(LatticeScaleChange < 0.5)
-				LatticeScaleChange = 0.5; //need some clever clamping here probably
+			var maxLatticeScaleChange = 10;
+			var minLatticeScaleChange = 0.9;
+			var LatticeScaleChange = Mousedist / OldMousedist;
+			//TODO impose limits. The "fuzz" comes from scaling, not rotation
+			//if( LatticeScaleChange > maxLatticeScaleChange) LatticeScaleChange = maxLatticeScaleChange;
+			//if( LatticeScaleChange < minLatticeScaleChange) LatticeScaleChange = minLatticeScaleChange;
 			
 			LatticeScale *= LatticeScaleChange;
 			if(LatticeScale < 10/3 * HS3 / number_of_hexagon_rings)
@@ -133,10 +134,13 @@ function HandleLatticeMovement() {
 			if(OldMousePosition.x - flatlattice_center.x === 0 && OldMousePosition.y - flatlattice_center.y === 0)
 				OldMouseAngle = 0;
 			
-			//speed up opening
-			if(OldMouseAngle !== MouseAngle) capsidopeningspeed += 0.0045;
+			//speed up opening. TODO Sensetive enough so you know it happens, not so sensetive that touchscreens don't see slow opening
+			if(Math.abs(OldMouseAngle - MouseAngle) > 0.08) capsidopeningspeed += 0.0045;
 			
-			LatticeAngle += OldMouseAngle - MouseAngle;
+			var maxLatticeAngleChange = 0.5;
+			var LatticeAngleChange = OldMouseAngle - MouseAngle;
+			//if(Math.abs(LatticeAngleChange) > maxLatticeAngleChange) LatticeAngleChange = maxLatticeAngleChange * Math.sign(LatticeAngleChange);
+			LatticeAngle += LatticeAngleChange;
 		}
 	}
 	updatelattice();

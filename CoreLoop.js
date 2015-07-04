@@ -1,3 +1,15 @@
+/*
+ * Long term To Do
+ * 
+ *  -implement protein models
+ *  -implement look-inside
+ *  -make it feel good
+ *  -make video
+ *  -test
+ *  -iterate (maybe add puzzles)
+ */
+
+
 function Map_gameobjects() {	
 }
 
@@ -9,6 +21,7 @@ function Map_everything() {
 function UpdateWorld() {
 	HandleCapsidOpenness(); //really this is "update surface"
 	HandleCapsidRotation(); //what you probably need to keep in mind is a picture of this as a list of the things that happen inside their functions
+	update_surfperimeter();
 	
 	HandleVertexRearrangement();
 	HandleLatticeMovement();

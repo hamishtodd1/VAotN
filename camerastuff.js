@@ -20,12 +20,10 @@ function UpdateCamera() {
 	//one nice movement is the "WHOOSH-stooooop..."
 	//little screenshakes for little things, big ones for big things
 	//could have the camera move over to focus on something that you hover your mouse over
-	//hey, why not have things massively zoomed in in comparison with what they currently are? make the capsid an awesome thing. Oh yeah, lecture integration	
-	
+	//give the net a flashy rim, that points ust come in through. Make it look like the capsid "cracks" open
 	
 	//could have the lines go wavy	
 	//click on lattice, little flash and explosion
-	//want to think of the equivalent of a dead body, something that reminds you of shit that just happened. Ghost of your previous capsid position?
 	//sleep()	
 	//when you make a mistake, something nice should happen too. In nuclear throne there are cactuses that react to missed bullets
 	
