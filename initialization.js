@@ -127,7 +127,8 @@ function init() {
 		
 		var surfacematerial = new THREE.MeshBasicMaterial({
 			color: 0x00ffff,
-			side:	THREE.DoubleSide
+			side:	THREE.DoubleSide,
+			shading: THREE.FlatShading //TODO add light source or whatever you need
 		});
 		
 		surface_vertices = new THREE.BufferAttribute( surface_vertices_numbers, 3 ); //note the 3 means 3 numbers to a vector, not three vectors to a triangle
@@ -140,7 +141,7 @@ function init() {
 		surface.scale.x = 0.995;
 		surface.scale.y = 0.995;
 		surface.scale.z = 0.995;
-		//scene.add(surface);
+		scene.add(surface);
 		
 		var material1 = new THREE.LineBasicMaterial({
 			color: 0x0000ff
@@ -196,9 +197,7 @@ function init() {
 		//scene.add(surflattice);
 		
 		
-		var surfperimetermaterial = new THREE.LineBasicMaterial({
-			vertexColors: THREE.VertexColors
-		});
+		
 		for( var i = 0; i < 5; i++) {
 			surfperimeter_line_index_pairs[2+ i*8+0] = Math.abs(4*i - 2);
 
@@ -217,29 +216,39 @@ function init() {
 		surfperimeter_line_index_pairs[2] = 1;
 		surfperimeter_line_index_pairs[42] = 18; surfperimeter_line_index_pairs[43] = 0;
 		
-		for( var i = 0; i < 22; i++) {
-			surfperimeter_colors[i*3+0] = 0;
-			surfperimeter_colors[i*3+1] = 1;
-			surfperimeter_colors[i*3+2] = 1;
+		
+		
+		var cylinder_triangle_indices = new Uint16Array(6 * 8);
+		for( var i = 0; i < 8; i++){
+			//hopefully this is clockwise
+			cylinder_triangle_indices[i*6+0] = (i*2)%16;
+			cylinder_triangle_indices[i*6+1] = (i*2+1)%16;
+			cylinder_triangle_indices[i*6+2] = (i*2+2)%16;
+			
+			cylinder_triangle_indices[i*6+3] = (i*2+1)%16;
+			cylinder_triangle_indices[i*6+4] = (i*2+3)%16;
+			cylinder_triangle_indices[i*6+5] = (i*2+2)%16;
 		}
 		
-		surfperimeter_vertices = new THREE.BufferAttribute( surface_vertices_numbers, 3 );		
-		surfperimeter_geometry = new THREE.BufferGeometry();
-		surfperimeter_geometry.addAttribute( 'position', surfperimeter_vertices );
-		surfperimeter_geometry.addAttribute( 'index', new THREE.BufferAttribute( surfperimeter_line_index_pairs, 1 ) );
-		surfperimeter_geometry.addAttribute( 'color', new THREE.BufferAttribute( surfperimeter_colors, 3) );
-		surfperimeter = new THREE.Line( surfperimeter_geometry, surfperimetermaterial, THREE.LinePieces );
-		//scene.add(surfperimeter);
-		
-		var surfperimeter_cylindersmaterial = new THREE.LineBasicMaterial({
-			color: 0x00ccff
+		var surfperimeter_cylindersmaterial = new THREE.MeshBasicMaterial({
+			color: 0xccccff,
+			side:	THREE.DoubleSide
 		});
-		var cylinderradius = 0.03;
 		for( var i = 0; i < surfperimeter_cylinders.length; i++) {
-			surfperimeter_cylinders[i] = new THREE.Mesh( (new THREE.BufferGeometry()).fromGeometry(new THREE.CylinderGeometry(cylinderradius, cylinderradius, 1, 8, 1, true )), surfperimeter_cylindersmaterial );
-			surfperimeter_cylinders[i].position.x = 2*i;
+			surfperimeter_spheres[i] = new THREE.Mesh( (new THREE.BufferGeometry).fromGeometry(new THREE.SphereGeometry(surfperimeterthickness,8,4)),surfperimeter_cylindersmaterial);
+			scene.add(surfperimeter_spheres[i]);
+			
+			var cylinder_vertices_numbers = new Float32Array(16*3);
+			put_tube_in_buffer(0,0,0,1,1,1, surfperimeterthickness, cylinder_vertices_numbers);
+			
+			var surfperimeter_cylinders_geometry = new THREE.BufferGeometry();
+			surfperimeter_cylinders_geometry.addAttribute( 'index', new THREE.BufferAttribute( cylinder_triangle_indices, 1 ) );
+			surfperimeter_cylinders_geometry.addAttribute( 'position', new THREE.BufferAttribute( cylinder_vertices_numbers, 3 ) );
+			
+			surfperimeter_cylinders[i] = new THREE.Mesh( surfperimeter_cylinders_geometry, surfperimeter_cylindersmaterial );
 			scene.add(surfperimeter_cylinders[i]);
 		}
+		
 		
 		
 		

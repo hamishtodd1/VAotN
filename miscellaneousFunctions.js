@@ -22,7 +22,7 @@ function point_in_triangle( ourpointx,ourpointy,
 							cornerAx, cornerAy,cornerBx, cornerBy, cornerCx,cornerCy, 
 							clockwise)
 {
-	if(clockwise === 'undefined') {
+	if(clockwise === undefined) {
 		if( point_to_the_right_of_line(cornerC, cornerA, cornerB))
 			clockwise = true;
 		else

@@ -33,6 +33,7 @@ var POLYHEDRON = 2;
 //you need 40 for phyconaviridae, which is pushing distinguishability
 var number_of_hexagon_rings = 30;
 var number_of_lattice_points = 1 + 3 * number_of_hexagon_rings*(number_of_hexagon_rings+1);
+var surfperimeterthickness = 0.02;
 
 //----------------Initialized, then static
 var squarelattice_vertices = Array(number_of_lattice_points*2);
@@ -44,7 +45,7 @@ var backgroundtexture;
 //--------------
 var vertex_tobechanged = 666;
 
-var capsidopenness = 0;
+var capsidopenness = 0; //much depends on this, but we should have as few sharp changes as possible
 var capsidclock = 0;
 var capsidopeningspeed = 0.018;
 
@@ -82,7 +83,15 @@ var surfperimeter_geometry;
 var surfperimeter_line_index_pairs = new Uint16Array(22 * 2);
 var surfperimeter_colors = new Float32Array(22*3);
 
-var surfperimeter_cylinders = Array(1);
+var surfperimeter_cylinders = Array(22);
+var surfperimeter_spheres = Array(22);
+
+var groovepoints = Array(
+	[21,5,20,3,18,1,0,0],
+	[5,9,4,7,2,2],
+	[9,13,8,11,6,6],
+	[13,17,12,15,10,10],
+	[17,21,16,19,14,14]);
 
 var surface_triangle_side_unit_vectors = new Array();
 var shear_matrix = new Array(20);

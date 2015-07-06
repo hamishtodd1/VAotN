@@ -186,22 +186,151 @@ function HandleCapsidRotation() {
 	}
 }
 
-function update_surfperimeter() {
-	for( var i = 0; i < surfperimeter_cylinders.length; i++) {
-		if(logged!=1)console.log(surfperimeter_cylinders[i].geometry.attributes.position.array);
-		//they zigzag, so odd i's will be at one end and even at the other
-		for( var j = 0; j < surfperimeter_cylinders[i].geometry.attributes.position.array.length / 3; j+=2) {
-			surfperimeter_cylinders[i].geometry.attributes.position.array[  j  *3+0] = surface_vertices.array[surfperimeter_line_index_pairs[i*2+0]*3+0];
-			surfperimeter_cylinders[i].geometry.attributes.position.array[  j  *3+1] = surface_vertices.array[surfperimeter_line_index_pairs[i*2+0]*3+1];
-			surfperimeter_cylinders[i].geometry.attributes.position.array[  j  *3+2] = surface_vertices.array[surfperimeter_line_index_pairs[i*2+0]*3+2];
-			
-			surfperimeter_cylinders[i].geometry.attributes.position.array[(j+1)*3+0] = surface_vertices.array[surfperimeter_line_index_pairs[i*2+1]*3+0];
-			surfperimeter_cylinders[i].geometry.attributes.position.array[(j+1)*3+1] = surface_vertices.array[surfperimeter_line_index_pairs[i*2+1]*3+1];
-			surfperimeter_cylinders[i].geometry.attributes.position.array[(j+1)*3+2] = surface_vertices.array[surfperimeter_line_index_pairs[i*2+1]*3+2];
-		}
+function put_tube_in_buffer(A,B, mybuffer, radius ) {
+	if(radius==undefined)
+		radius = 0.02; 
+	
+	var A_to_B = new THREE.Vector3(B.x-A.x, B.y-A.y, B.z-A.z);
+	var perp = new THREE.Vector3(A_to_B.y*A_to_B.y+A_to_B.z*A_to_B.z, A_to_B.y*-A_to_B.x,A_to_B.z*-A_to_B.x);
+	perp.normalize();
+	for( var i = 0; i < mybuffer.length/3/2; i++) {
+		var theta = i * TAU/(mybuffer.length/3/2);
+		var radiuscomponent = perp.clone();
+		radiuscomponent.multiplyScalar(radius);
+		radiuscomponent.applyAxisAngle(A_to_B, theta);
 		
-		//they're infinitely thin. Ugh. Rotation to attach points?
+		mybuffer[ i*2 * 3 + 0] = A.x + radiuscomponent.x;
+		mybuffer[ i*2 * 3 + 1] = A.y + radiuscomponent.y;
+		mybuffer[ i*2 * 3 + 2] = A.z + radiuscomponent.z;
+		
+		mybuffer[(i*2+1) * 3 + 0] = B.x + radiuscomponent.x;
+		mybuffer[(i*2+1) * 3 + 1] = B.y + radiuscomponent.y;
+		mybuffer[(i*2+1) * 3 + 2] = B.z + radiuscomponent.z;
+	}
+}
+
+function ziplocation(a1,a2,b1,b2,zipwidth){
+	dist1 = a1.distanceTo(b1);
+	dist2 = a2.distanceTo(b2);
+	if(dist1 > zipwidth && dist2 > zipwidth) return "not on here";
+	
+	var proportion_along_midline;
+	var zippoint;
+	if(dist1>dist2){
+		proportion_along_midline = (zipwidth-dist2)/(dist1-dist2);
+		if(proportion_along_midline > 1 || proportion_along_midline < 0) return "invalid";
+		
+		zippoint = a2.clone();
+		zippoint.lerp(b2,0.5);
+		
+		var endzippoint = a1.clone();
+		endzippoint.lerp(b1,0.5);
+		
+		zippoint.lerp(endzippoint,proportion_along_midline);
+	}
+	else {
+		proportion_along_midline = (zipwidth-dist1)/(dist2-dist1);
+		if(proportion_along_midline > 1 || proportion_along_midline < 0) return "invalid";
+		
+		zippoint = a1.clone();
+		zippoint.lerp(b1,0.5);
+		
+		var endzippoint = a2.clone();
+		endzippoint.lerp(b2,0.5);
+		
+		zippoint.lerp(endzippoint,proportion_along_midline);
+	}
+	
+	return zippoint;
+}
+
+function change_radius(sphere, radius) {
+	var current_radius = Math.sqrt( Math.pow(sphere.geometry.attributes.position.array[0],2)+Math.pow(sphere.geometry.attributes.position.array[1],2)+Math.pow(sphere.geometry.attributes.position.array[2],2) );
+	for( var i = 0; i < sphere.geometry.attributes.position.array.length; i++) {
+		sphere.geometry.attributes.position.array[i] *= radius / current_radius;
+	}
+	sphere.geometry.attributes.position.needsUpdate = true;
+}
+
+function update_surfperimeter() {
+	var radius = 0;
+	if( capsidopenness < 0.4 )
+		radius = capsidopenness / 0.4 * surfperimeterthickness;
+	else
+		radius = surfperimeterthickness;
+	
+	var tubes_placed = 0;
+	var spheres_placed = 0;
+	var a1index, a2index, b1index, b2index;
+	var a1,a2,b1,b2;
+	a1 = new THREE.Vector3(0,0,0);
+	
+	for( var i = 0; i < surfperimeter_cylinders.length; i++){
+		put_tube_in_buffer(a1,a1, surfperimeter_cylinders[i].geometry.attributes.position.array);
+		surfperimeter_spheres[i].position.copy(a1);
+		
 		surfperimeter_cylinders[i].geometry.attributes.position.needsUpdate = true;
 	}
-	logged = 1;
+	if(capsidopenness != 0 ) {
+		for( var groove = 0; groove < 5; groove++) {
+			for(var j = 0; j < groovepoints[groove].length/2-1;j++){
+				a1index = groovepoints[groove][j*2+0];
+				a2index = groovepoints[groove][j*2+2];
+				b1index = groovepoints[groove][j*2+1];
+				b2index = groovepoints[groove][j*2+3];
+				a1 = new THREE.Vector3(
+						surface_vertices.array[a1index*3+0],
+						surface_vertices.array[a1index*3+1],
+						surface_vertices.array[a1index*3+2]);
+				a2 = new THREE.Vector3(
+						surface_vertices.array[a2index*3+0],
+						surface_vertices.array[a2index*3+1],
+						surface_vertices.array[a2index*3+2]);
+				b1 = new THREE.Vector3(
+						surface_vertices.array[b1index*3+0],
+						surface_vertices.array[b1index*3+1],
+						surface_vertices.array[b1index*3+2]);
+				b2 = new THREE.Vector3(
+						surface_vertices.array[b2index*3+0],
+						surface_vertices.array[b2index*3+1],
+						surface_vertices.array[b2index*3+2]);
+				
+				var zippoint = ziplocation(a1,a2,b1,b2, 0.0103);
+				
+				if(zippoint == "invalid")
+					break;
+				if(zippoint == "not on here") {
+					//put cylinders on the sides, 2 spheres at different places
+					change_radius(surfperimeter_spheres[spheres_placed], radius);
+					surfperimeter_spheres[spheres_placed].position.copy(a1);
+					spheres_placed++;
+					change_radius(surfperimeter_spheres[spheres_placed], radius);
+					surfperimeter_spheres[spheres_placed].position.copy(b2);
+					spheres_placed++;
+					
+					put_tube_in_buffer(a1,a2, surfperimeter_cylinders[tubes_placed].geometry.attributes.position.array, radius);
+					tubes_placed++;
+					put_tube_in_buffer(b1,b2, surfperimeter_cylinders[tubes_placed].geometry.attributes.position.array, radius);
+					tubes_placed++;
+				}				
+				else {
+					//put a sphere here, connected by cylinders to the previous j points
+					//put all the remaining spheres and cylinders here
+					change_radius(surfperimeter_spheres[spheres_placed], radius);
+					surfperimeter_spheres[spheres_placed].position.copy(a1);
+					spheres_placed++;
+					change_radius(surfperimeter_spheres[spheres_placed], radius);
+					surfperimeter_spheres[spheres_placed].position.copy(zippoint);
+					spheres_placed++;
+					
+					put_tube_in_buffer(a1,zippoint, surfperimeter_cylinders[tubes_placed].geometry.attributes.position.array, radius);
+					tubes_placed++;
+					put_tube_in_buffer(b1,zippoint, surfperimeter_cylinders[tubes_placed].geometry.attributes.position.array, radius);
+					tubes_placed++;
+					
+					break;
+				}
+			}
+		}
+	}
 }

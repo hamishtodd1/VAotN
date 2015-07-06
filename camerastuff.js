@@ -22,6 +22,8 @@ function UpdateCamera() {
 	//could have the camera move over to focus on something that you hover your mouse over
 	//give the net a flashy rim, that points ust come in through. Make it look like the capsid "cracks" open
 	
+	//watch the videos again when in need of inspiration
+	
 	//could have the lines go wavy	
 	//click on lattice, little flash and explosion
 	//sleep()	
