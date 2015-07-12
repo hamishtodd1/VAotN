@@ -1,17 +1,18 @@
 function HandleCapsidOpenness(openness, vertices_numbers) {
-	if(InputObject.isMouseDown) {
-		capsidopenness += capsidopeningspeed;
-		if(capsidopenness > 1) {
-			capsidopenness = 1;
-			capsidopeningspeed = 0.018;
-		}
+	if(InputObject.isMouseDown)
+		capsidopeningspeed = 0.018;
+	else
+		capsidopeningspeed = -0.018;
+	
+	capsidopenness += capsidopeningspeed;
+	
+	if(capsidopenness > 1) {
+		capsidopenness = 1;
+		capsidopeningspeed = 0;
 	}
-	else {
-		capsidopenness -= capsidopeningspeed;
-		if(capsidopenness < 0) {
-			capsidopenness = 0;
-			capsidopeningspeed = 0.018;
-		}
+	if(capsidopenness < 0) {
+		capsidopenness = 0;
+		capsidopeningspeed = 0;
 	}
 	
 	deduce_surface(capsidopenness, surface_vertices);
@@ -253,84 +254,98 @@ function change_radius(sphere, radius) {
 }
 
 function update_surfperimeter() {
-	var radius = 0;
-	if( capsidopenness < 0.4 )
-		radius = capsidopenness / 0.4 * surfperimeterthickness;
+	var surfperimeterradius = 0;
+	var proportion_of_opening_for_swell = 1;
+	if( capsidopenness < proportion_of_opening_for_swell )
+		surfperimeterradius = capsidopenness / proportion_of_opening_for_swell * surfperimeter_default_radius;
 	else
-		radius = surfperimeterthickness;
+		surfperimeterradius = surfperimeter_default_radius;
 	
-	var tubes_placed = 0;
-	var spheres_placed = 0;
 	var a1index, a2index, b1index, b2index;
 	var a1,a2,b1,b2;
 	a1 = new THREE.Vector3(0,0,0);
-	
 	for( var i = 0; i < surfperimeter_cylinders.length; i++){
 		put_tube_in_buffer(a1,a1, surfperimeter_cylinders[i].geometry.attributes.position.array);
 		surfperimeter_spheres[i].position.copy(a1);
 		
 		surfperimeter_cylinders[i].geometry.attributes.position.needsUpdate = true;
+		surfperimeter_spheres[i].geometry.attributes.position.needsUpdate = true;
 	}
 	if(capsidopenness != 0 ) {
-		for( var groove = 0; groove < 5; groove++) {
-			for(var j = 0; j < groovepoints[groove].length/2-1;j++){
-				a1index = groovepoints[groove][j*2+0];
-				a2index = groovepoints[groove][j*2+2];
-				b1index = groovepoints[groove][j*2+1];
-				b2index = groovepoints[groove][j*2+3];
-				a1 = new THREE.Vector3(
-						surface_vertices.array[a1index*3+0],
-						surface_vertices.array[a1index*3+1],
-						surface_vertices.array[a1index*3+2]);
-				a2 = new THREE.Vector3(
-						surface_vertices.array[a2index*3+0],
-						surface_vertices.array[a2index*3+1],
-						surface_vertices.array[a2index*3+2]);
-				b1 = new THREE.Vector3(
-						surface_vertices.array[b1index*3+0],
-						surface_vertices.array[b1index*3+1],
-						surface_vertices.array[b1index*3+2]);
-				b2 = new THREE.Vector3(
-						surface_vertices.array[b2index*3+0],
-						surface_vertices.array[b2index*3+1],
-						surface_vertices.array[b2index*3+2]);
-				
-				var zippoint = ziplocation(a1,a2,b1,b2, 0.0103);
-				
-				if(zippoint == "invalid")
-					break;
-				if(zippoint == "not on here") {
-					//put cylinders on the sides, 2 spheres at different places
-					change_radius(surfperimeter_spheres[spheres_placed], radius);
-					surfperimeter_spheres[spheres_placed].position.copy(a1);
-					spheres_placed++;
-					change_radius(surfperimeter_spheres[spheres_placed], radius);
-					surfperimeter_spheres[spheres_placed].position.copy(b2);
-					spheres_placed++;
-					
-					put_tube_in_buffer(a1,a2, surfperimeter_cylinders[tubes_placed].geometry.attributes.position.array, radius);
-					tubes_placed++;
-					put_tube_in_buffer(b1,b2, surfperimeter_cylinders[tubes_placed].geometry.attributes.position.array, radius);
-					tubes_placed++;
-				}				
+		for(var i = 0; i < 22; i++) {
+			var Aindex = surfperimeter_line_index_pairs[i*2];
+			var Bindex = surfperimeter_line_index_pairs[i*2+1];
+			
+			A = new THREE.Vector3(
+					surface_vertices.array[Aindex*3+0],
+					surface_vertices.array[Aindex*3+1],
+					surface_vertices.array[Aindex*3+2]);
+			B = new THREE.Vector3(
+					surface_vertices.array[Bindex*3+0],
+					surface_vertices.array[Bindex*3+1],
+					surface_vertices.array[Bindex*3+2]);
+			
+			change_radius(surfperimeter_spheres[i], surfperimeterradius);
+			surfperimeter_spheres[i].position.copy(A);
+			
+			put_tube_in_buffer(A,B, surfperimeter_cylinders[i].geometry.attributes.position.array, surfperimeterradius);
+		}
+	}
+	
+	var proportion_of_opening_for_blast = 0.36;
+	var blast_location = capsidopenness / proportion_of_opening_for_blast * 3;
+	var blast_end = (capsidopenness+0.07) / proportion_of_opening_for_blast * 3;
+	
+	for( var grooveside = 0; grooveside < 10; grooveside++) {
+		var groove = Math.floor(grooveside / 2);
+		
+		if( blast_end > 3 || blast_location === 0 || capsidopeningspeed < 0 ){
+			put_tube_in_buffer(new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0), blast_cylinders[grooveside].geometry.attributes.position.array, surfperimeter_default_radius);
+			blast_cylinders[grooveside].geometry.attributes.position.needsUpdate = true;
+			continue;
+		}
+		
+		for( var level = 0; level < groovepoints[groove].length/2-1; level++) {
+			if( level < Math.floor(blast_location) || level > Math.floor(blast_end)  )
+				continue;
+			
+			var a1index = a2index = 0;
+			if( level < groovepoints[groove].length/2-1) { //if we have a "valid" value
+				if( grooveside % 2 === 0) {
+					a1index = groovepoints[groove][level*2+0];
+					a2index = groovepoints[groove][level*2+2];
+				}
 				else {
-					//put a sphere here, connected by cylinders to the previous j points
-					//put all the remaining spheres and cylinders here
-					change_radius(surfperimeter_spheres[spheres_placed], radius);
-					surfperimeter_spheres[spheres_placed].position.copy(a1);
-					spheres_placed++;
-					change_radius(surfperimeter_spheres[spheres_placed], radius);
-					surfperimeter_spheres[spheres_placed].position.copy(zippoint);
-					spheres_placed++;
-					
-					put_tube_in_buffer(a1,zippoint, surfperimeter_cylinders[tubes_placed].geometry.attributes.position.array, radius);
-					tubes_placed++;
-					put_tube_in_buffer(b1,zippoint, surfperimeter_cylinders[tubes_placed].geometry.attributes.position.array, radius);
-					tubes_placed++;
-					
-					break;
+					a1index = groovepoints[groove][level*2+1];
+					a2index = groovepoints[groove][level*2+3];
 				}
 			}
+			var a1 = new THREE.Vector3(
+					surface_vertices.array[a1index*3+0],
+					surface_vertices.array[a1index*3+1],
+					surface_vertices.array[a1index*3+2]);
+			var a2 = new THREE.Vector3(
+					surface_vertices.array[a2index*3+0],
+					surface_vertices.array[a2index*3+1],
+					surface_vertices.array[a2index*3+2]);
+			
+			var blastflash_beginning = a2.clone();
+			blastflash_beginning.sub(a1);
+			var blastflash_end = blastflash_beginning.clone();
+			
+			blastflash_beginning.multiplyScalar(blast_location - level);
+			blastflash_end.multiplyScalar(blast_end - level);
+			blastflash_beginning.add(a1);
+			blastflash_end.add(a1);
+			
+			if(blast_end - level > 1)
+				blastflash_end.copy(a2);
+			if(blast_location - level < 0)
+				blastflash_beginning.copy(a1);
+					
+			put_tube_in_buffer(blastflash_beginning,blastflash_end, blast_cylinders[grooveside].geometry.attributes.position.array, surfperimeter_default_radius * 1.5);
+			
+			blast_cylinders[grooveside].geometry.attributes.position.needsUpdate = true;
 		}
 	}
 }

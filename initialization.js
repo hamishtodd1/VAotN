@@ -194,7 +194,7 @@ function init() {
 		surflattice_geometry.addAttribute( 'color', new THREE.BufferAttribute(lattice_colors, 3) );
 
 		surflattice = new THREE.PointCloud( surflattice_geometry, flatlatticematerial );
-		//scene.add(surflattice);
+		scene.add(surflattice);
 		
 		
 		
@@ -234,12 +234,16 @@ function init() {
 			color: 0xccccff,
 			side:	THREE.DoubleSide
 		});
+		var blastcylindersmaterial = new THREE.MeshBasicMaterial({
+			color:	0xffffff,
+			side:	THREE.DoubleSide
+		});
 		for( var i = 0; i < surfperimeter_cylinders.length; i++) {
-			surfperimeter_spheres[i] = new THREE.Mesh( (new THREE.BufferGeometry).fromGeometry(new THREE.SphereGeometry(surfperimeterthickness,8,4)),surfperimeter_cylindersmaterial);
+			surfperimeter_spheres[i] = new THREE.Mesh( (new THREE.BufferGeometry).fromGeometry(new THREE.SphereGeometry(surfperimeter_default_radius,8,4)),blastcylindersmaterial);
 			scene.add(surfperimeter_spheres[i]);
 			
 			var cylinder_vertices_numbers = new Float32Array(16*3);
-			put_tube_in_buffer(0,0,0,1,1,1, surfperimeterthickness, cylinder_vertices_numbers);
+			put_tube_in_buffer(0,0,0,1,1,1, surfperimeter_default_radius, cylinder_vertices_numbers);
 			
 			var surfperimeter_cylinders_geometry = new THREE.BufferGeometry();
 			surfperimeter_cylinders_geometry.addAttribute( 'index', new THREE.BufferAttribute( cylinder_triangle_indices, 1 ) );
@@ -247,6 +251,17 @@ function init() {
 			
 			surfperimeter_cylinders[i] = new THREE.Mesh( surfperimeter_cylinders_geometry, surfperimeter_cylindersmaterial );
 			scene.add(surfperimeter_cylinders[i]);
+		}
+		for( var i = 0; i < blast_cylinders.length; i++) {			
+			var cylinder_vertices_numbers = new Float32Array(16*3);
+			put_tube_in_buffer(0,0,0,1,1,1, surfperimeter_default_radius, cylinder_vertices_numbers);
+			
+			var blast_cylinders_geometry = new THREE.BufferGeometry();
+			blast_cylinders_geometry.addAttribute( 'index', new THREE.BufferAttribute( cylinder_triangle_indices, 1 ) );
+			blast_cylinders_geometry.addAttribute( 'position', new THREE.BufferAttribute( cylinder_vertices_numbers, 3 ) );
+			
+			blast_cylinders[i] = new THREE.Mesh( blast_cylinders_geometry, blastcylindersmaterial );
+			scene.add(blast_cylinders[i]);
 		}
 		
 		

@@ -6,6 +6,8 @@ function UpdateCamera() {
 	
 	if(cameradist < min_cameradist)
 		cameradist = min_cameradist;
+
+	//watch the videos again when in need of inspiration
 	
 	//it should follow the mouse a little bit. Finger?
 	//take distance of mouse from center of screen, square root that, and move the camera towards the mouse by a multiple of that amount
@@ -21,9 +23,12 @@ function UpdateCamera() {
 	//little screenshakes for little things, big ones for big things
 	//could have the camera move over to focus on something that you hover your mouse over
 	//give the net a flashy rim, that points ust come in through. Make it look like the capsid "cracks" open
+	//don't just shake, sway
 	
-	//watch the videos again when in need of inspiration
 	
+
+	//When a point crosses the edge, it should flash a color. Flash a different color when crossing other way
+	//a streaming light effect may encourage players to move it into an orthogonal projection
 	//could have the lines go wavy	
 	//click on lattice, little flash and explosion
 	//sleep()	

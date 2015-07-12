@@ -106,10 +106,9 @@ function HandleLatticeMovement() {
 			return;
 			
 		var Mousedist = MousePosition.distanceTo(flatlattice_center);
+		var OldMousedist = OldMousePosition.distanceTo(flatlattice_center); //unless the center is going to change?
 		if( Mousedist < HS3 * 10/3) {
 			LatticeGrabbed = true;
-			
-			var OldMousedist = OldMousePosition.distanceTo(flatlattice_center); //unless the center is going to change?
 			
 			var maxLatticeScaleChange = 10;
 			var minLatticeScaleChange = 0.9;
@@ -135,7 +134,7 @@ function HandleLatticeMovement() {
 				OldMouseAngle = 0;
 			
 			//speed up opening. TODO Sensetive enough so you know it happens, not so sensetive that touchscreens don't see slow opening
-			if(Math.abs(OldMouseAngle - MouseAngle) > 0.08) capsidopeningspeed += 0.0045;
+			//if(Math.abs(OldMouseAngle - MouseAngle) > 0.08) capsidopeningspeed += 0.0045;
 			
 			var maxLatticeAngleChange = 0.5;
 			var LatticeAngleChange = OldMouseAngle - MouseAngle;

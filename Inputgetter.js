@@ -8,6 +8,7 @@ function onDocumentMouseDown(event) {
 function onDocumentMouseUp(event) {
 	event.preventDefault();
 	InputObject.isMouseDown = false;
+	//minimum amount of time so that people don't hammer the screen?
 }
 
 function onMouseMove( event ) {
