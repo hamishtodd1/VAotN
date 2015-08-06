@@ -18,6 +18,8 @@ function HandleCapsidOpenness(openness, vertices_numbers) {
 	deduce_surface(capsidopenness, surface_vertices);
 	
 	surface_vertices.needsUpdate = true;
+	
+	//you should definitely have this happen for the protein as well
 }
 
 function deduce_first_triangle(openness, vertices_numbers, rotation) {

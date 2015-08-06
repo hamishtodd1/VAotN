@@ -4,23 +4,24 @@ var PHI = (Math.sqrt(5) + 1) / 2;
 var TAU = Math.PI * 2;
 
 //--------------Technologically fundamental
-var scene = new THREE.Scene();
 var playing_field_width = 7*HS3;
 var playing_field_height = 6;
-var window_height = 600;
-var window_width = 600 * playing_field_width / playing_field_height;
-var min_cameradist = 10;
-var cameradist = min_cameradist;
-var vertical_fov = 2 * Math.atan(playing_field_height/(2*cameradist));
-var horizontal_fov = 2 * Math.atan(playing_field_width/(2*cameradist));
+var window_height = 600; //100 pixels per unit
+var window_width = window_height * playing_field_width / playing_field_height;
+var min_cameradist = 10; //get any closer and the perspective is weird
+var vertical_fov = 2 * Math.atan(playing_field_height/(2*min_cameradist));
 
 var camera = new THREE.PerspectiveCamera( vertical_fov * 360 / TAU, window_width / window_height, 0.1, 1000 );
 //var camera = new THREE.OrthographicCamera( playing_field_width / -2, playing_field_width / 2, playing_field_height / 2, playing_field_height / -2, 0.1, 1000 );
-camera.position.z = cameradist;
+camera.position.z = min_cameradist;
+
+var scene = new THREE.Scene();
 var renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize( window_width, window_height );
 document.body.appendChild( renderer.domElement );
 
+var ourclock = new THREE.Clock( true );
+var delta_t = 0;
 
 
 //----------------Static
@@ -28,12 +29,18 @@ var FLATNET = 0;
 var SURFACE = 1;
 var POLYHEDRON = 2;
 
-//Not including the central vertex.
+var showdebugstuff = 0;
+var net_warnings = 0;
+
+var surfperimeter_default_radius = 0.02;
+
+//Not including the central vertex
 //mimivirus needs exactly 100. Try and work out how many a human can distinguish though
 //you need 40 for phyconaviridae, which is pushing distinguishability
 var number_of_hexagon_rings = 30;
 var number_of_lattice_points = 1 + 3 * number_of_hexagon_rings*(number_of_hexagon_rings+1);
-var surfperimeter_default_radius = 0.02;
+
+//in the limited environment we will end up with (and might do well to be going with) a circle of existence for lattice pts is prb. best
 
 //----------------Initialized, then static
 var squarelattice_vertices = Array(number_of_lattice_points*2);
@@ -42,31 +49,52 @@ var flatlattice_default_vertices = Array(number_of_lattice_points*3);
 var backgroundtexture_file;
 var backgroundtexture;
 
-//--------------
+var net_triangle_vertex_indices;
+var line_index_pairs = new Uint16Array(60 * 2);
+
+//--------------Varying, fundamental
+var logged = 0;
+
+var STATIC_PROTEIN_MODE = 0;
+var STATIC_DNA_MODE = 1; 
+var CK_MODE = 2;
+var ASSEMBLY_MODE = 3;
+var QC_SPHERE_MODE = 4;
+var IRREGULAR_MODE = 5; //so we're going to have a button below the thing
+	
+var MODE = QC_SPHERE_MODE;
+
+//--------------Varying
 var vertex_tobechanged = 666;
 
 var capsidopenness = 0; //much depends on this, but we should have as few sharp changes as possible
 var capsidclock = 0;
 var capsidopeningspeed = 0;
 
-var logged = 0;
-
-var showdebugstuff = 0;
-var net_warnings = 0;
-var ourclock = new THREE.Clock( true );
-var delta_t = 0;
-
 var surfaceangle = 0.63;
-var net_triangle_vertex_indices;
 
-var line_index_pairs = new Uint16Array(60 * 2);
+var dodeca;
+var dodeca_vertices_numbers = new Float32Array(46 * 3);
+var dodeca_geometry;
+var dodeca_openness = 0;
+var dodecaopeningspeed = 0;
+var dodeca_triangle_vertex_indices;
+var quasilattice_default_vertices = Array(18*5);
+var quasilattice_pairs = Array(29*5*2);
+var cutout_vector0; //these lie on the lattice
+var cutout_vector1;
+var quasi_shear_matrix = Array(4);
+var quasicutout_intermediate_vertices = Array(36);
+var quasicutouts_vertices_components = Array(36);
+var quasicutout_line_pairs = Array(36*2);
+var quasicutouts = Array(30);
 
 var flatnet;
 var flatnet_vertices_numbers;
 var flatnet_vertices;
 var flatnet_geometry;
 
-//we need the polyhedron both to be seen and to help us get the minimum angles
+//we need the polyhedron to be seen
 var polyhedron;
 var polyhedron_vertices_numbers = new Float32Array(22 * 3);
 var polyhedron_vertices;
@@ -77,12 +105,7 @@ var surface_vertices_numbers = new Float32Array(22*3);
 var surface_vertices;
 var surface_geometry;
 
-var surfperimeter;
-var surfperimeter_vertices;
-var surfperimeter_geometry;
 var surfperimeter_line_index_pairs = new Uint16Array(22 * 2);
-var surfperimeter_colors = new Float32Array(22*3);
-
 var surfperimeter_cylinders = Array(22);
 var surfperimeter_spheres = Array(22);
 var blast_cylinders = Array(10);

@@ -141,7 +141,6 @@ function init() {
 		surface.scale.x = 0.995;
 		surface.scale.y = 0.995;
 		surface.scale.z = 0.995;
-		scene.add(surface);
 		
 		var material1 = new THREE.LineBasicMaterial({
 			color: 0x0000ff
@@ -155,7 +154,6 @@ function init() {
 
 		flatnet = new THREE.Line( flatnet_geometry, material1, THREE.LinePieces );
 		flatnet.position.x = -5;
-		//scene.add(flatnet);
 		
 		polyhedron_vertices = new THREE.BufferAttribute( polyhedron_vertices_numbers, 3 );
 		
@@ -164,8 +162,7 @@ function init() {
 		polyhedron_geometry.addAttribute( 'index', new THREE.BufferAttribute( line_index_pairs, 1 ) );
 
 		polyhedron = new THREE.Line( polyhedron_geometry, material1, THREE.LinePieces );
-		polyhedron.position.x = 5;
-		//scene.add(polyhedron);
+		polyhedron.position.x = 0;
 		
 		var flatlatticematerial = new THREE.PointCloudMaterial({
 			size: 0.065,
@@ -194,7 +191,7 @@ function init() {
 		surflattice_geometry.addAttribute( 'color', new THREE.BufferAttribute(lattice_colors, 3) );
 
 		surflattice = new THREE.PointCloud( surflattice_geometry, flatlatticematerial );
-		scene.add(surflattice);
+		
 		
 		
 		
@@ -240,7 +237,6 @@ function init() {
 		});
 		for( var i = 0; i < surfperimeter_cylinders.length; i++) {
 			surfperimeter_spheres[i] = new THREE.Mesh( (new THREE.BufferGeometry).fromGeometry(new THREE.SphereGeometry(surfperimeter_default_radius,8,4)),blastcylindersmaterial);
-			scene.add(surfperimeter_spheres[i]);
 			
 			var cylinder_vertices_numbers = new Float32Array(16*3);
 			put_tube_in_buffer(0,0,0,1,1,1, surfperimeter_default_radius, cylinder_vertices_numbers);
@@ -250,7 +246,6 @@ function init() {
 			surfperimeter_cylinders_geometry.addAttribute( 'position', new THREE.BufferAttribute( cylinder_vertices_numbers, 3 ) );
 			
 			surfperimeter_cylinders[i] = new THREE.Mesh( surfperimeter_cylinders_geometry, surfperimeter_cylindersmaterial );
-			scene.add(surfperimeter_cylinders[i]);
 		}
 		for( var i = 0; i < blast_cylinders.length; i++) {			
 			var cylinder_vertices_numbers = new Float32Array(16*3);
@@ -261,10 +256,8 @@ function init() {
 			blast_cylinders_geometry.addAttribute( 'position', new THREE.BufferAttribute( cylinder_vertices_numbers, 3 ) );
 			
 			blast_cylinders[i] = new THREE.Mesh( blast_cylinders_geometry, blastcylindersmaterial );
-			scene.add(blast_cylinders[i]);
+			
 		}
-		
-		
 		
 		
 		
@@ -583,12 +576,10 @@ function init() {
 		Update_net_variables();
 	}
 	
-	{
-//		this.engine = new ParticleEngine();
-//		engine.setValues( Examples.fountain );
-//		engine.initialize();
-	}
+	initialize_QS_stuff();
 	
 	//------------------need this so there's something in there for the first frame
 	ourclock.getDelta();
+	
+	ChangeScene();
 }

@@ -22,6 +22,10 @@ function point_in_triangle( ourpointx,ourpointy,
 							cornerAx, cornerAy,cornerBx, cornerBy, cornerCx,cornerCy, 
 							clockwise)
 {
+//	if(!logged) console.log(point_to_the_right_of_line(ourpointx, ourpointy, cornerAx, cornerAy, cornerBx, cornerBy));
+//	if(!logged) console.log(point_to_the_right_of_line(ourpointx, ourpointy, cornerBx, cornerBy, cornerCx, cornerCy));
+//	if(!logged) console.log(point_to_the_right_of_line(ourpointx, ourpointy, cornerCx, cornerCy, cornerAx, cornerAy));
+		
 	if(clockwise === undefined) {
 		if( point_to_the_right_of_line(cornerC, cornerA, cornerB))
 			clockwise = true;
@@ -44,6 +48,7 @@ function point_in_triangle( ourpointx,ourpointy,
 	return false;
 }
 
+//put them in in cross-product order and your fingers, going from the first vector to the second, will be going along the angle this returns the sin of
 function get_sin_Vector2(side1, side2)
 {
 	return (side1.x * side2.y - side1.y * side2.x ) / side1.length() / side2.length();

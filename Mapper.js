@@ -38,9 +38,9 @@ function Update_net_variables() {
 		
 		var factor = flatnet_triangle_side_unit_vector1.y * flatnet_triangle_side_unit_vector0.x - flatnet_triangle_side_unit_vector1.x * flatnet_triangle_side_unit_vector0.y;
 		shear_matrix[i][0] = flatnet_triangle_side_unit_vector1.y / factor;
-		shear_matrix[i][1] = flatnet_triangle_side_unit_vector1.x / factor;
+		shear_matrix[i][1] = flatnet_triangle_side_unit_vector1.x /-factor;
 		shear_matrix[i][2] = flatnet_triangle_side_unit_vector0.y /-factor;
-		shear_matrix[i][3] = flatnet_triangle_side_unit_vector0.x /-factor;
+		shear_matrix[i][3] = flatnet_triangle_side_unit_vector0.x / factor;
 	}
 }
 
@@ -48,8 +48,8 @@ function map_from_lattice_to_surface(x,y, net_triangle_index) {
 	x -= flatnet_vertices.array[(net_triangle_index+2)*3 + 0];
 	y -= flatnet_vertices.array[(net_triangle_index+2)*3 + 1];
 	
-	var side0_component_length = x * shear_matrix[net_triangle_index][0] - y * shear_matrix[net_triangle_index][1];
-	var side1_component_length = x * shear_matrix[net_triangle_index][2] - y * shear_matrix[net_triangle_index][3];
+	var side0_component_length = x * shear_matrix[net_triangle_index][0] + y * shear_matrix[net_triangle_index][1];
+	var side1_component_length = x * shear_matrix[net_triangle_index][2] + y * shear_matrix[net_triangle_index][3];
 	
 	var side0_component = surface_triangle_side_unit_vectors[net_triangle_index][0].clone();
 	var side1_component = surface_triangle_side_unit_vectors[net_triangle_index][1].clone();

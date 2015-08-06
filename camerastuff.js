@@ -4,8 +4,8 @@ function UpdateCamera() {
 //	else
 //		cameradist -= 0.08;
 	
-	if(cameradist < min_cameradist)
-		cameradist = min_cameradist;
+	if(camera.position.z < min_cameradist)
+		camera.position.z = min_cameradist;
 
 	//watch the videos again when in need of inspiration
 	
@@ -37,9 +37,8 @@ function UpdateCamera() {
 	//can you think of a way to engineer a situation where you really DON'T want to click on certain vertices? Would be interesting for a bit
 	
 	
-	vertical_fov = 2 * Math.atan(playing_field_height/(2*cameradist));
+	vertical_fov = 2 * Math.atan(playing_field_height/(2*camera.position.z));
 		
-	camera.position.z = cameradist;
 	//console.log(camera.position.z);
 	camera.fov = vertical_fov * 360 / TAU;
 	camera.updateProjectionMatrix();

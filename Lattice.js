@@ -102,9 +102,6 @@ function HandleLatticeMovement() {
 		LatticeScale *= scaleaugmentation;
 		LatticeAngle += angleaugmentation;
 	} else {
-		if( vertex_tobechanged !== 666) //temporary, think of a better system. I mean, these are two different things so you could have "game mode
-			return;
-			
 		var Mousedist = MousePosition.distanceTo(flatlattice_center);
 		var OldMousedist = OldMousePosition.distanceTo(flatlattice_center); //unless the center is going to change?
 		if( Mousedist < HS3 * 10/3) {
