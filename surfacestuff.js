@@ -148,8 +148,6 @@ function deduce_surface(openness, vertices_numbers) {
 }
 
 function HandleCapsidRotation() {
-	//plan: it rotates slowly on two axes, such that it is always ready to have an axis point directly up
-	//no, rotates just about the axis through vertices 6 and the origin
 	//when player clicks, it rotates so an axis points at them, then opens. Could be a nice anticipation, like the foot-stamp - make edges glow, or have particles from around it get sucked in
 	
 	var normalturningspeed = TAU/5/2; //this is the amount you want to do in a second

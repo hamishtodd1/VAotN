@@ -86,7 +86,7 @@ var cutout_vector1;
 var quasi_shear_matrix = Array(4);
 var quasicutout_intermediate_vertices = Array(36);
 var quasicutouts_vertices_components = Array(36);
-var quasicutout_line_pairs = Array(36*2);
+var quasicutout_line_pairs = new Uint16Array(36*2);
 var quasicutouts = Array(30);
 
 var flatnet;
