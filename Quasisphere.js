@@ -1,48 +1,95 @@
 function UpdateQuasiSurface(){
-	if(InputObject.isMouseDown)
-		dodecaopeningspeed = 0.018;
-	else
-		dodecaopeningspeed = -0.018;
+	var atanphi = Math.atan(PHI);
 	
-	dodeca_openness += dodecaopeningspeed;
-	
-	if(dodeca_openness > 1) {
-		dodeca_openness = 1;
-		dodecaopeningspeed = 0;
+	if(InputObject.isMouseDown) {
+		if(dodeca_angle === 0 || dodeca_angle === 2*atanphi-TAU/2 ) dodeca_openness += 0.018;
+		dodeca_faceflatness += 0.018; 
 	}
-	if(dodeca_openness < 0) {
+	else {
+		dodeca_openness -= 0.018;
+		dodeca_faceflatness -= 0.018;
+	}
+	
+	if(dodeca_openness > 1)
+		dodeca_openness = 1;
+	if(dodeca_openness < 0)
 		dodeca_openness = 0;
-		dodecaopeningspeed = 0;
+	if(dodeca_faceflatness > 1)
+		dodeca_faceflatness = 1;
+	if(dodeca_faceflatness < 0)
+		dodeca_faceflatness = 0;
+	
+	if(dodeca_openness !== 0 ){
+		for(var i = 0; i < quasicutouts.length; i++)
+			if((i + 5)%11 < 5 || i > 54) scene.remove(quasicutouts[i]); //hopefully this is fine to happen if it's already in there
+		back_hider.position.z = -3;
+	}
+	if(dodeca_openness === 0){
+		for(var i = 0; i < quasicutouts.length; i++)
+			if((i + 5)%11 < 5 || i > 54) scene.add(quasicutouts[i]);
+		back_hider.position.z = -0.01;
 	}
 	
 	deduce_dodecahedron(dodeca_openness);
 	
-	//now to make it rotate so we can see what the hell's going on with that shape.
-	
-//	function HandleCapsidRotation() {
-//		var normalturningspeed = TAU/5/2; //this is the amount you want to do in a second
-//		normalturningspeed *= delta_t;	
-//		
-//		surfaceangle += normalturningspeed;
-//		
-//		var axis = new THREE.Vector3( 	surface_vertices.array[6*3+0] - surface_vertices.array[19*3+0],
-//										surface_vertices.array[6*3+1] - surface_vertices.array[19*3+1],
-//										surface_vertices.array[6*3+2] - surface_vertices.array[19*3+2]);
-//		axis.normalize();
-//		
-//		for( var i = 0; i < 22; i++){
-//			var d = get_vector(i, SURFACE);
-//			d.applyAxisAngle(axis, surfaceangle);
-//			surface_vertices.setXYZ(i, d.x,d.y,d.z);
-//		}
-//	}
+	{
+		var normalturningspeed = TAU/5/2; //this is the amount you want to do in a second
+		normalturningspeed *= delta_t;
+		
+		if( !InputObject.isMouseDown && dodeca_openness === 0) {
+			dodeca_angle += normalturningspeed;
+		}
+		else {
+			if( atanphi-TAU/2 < dodeca_angle && dodeca_angle < 2*atanphi-TAU/2 )
+				dodeca_angle += normalturningspeed;
+			if( 2*atanphi-TAU/2 < dodeca_angle && dodeca_angle < atanphi - TAU/4 )
+				dodeca_angle -= normalturningspeed;
+			if( atanphi - TAU/4 < dodeca_angle && dodeca_angle < 0 )
+				dodeca_angle += normalturningspeed;
+			if( 0 < dodeca_angle && dodeca_angle < atanphi )
+				dodeca_angle -= normalturningspeed;
+			
+			if( Math.abs(dodeca_angle) < normalturningspeed )
+				dodeca_angle = 0;
+			if( Math.abs(dodeca_angle - (2*atanphi-TAU/2) )  < normalturningspeed )
+				dodeca_angle = 2*atanphi-TAU/2;
+		}
+		
+		//we turn you upside-down if you're far off-center
+		if( dodeca_angle > atanphi)
+			dodeca_angle -= TAU/2;
+		
+		var inverted = 0;
+		if(dodeca_angle < atanphi - TAU/4) {
+			for( var i = 0; i < dodeca_vertices_numbers.length / 3; i++) {
+				dodeca_vertices_numbers[i*3+0] *= -1;
+				dodeca_vertices_numbers[i*3+1] *= -1;
+			}
+			inverted = 1;
+		}
+		
+		var axis = new THREE.Vector3( 	(dodeca_vertices_numbers[5*3+0] + dodeca_vertices_numbers[6*3+0]) / 2,
+										(dodeca_vertices_numbers[5*3+1] + dodeca_vertices_numbers[6*3+1]) / 2,
+										(dodeca_vertices_numbers[5*3+2] + dodeca_vertices_numbers[6*3+2]) / 2);
+		axis.normalize();
+		
+		for( var i = 0; i < dodeca_vertices_numbers.length / 3; i++){
+			var d = new THREE.Vector3(dodeca_vertices_numbers[i*3+0],dodeca_vertices_numbers[i*3+1],dodeca_vertices_numbers[i*3+2]);
+			if(!inverted)
+				d.applyAxisAngle(axis, dodeca_angle);
+			else d.applyAxisAngle(axis, 2*atanphi - dodeca_angle - TAU/2 );
+			dodeca_vertices_numbers[i*3+0] = d.x;
+			dodeca_vertices_numbers[i*3+1] = d.y;
+			dodeca_vertices_numbers[i*3+2] = d.z;
+		}
+	}
 	
 	dodeca.geometry.attributes.position.needsUpdate = true;
 }
 
 function MoveQuasiLattice(){
 	//might do rotation whatevers here
-	if(InputObject.isMouseDown) {
+	if( InputObject.isMouseDown) {
 		var Mousedist = MousePosition.length();
 		var OldMousedist = OldMousePosition.length(); //unless the center is going to change?
 		if( Mousedist < HS3 * 10/3) { //we don't do anything if you're too far from the actual demo TODO replace with demo_radius
@@ -85,7 +132,7 @@ function MoveQuasiLattice(){
 			cutout_vector0.y = veclength * Math.sin(newQuasiLatticeAngle);
 			cutout_vector1.x = veclength * Math.cos(newQuasiLatticeAngle - TAU / 5);
 			cutout_vector1.y = veclength * Math.sin(newQuasiLatticeAngle - TAU / 5);
-			console.log(veclength);
+			//console.log(veclength); TODO whatever this is!
 		}
 	}
 	
@@ -163,7 +210,7 @@ function Map_To_Quasisphere() {
 	
 	var lowest_unused_edgepair = 0;
 	
-	var interior_wiggleroom = 0.0000000000000009; //tweakable. Also make it so you're harsher on the ones inside
+	var interior_wiggleroom = 0.0000000000000009; //tweakable; quite a lot of work has gone into it!
 	var exterior_wiggleroom = 0.1; //Just tries to make it workable. 0.003 let us avoid very skinny rhombs.
 	for( var i = 0; i < lowest_unused_vertex; i++) {
 		if( !point_in_triangle(	quasicutout_intermediate_vertices[i].x, quasicutout_intermediate_vertices[i].y,
@@ -181,6 +228,10 @@ function Map_To_Quasisphere() {
 					quasicutout_line_pairs[ lowest_unused_edgepair*2 ] = i;
 					quasicutout_line_pairs[lowest_unused_edgepair*2+1] = j;
 					lowest_unused_edgepair++;
+					
+					//also here we might have stuff that "snaps". There is a mathematical rule, to be deduced, that would let you do this.
+					//This would probably be necessary to fill in the faces.
+					//you could just enumerate all possible connected positions and then put points there for the cutout vectors to gravitate to
 				}
 				else {
 					//both are inside so we can be harsher
@@ -201,14 +252,11 @@ function Map_To_Quasisphere() {
 	
 	var dihedral_angle = 2 * Math.atan(PHI);
 	dihedral_angle = dihedral_angle + dodeca_openness * (TAU/2 - dihedral_angle);
-	var alpha = Math.tan(dihedral_angle - TAU / 4);
+	var forward_component_length = Math.tan(dihedral_angle - TAU / 4);
 	
-	var radius = 1.5;
+	var ourcenter_veclength = 0.5 * Math.tan(Math.atan(PHI) + dodeca_faceflatness*(TAU/4 - Math.atan(PHI))) / Math.tan(TAU/10);
 	
-	var lowest_unused_quasicutout = 0; //because there are many skips, it's hard to make the quasicutout we write to be precisely loop-iteration-dependent
-	for( var i = 0; i < dodeca_triangle_vertex_indices.length; i++) {
-		if((i + 5)%11 < 5) continue; //if you were to add the back pentagon you'd need to add to this
-		
+	for( var i = 0; i < dodeca_triangle_vertex_indices.length; i++) { 
 		var rightindex = dodeca_triangle_vertex_indices[i][0];
 		var leftindex = dodeca_triangle_vertex_indices[i][1]; 
 		var topindex = dodeca_triangle_vertex_indices[i][2];
@@ -223,13 +271,15 @@ function Map_To_Quasisphere() {
 			dodeca_vertices_numbers[leftindex*3+1] - dodeca_vertices_numbers[topindex*3+1],
 			dodeca_vertices_numbers[leftindex*3+2] - dodeca_vertices_numbers[topindex*3+2] );
 		
-		vectors[2] = vectors[0].clone();
-		vectors[2].cross(vectors[1]);
-		vectors[2].normalize();
+		var downward_vector = vectors[0].clone();
+		downward_vector.cross(vectors[1]);
+		downward_vector.normalize();
+		
 		var forward_component = vectors[0].clone();
 		forward_component.add(vectors[1]);
 		forward_component.normalize();
-		forward_component.multiplyScalar(alpha);
+		forward_component.multiplyScalar(forward_component_length);
+		vectors[2] = downward_vector.clone();
 		vectors[2].add(forward_component);
 		vectors[2].normalize();
 		vectors[2].multiplyScalar(vectors[1].length()/cutout_vector0.length());
@@ -237,37 +287,54 @@ function Map_To_Quasisphere() {
 		vectors[3] = new THREE.Vector3(
 			dodeca_vertices_numbers[topindex*3+0],
 			dodeca_vertices_numbers[topindex*3+1],
-			dodeca_vertices_numbers[topindex*3+2]);		
+			dodeca_vertices_numbers[topindex*3+2]);
 		
-		for( var j = 0; j< quasicutouts[lowest_unused_quasicutout].geometry.attributes.position.array.length; j++)
-			quasicutouts[lowest_unused_quasicutout].geometry.attributes.position.array[j] = 0;
+		var ourcenter = downward_vector.clone();		
+		ourcenter.multiplyScalar(ourcenter_veclength);
+		ourcenter.add(vectors[3]);
+		var radius = Math.sqrt(vectors[0].length() * vectors[0].length() + ourcenter_veclength * ourcenter_veclength );
+		
+		for( var j = 0; j < quasicutouts[i].geometry.attributes.position.array.length; j++)
+			quasicutouts[i].geometry.attributes.position.array[j] = 0;
 		
 		for( var vertex_index = 0; vertex_index < lowest_unused_vertex; vertex_index++) {
 			for( var component = 0; component < 4; component++) {
-				quasicutouts[lowest_unused_quasicutout].geometry.attributes.position.array[vertex_index*3+0] += quasicutouts_vertices_components[vertex_index][component] * vectors[component].x;
-				quasicutouts[lowest_unused_quasicutout].geometry.attributes.position.array[vertex_index*3+1] += quasicutouts_vertices_components[vertex_index][component] * vectors[component].y;
-				quasicutouts[lowest_unused_quasicutout].geometry.attributes.position.array[vertex_index*3+2] += quasicutouts_vertices_components[vertex_index][component] * vectors[component].z;
+				quasicutouts[i].geometry.attributes.position.array[vertex_index*3+0] += quasicutouts_vertices_components[vertex_index][component] * vectors[component].x;
+				quasicutouts[i].geometry.attributes.position.array[vertex_index*3+1] += quasicutouts_vertices_components[vertex_index][component] * vectors[component].y;
+				quasicutouts[i].geometry.attributes.position.array[vertex_index*3+2] += quasicutouts_vertices_components[vertex_index][component] * vectors[component].z;
 			}
 			
-			//spherically project. TODO big speedup opportunity
-			var currentlength = 0;			
-			for(var k = 0; k< 3; k++)
-				currentlength += quasicutouts[lowest_unused_quasicutout].geometry.attributes.position.array[vertex_index*3+k] * quasicutouts[lowest_unused_quasicutout].geometry.attributes.position.array[vertex_index*3+k];
-			currentlength = Math.sqrt(currentlength);
-			var radius_ratio = radius / currentlength;
-//			for(var k = 0; k< 3; k++)
-//				quasicutouts[lowest_unused_quasicutout].geometry.attributes.position.array[vertex_index*3+k] *= radius_ratio;
+			//spherically project. TODO ~30-fold opportunity, store lengths or something?
+			//if you wish to avoid the mismatch you probably need to base projection amount on proximity to a triangle corner
+			if( dodeca_faceflatness < 0.999 ) { //randomly chosen number
+				var ourvertex = new THREE.Vector3(
+								quasicutouts[i].geometry.attributes.position.array[vertex_index*3+0],
+								quasicutouts[i].geometry.attributes.position.array[vertex_index*3+1],
+								quasicutouts[i].geometry.attributes.position.array[vertex_index*3+2]);
+				ourvertex.sub(ourcenter);
+				
+				var max_lengthening = radius / ourvertex.length(); //this is how much you would lengthen it by if surface was closed
+				var radius_ratio = 1 - max_lengthening;
+				radius_ratio *= dodeca_faceflatness;
+				radius_ratio += max_lengthening;
+				
+				//we set ourcenter as 0,0.
+				
+				ourvertex.multiplyScalar(radius_ratio);
+				ourvertex.add(ourcenter);
+				quasicutouts[i].geometry.attributes.position.array[vertex_index*3+0] = ourvertex.x;
+				quasicutouts[i].geometry.attributes.position.array[vertex_index*3+1] = ourvertex.y;
+				quasicutouts[i].geometry.attributes.position.array[vertex_index*3+2] = ourvertex.z;
+			}
 		}
 		
-		quasicutouts[lowest_unused_quasicutout].geometry.attributes.position.needsUpdate = true;
-		quasicutouts[lowest_unused_quasicutout].geometry.attributes.index.needsUpdate = true;
-		lowest_unused_quasicutout++;
+		quasicutouts[i].geometry.attributes.position.needsUpdate = true;
+		quasicutouts[i].geometry.attributes.index.needsUpdate = true;
 	}
-	logged = 1;
 }
 
 function deduce_dodecahedron(openness) {	
-	var elevation = -openness*0.5*Math.sqrt(5/2+11/10*Math.sqrt(5));
+	var elevation = (1-openness)*0.5*Math.sqrt(5/2+11/10*Math.sqrt(5));
 	
 	dodeca_vertices_numbers[0*3+0] = 0;
 	dodeca_vertices_numbers[0*3+1] = 0;
@@ -338,6 +405,10 @@ function deduce_dodecahedron(openness) {
 		dodeca_vertices_numbers[i*3+1] = d.y;
 		dodeca_vertices_numbers[i*3+2] = d.z;
 	}
+	
+	dodeca_vertices_numbers[46*3+0] = -dodeca_vertices_numbers[0];
+	dodeca_vertices_numbers[46*3+1] = -dodeca_vertices_numbers[1];
+	dodeca_vertices_numbers[46*3+2] = -dodeca_vertices_numbers[2];
 }
 
 function initialize_QS_stuff() {
@@ -353,7 +424,7 @@ function initialize_QS_stuff() {
  		color: 0x0000ff
  	});
 	
- 	for( var i = 0; i < quasicutouts.length; i++) {
+ 	for( var i = 0; i < quasicutouts.length; i++) { 
  		quasicutouts[i] = new THREE.Line( new THREE.BufferGeometry(), materialx, THREE.LinePieces );
  		quasicutouts[i].geometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array(18 * 3), 3 ) );
  		quasicutouts[i].geometry.addAttribute( 'index', new THREE.BufferAttribute( quasicutout_line_pairs, 1 ) );
@@ -362,6 +433,10 @@ function initialize_QS_stuff() {
  			quasicutouts[i].geometry.attributes.position.array[j*3+1] = (Math.floor(j/2)+i) * 0.05;
  	 	}
 	}
+ 	
+ 	var materialf = new THREE.MeshBasicMaterial({color: 0xffff00});
+	back_hider = new THREE.Mesh( new THREE.PlaneBufferGeometry( playing_field_width * 2,playing_field_width * 2 ), materialf );
+	back_hider.position.z = -0.01;
  	
  	var materialy = new THREE.LineBasicMaterial({
  		color: 0x00ffff
@@ -401,42 +476,31 @@ function initialize_QS_stuff() {
 	}
 	
 	quasilattice_default_vertices[0] = pentagon[0].clone();
-	quasilattice_default_vertices[1] = quasilattice_default_vertices[0].clone(); quasilattice_default_vertices[1].add(quasilattice_generator[3]); quasilattice_default_vertices[1].sub(quasilattice_generator[1]);
-	quasilattice_default_vertices[2] = quasilattice_default_vertices[0].clone(); quasilattice_default_vertices[2].add(quasilattice_generator[3]); quasilattice_default_vertices[2].add(quasilattice_generator[0]);
+	quasilattice_default_vertices[1] = quasilattice_default_vertices[0].clone(); 	quasilattice_default_vertices[1].add(quasilattice_generator[3]); quasilattice_default_vertices[1].sub(quasilattice_generator[1]);
+	quasilattice_default_vertices[2] = quasilattice_default_vertices[0].clone(); 	quasilattice_default_vertices[2].add(quasilattice_generator[3]); quasilattice_default_vertices[2].add(quasilattice_generator[0]);
+	quasilattice_default_vertices[4] = quasilattice_default_vertices[2].clone(); 	quasilattice_default_vertices[4].add(quasilattice_generator[4]);
+	quasilattice_default_vertices[3] = quasilattice_default_vertices[4].clone(); 	quasilattice_default_vertices[3].sub(quasilattice_generator[3]);
+	quasilattice_default_vertices[5] = quasilattice_default_vertices[4].clone(); 	quasilattice_default_vertices[5].sub(quasilattice_generator[2]);
+	quasilattice_default_vertices[7] = quasilattice_default_vertices[4].clone(); 	quasilattice_default_vertices[7].add(quasilattice_generator[3]);
+	quasilattice_default_vertices[9] = quasilattice_default_vertices[7].clone(); 	quasilattice_default_vertices[9].add(quasilattice_generator[4]);
+	quasilattice_default_vertices[10] =quasilattice_default_vertices[9].clone();	quasilattice_default_vertices[10].add(quasilattice_generator[0]);
+	quasilattice_default_vertices[6] = quasilattice_default_vertices[10].clone();	quasilattice_default_vertices[6].sub(quasilattice_generator[3]);
+	quasilattice_default_vertices[8] = quasilattice_default_vertices[9].clone(); 	quasilattice_default_vertices[8].add(quasilattice_generator[2]);
+	quasilattice_default_vertices[11] = quasilattice_default_vertices[6].clone();	quasilattice_default_vertices[11].sub(quasilattice_generator[2]);
+	quasilattice_default_vertices[12] = quasilattice_default_vertices[8].clone(); 	quasilattice_default_vertices[12].add(quasilattice_generator[3]);
+	quasilattice_default_vertices[13] = quasilattice_default_vertices[12].clone();	quasilattice_default_vertices[13].add(quasilattice_generator[4]);
+	quasilattice_default_vertices[14] = quasilattice_default_vertices[9].clone(); 	quasilattice_default_vertices[14].sub(quasilattice_generator[1]);
+	quasilattice_default_vertices[15] = quasilattice_default_vertices[14].clone(); 	quasilattice_default_vertices[15].sub(quasilattice_generator[2]);
+	quasilattice_default_vertices[16] = quasilattice_default_vertices[15].clone(); 	quasilattice_default_vertices[16].sub(quasilattice_generator[3]);
+	quasilattice_default_vertices[17] = quasilattice_default_vertices[16].clone(); 	quasilattice_default_vertices[17].add(quasilattice_generator[0]);
 	
-	quasilattice_default_vertices[4] = quasilattice_default_vertices[2].clone(); quasilattice_default_vertices[4].add(quasilattice_generator[4]);
-	
-	quasilattice_default_vertices[3] = quasilattice_default_vertices[4].clone(); quasilattice_default_vertices[3].sub(quasilattice_generator[3]);
-	
-	quasilattice_default_vertices[5] = quasilattice_default_vertices[4].clone(); quasilattice_default_vertices[5].sub(quasilattice_generator[2]);
-	
-	quasilattice_default_vertices[7] = quasilattice_default_vertices[4].clone(); quasilattice_default_vertices[7].add(quasilattice_generator[3]);
-	
-	quasilattice_default_vertices[9] = quasilattice_default_vertices[7].clone(); quasilattice_default_vertices[9].add(quasilattice_generator[4]);
-	quasilattice_default_vertices[10] = quasilattice_default_vertices[9].clone(); quasilattice_default_vertices[10].add(quasilattice_generator[0]);
-	
-	quasilattice_default_vertices[6] = quasilattice_default_vertices[10].clone(); quasilattice_default_vertices[6].sub(quasilattice_generator[3]);
-	
-	quasilattice_default_vertices[8] = quasilattice_default_vertices[9].clone(); quasilattice_default_vertices[8].add(quasilattice_generator[2]);
-	
-	quasilattice_default_vertices[11] = quasilattice_default_vertices[6].clone(); quasilattice_default_vertices[11].sub(quasilattice_generator[2]);
-	
-	quasilattice_default_vertices[12] = quasilattice_default_vertices[8].clone(); quasilattice_default_vertices[12].add(quasilattice_generator[3]);
-	quasilattice_default_vertices[13] = quasilattice_default_vertices[12].clone(); quasilattice_default_vertices[13].add(quasilattice_generator[4]);
-	quasilattice_default_vertices[14] = quasilattice_default_vertices[9].clone(); quasilattice_default_vertices[14].sub(quasilattice_generator[1]);
-	
-	quasilattice_default_vertices[15] = quasilattice_default_vertices[14].clone(); quasilattice_default_vertices[15].sub(quasilattice_generator[2]);
-	quasilattice_default_vertices[16] = quasilattice_default_vertices[15].clone(); quasilattice_default_vertices[16].sub(quasilattice_generator[3]);
-	quasilattice_default_vertices[17] = quasilattice_default_vertices[16].clone(); quasilattice_default_vertices[17].add(quasilattice_generator[0]);
-	
-	//these are both the number found in one-fifth of the lattice
+	//the number found in one-fifth of the lattice
 	var num_points = 18;
-	var num_edges = 29;
 	
 	for( var i = 1; i < 5; i++){
 		for(var j = 0; j < num_points; j++) {
 			quasilattice_default_vertices[i*num_points+j] = quasilattice_default_vertices[j].clone();
-			quasilattice_default_vertices[i*num_points+j].applyAxisAngle(axis, i*TAU/5);			
+			quasilattice_default_vertices[i*num_points+j].applyAxisAngle(axis, i*TAU/5);
 		}
 	}
 	
@@ -450,12 +514,6 @@ function initialize_QS_stuff() {
 	cutout_vector0.copy(midpoint);
 	midpoint.applyAxisAngle(axis, TAU/5);
 	cutout_vector1.copy(midpoint);
-	
-	//snapping: you have to snap to places where there are only points and midpoints-of-edges on the pentagon edge? No, there are other places too
-	//there has to be SOME connection to the neighboring pentagon
-	//you could just enumerate them all and then put points there for the cutout vectors to gravitate to
-	
-	//you could connect things up along the edge by going through the vertices near it and seeing whether their distance is close to 1.
 	
 	//first one is right corner, second is left corner, last is top
 	dodeca_triangle_vertex_indices = new Array(
@@ -510,7 +568,7 @@ function initialize_QS_stuff() {
 	    [29,33,30],
 	    
 	    [31,32,34],
-	    [34,31,34],
+	    [35,31,34],
 	    [36,35,34],
 	    [37,36,34],
 	    [32,37,34],
@@ -527,7 +585,14 @@ function initialize_QS_stuff() {
 	    [43,39,42],
 	    [44,43,42],
 	    [45,44,42],
-	    [40,45,42]);
+	    [40,45,42],
+	    
+		[9,18,46],
+		[44,9,46],
+		[36,44,46],
+		[27,36,46],
+		[18,27,46]
+		);
 	
 	dodeca_derivations = new Array(
 			[666,666,666],

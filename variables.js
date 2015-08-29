@@ -23,7 +23,6 @@ document.body.appendChild( renderer.domElement );
 var ourclock = new THREE.Clock( true );
 var delta_t = 0;
 
-
 //----------------Static
 var FLATNET = 0;
 var SURFACE = 1;
@@ -74,11 +73,13 @@ var capsidopeningspeed = 0;
 var surfaceangle = 0.63;
 
 var dodeca;
-var dodeca_vertices_numbers = new Float32Array(46 * 3);
+var dodeca_vertices_numbers = new Float32Array(47 * 3);
 var dodeca_geometry;
 var dodeca_openness = 0;
-var dodecaopeningspeed = 0;
+var dodeca_faceflatness = 0;
+var dodeca_angle = 0;
 var dodeca_triangle_vertex_indices;
+var back_hider;
 var quasilattice_default_vertices = Array(18*5);
 var quasilattice_pairs = Array(29*5*2);
 var cutout_vector0; //these lie on the lattice
@@ -87,7 +88,7 @@ var quasi_shear_matrix = Array(4);
 var quasicutout_intermediate_vertices = Array(36);
 var quasicutouts_vertices_components = Array(36);
 var quasicutout_line_pairs = new Uint16Array(36*2);
-var quasicutouts = Array(30);
+var quasicutouts = Array(60);
 
 var flatnet;
 var flatnet_vertices_numbers;

@@ -103,9 +103,11 @@ function ChangeScene() {
 			break;
 			
 		case QC_SPHERE_MODE:
-			scene.add(dodeca);
+			//scene.add(dodeca);
 			for( var i = 0; i < quasicutouts.length; i++)
 				scene.add(quasicutouts[i]);
+			
+			scene.add(back_hider);			
 			break;
 			
 		case IRREGULAR_MODE:

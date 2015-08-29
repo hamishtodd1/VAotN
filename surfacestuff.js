@@ -156,7 +156,7 @@ function HandleCapsidRotation() {
 	if(capsidopenness ===0) {
 		surfaceangle += normalturningspeed;
 	}
-	else { //we want to get it to zero
+	else { //we want to get surfaceangle to zero
 		while(surfaceangle > TAU / 10)
 			surfaceangle -= TAU/5; //unnoticeable
 		
