@@ -142,6 +142,8 @@ function init() {
 		surface.scale.y = 0.995;
 		surface.scale.z = 0.995;
 		
+		surface.position.x = 4;
+		
 		var material1 = new THREE.LineBasicMaterial({
 			color: 0x0000ff
 		});
@@ -153,7 +155,7 @@ function init() {
 		flatnet_geometry.addAttribute( 'index', new THREE.BufferAttribute( line_index_pairs, 1 ) ); //allowed to put that in there?
 
 		flatnet = new THREE.Line( flatnet_geometry, material1, THREE.LinePieces );
-		flatnet.position.x = -5;
+		flatnet.position.x = -4;
 		
 		polyhedron_vertices = new THREE.BufferAttribute( polyhedron_vertices_numbers, 3 );
 		
@@ -576,6 +578,7 @@ function init() {
 		Update_net_variables();
 	}
 	
+	init_cubicLattice_stuff();
 	initialize_QS_stuff();
 	
 	//------------------need this so there's something in there for the first frame

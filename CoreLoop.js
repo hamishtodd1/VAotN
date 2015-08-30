@@ -33,7 +33,8 @@ function UpdateWorld() {
 			Map_lattice();
 			break;
 			
-		case ASSEMBLY_MODE:
+		case CUBIC_LATTICE_MODE:
+			update_cubicLattice();
 			break;
 			
 		case QC_SPHERE_MODE:
@@ -73,14 +74,7 @@ init();
 render();
 
 //eventually we'll add some trigger to this that makes it reasonable to call every frame
-function ChangeScene() {
-	STATIC_PROTEIN_MODE = 0;
-	var STATIC_DNA_MODE = 1; 
-	var CK_MODE = 2;
-	var ASSEMBLY_MODE = 3;
-	var QC_SPHERE_MODE = 4;
-	var IRREGULAR_MODE = 5;
-	
+function ChangeScene() {	
 	switch(MODE){
 		case STATIC_PROTEIN_MODE:
 			break;
@@ -99,7 +93,8 @@ function ChangeScene() {
 				scene.add(blast_cylinders[i]);
 			break;
 			
-		case ASSEMBLY_MODE:
+		case CUBIC_LATTICE_MODE:
+			scene.add(cubicLattice);
 			break;
 			
 		case QC_SPHERE_MODE:
@@ -113,6 +108,7 @@ function ChangeScene() {
 		case IRREGULAR_MODE:
 			scene.add(flatnet);
 			scene.add(polyhedron);
+			scene.add(surface);
 			break;
 	}
 }

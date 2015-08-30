@@ -412,7 +412,7 @@ function squash_mouse(vertex_tobechanged ) {
 	var locus_unit_vector = vector_from_bearing(side, 1, -side_to_locus_angle * ( 1 - 2*using_right_side) );
 	
 	var MousePosition_relative = MousePosition.clone();
-	MousePosition_relative.x += 5; //coz that's where the net is
+	MousePosition_relative.x -= flatnet.position.x; //coz that's where the net is
 	MousePosition_relative.sub(vertex_tobechanged_vector);
 		
 	var projected_position = locus_unit_vector.clone();
@@ -429,7 +429,7 @@ function HandleVertexRearrangement() {
 			var lowest_quadrance_so_far = 10;
 			var closest_vertex_so_far = 666;
 			for( var i = 0; i < 22; i++) {
-				var quadrance = (flatnet_vertices.array[i*3+0] - (MousePosition.x+5)) * (flatnet_vertices.array[i*3+0] - (MousePosition.x+5))
+				var quadrance = (flatnet_vertices.array[i*3+0] - (MousePosition.x-flatnet.position.x)) * (flatnet_vertices.array[i*3+0] - (MousePosition.x-flatnet.position.x))
 								+ (flatnet_vertices.array[i*3+1] - MousePosition.y) * (flatnet_vertices.array[i*3+1] - MousePosition.y);
 				if( quadrance < lowest_quadrance_so_far) {
 					lowest_quadrance_so_far = quadrance;
@@ -444,7 +444,7 @@ function HandleVertexRearrangement() {
 		}
 		
 		if( vertex_tobechanged !== 666) {
-			movement_vector.x = (MousePosition.x+5) - flatnet_vertices.array[vertex_tobechanged * 3 + 0];
+			movement_vector.x = (MousePosition.x-flatnet.position.x) - flatnet_vertices.array[vertex_tobechanged * 3 + 0];
 			movement_vector.y = MousePosition.y - flatnet_vertices.array[vertex_tobechanged * 3 + 1];
 		}
 	}

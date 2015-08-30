@@ -3,8 +3,18 @@ var HS3 = Math.sqrt(3)/2;
 var PHI = (Math.sqrt(5) + 1) / 2;
 var TAU = Math.PI * 2;
 
+//--------------Structurally fundamental
+var STATIC_PROTEIN_MODE = 0;
+var STATIC_DNA_MODE = 1; 
+var CK_MODE = 2;
+var CUBIC_LATTICE_MODE = 3;
+var QC_SPHERE_MODE = 4;
+var IRREGULAR_MODE = 5; //so we're going to have a button below the thing
+	
+var MODE = IRREGULAR_MODE;
+
 //--------------Technologically fundamental
-var playing_field_width = 7*HS3;
+var playing_field_width = MODE === IRREGULAR_MODE ? HS3 * 16 : 7*HS3;
 var playing_field_height = 6;
 var window_height = 600; //100 pixels per unit
 var window_width = window_height * playing_field_width / playing_field_height;
@@ -54,15 +64,6 @@ var line_index_pairs = new Uint16Array(60 * 2);
 //--------------Varying, fundamental
 var logged = 0;
 
-var STATIC_PROTEIN_MODE = 0;
-var STATIC_DNA_MODE = 1; 
-var CK_MODE = 2;
-var ASSEMBLY_MODE = 3;
-var QC_SPHERE_MODE = 4;
-var IRREGULAR_MODE = 5; //so we're going to have a button below the thing
-	
-var MODE = QC_SPHERE_MODE;
-
 //--------------Varying
 var vertex_tobechanged = 666;
 
@@ -89,6 +90,9 @@ var quasicutout_intermediate_vertices = Array(36);
 var quasicutouts_vertices_components = Array(36);
 var quasicutout_line_pairs = new Uint16Array(36*2);
 var quasicutouts = Array(60);
+
+var cubicLattice_width = 5;
+var cubicLattice;
 
 var flatnet;
 var flatnet_vertices_numbers;

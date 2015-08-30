@@ -318,7 +318,7 @@ function Map_To_Quasisphere() {
 				radius_ratio *= dodeca_faceflatness;
 				radius_ratio += max_lengthening;
 				
-				//we set ourcenter as 0,0.
+				//Hah, could there be a way of lining things up sweetly whether or not the thing is opening?
 				
 				ourvertex.multiplyScalar(radius_ratio);
 				ourvertex.add(ourcenter);
