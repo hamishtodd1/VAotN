@@ -28,33 +28,36 @@ function deduce_first_triangle(openness, vertices_numbers, rotation) {
 	vertices_numbers.setXYZ(0, 0, 0, origin_height);
 	
 	var p = Math.atan(PHI) + capsidopenness * (TAU/4 - Math.atan(PHI));
-	var v = new THREE.Vector3( Math.sin(p), 0, -Math.cos(p));
+	var v = new THREE.Vector3( Math.sin(p)*polyhedron_edge_length[0][1], 0, -Math.cos(p)*polyhedron_edge_length[0][1]);
 	v.setY(-Math.sin(rotation)*v.x);
 	v.setX( Math.cos(rotation)*v.x);
 	vertices_numbers.setXYZ(1, v.x, v.y, v.z + origin_height );
 	
-	var q = Math.atan(PHI/(PHI-1)) + capsidopenness* (TAU/4-Math.atan(PHI/(PHI-1)));
-	var sideways_vector = new THREE.Vector3(Math.sin(rotation),Math.cos(rotation),0);
+	var q = Math.atan(PHI/(PHI-1)) + capsidopenness* (TAU/4-Math.atan(PHI/(PHI-1))); //angle between triangle and the plane containing v and the z axis
+	var sideways_vector = new THREE.Vector3(Math.sin(rotation),Math.cos(rotation),0); //it's in the xy plane
 	sideways_vector.multiplyScalar(Math.sin(q));		
 	var downward_vector = new THREE.Vector3(0,0,0);
 	downward_vector.crossVectors(sideways_vector,v);
 	downward_vector.normalize();
-	downward_vector.multiplyScalar(Math.cos(q));		
+	downward_vector.multiplyScalar(Math.cos(q));
+	var base_to_top_unit_vector = new THREE.Vector3(); //this unit vector goes along the surface of the triangle, perpendicularly up from its base, v.
+	base_to_top_unit_vector.addVectors(downward_vector, sideways_vector);
 	
-	var Ou = v.clone();
-	var u_projected_on_v_length = 0.5; //get from net
-	Ou.multiplyScalar(u_projected_on_v_length);
+	var top_origin = v.clone();
+	top_origin.normalize();
+	var cos_first_triangle_angle = get_cos_rule(polyhedron_edge_length[1][3],polyhedron_edge_length[0][3],polyhedron_edge_length[1][0]);
+	var top_origin_length = cos_first_triangle_angle * polyhedron_edge_length[0][3];
+	top_origin.multiplyScalar(top_origin_length);
 	
-	var u = new THREE.Vector3();
-	u.addVectors(downward_vector, sideways_vector);
-	var Ou_to_u_length = HS3; //get from net
-	u.multiplyScalar(Ou_to_u_length);
-	u.add(Ou);
-	vertices_numbers.setXYZ(2, u.x, u.y, u.z + origin_height );
+	var base_to_top_length = Math.sqrt(polyhedron_edge_length[0][3]*polyhedron_edge_length[0][3]-top_origin_length*top_origin_length);
+	var top = base_to_top_unit_vector.clone();
+	top.multiplyScalar(base_to_top_length);
+	top.add(top_origin);
+	vertices_numbers.setXYZ(2, top.x, top.y, top.z + origin_height );
 	
 	var v2 = new THREE.Vector2(v.x,v.y);
-	var u2 = new THREE.Vector2(u.x,u.y);
-	return Math.acos(v2.dot(u2) / v2.length() / u2.length());
+	var top_planar = new THREE.Vector2(top.x,top.y);
+	return Math.acos(v2.dot(top_planar) / v2.length() / top_planar.length());
 }
 	
 function deduce_surface(openness, vertices_numbers) {	

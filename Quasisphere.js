@@ -1,3 +1,9 @@
+//we shift based on the location of the corner of your cutout pentagon, the "radius".
+//If it's smaller than the radius of the green, you start to fade in the second layer.
+//If it's  equal   to  the radius of the blue, the second layer is in and the first is out, because the first can have been made to vanish
+//If it's smaller than the radius of the blue, you start to fade in the third layer.
+//If it's smaller than the radius of the red, the third layer is in and second is out.
+
 function UpdateQuasiSurface(){
 	var atanphi = Math.atan(PHI);
 	

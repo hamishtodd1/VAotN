@@ -1,6 +1,9 @@
 /*
  * Long term To Do
  * 
+ *  -working on atoms doing random walks will make the one here easy
+ *  -same for reading atomic data
+ * 
  *  -implement protein models
  *  -implement look-inside
  *  -make it feel good
@@ -45,10 +48,11 @@ function UpdateWorld() {
 			
 		case IRREGULAR_MODE:
 			HandleCapsidOpenness(); //really this is "update surface"
-			HandleCapsidRotation(); //what you probably need to keep in mind is a picture of this as a list of the things that happen inside their functions
+			HandleCapsidRotation();
 			update_surfperimeter();
 			
 			HandleVertexRearrangement();
+			correct_minimum_angles();
 			Update_net_variables();
 			
 			Map_lattice();
@@ -68,7 +72,6 @@ function render() {
 	//setTimeout( function() { requestAnimationFrame( render );}, 100 );
 	requestAnimationFrame( render );
 	renderer.render( scene, camera );
-	
 }
 init();
 render();

@@ -448,7 +448,7 @@ function HandleVertexRearrangement() {
 			movement_vector.y = MousePosition.y - flatnet_vertices.array[vertex_tobechanged * 3 + 1];
 		}
 	}
-	else {		
+	else {
 		vertex_tobechanged = 666;
 	}
 	
@@ -468,7 +468,7 @@ function HandleVertexRearrangement() {
 		
 		for( var triangle = 0; triangle < 20; triangle++ ) {
 			var in_W_diagram = false;
-			var in_V_diagram = false;
+			var in_V_diagram = false; //the CORE'S V diagram
 			var subtracting_vertex_index = 0;
 			
 			for(var k = 0; k < 8; k++ ) {
@@ -569,6 +569,21 @@ function HandleVertexRearrangement() {
 		right_defect_absolute.y - flatnet_vertices.array[right_defect_index * 3 + 1 ]);
 		
 	move_vertices(right_defect_index, imposed_movement_vector, vertex_tobechanged);
+	
+	for(var i = 0; i< radii.length; i++)
+		radii[i] = 100;
+	for(var i = 0; i< net_triangle_vertex_indices.length / 3; i++) {
+		for(var j = 0; j < 3; j++){
+			var a_index = polyhedron_index(net_triangle_vertex_indices[i*3 + j]);
+			var b_index = polyhedron_index(net_triangle_vertex_indices[i*3 + (j+1)%3]);
+			
+			polyhedron_edge_length[a_index][b_index] = Math.sqrt( Math.pow(flatnet_vertices.array[3*net_triangle_vertex_indices[i*3 + j]]-flatnet_vertices.array[3*net_triangle_vertex_indices[i*3 + (j+1)%3]],2)
+																+ Math.pow(flatnet_vertices.array[3*net_triangle_vertex_indices[i*3 + j]+1]-flatnet_vertices.array[3*net_triangle_vertex_indices[i*3 + (j+1)%3]+1],2) );
+			if(!logged)console.log(polyhedron_edge_length[a_index][b_index]);
+			polyhedron_edge_length[b_index][a_index] = polyhedron_edge_length[a_index][b_index]; 
+		}
+	}
+	logged=1;
 	
 	// if(		!correct_defects()
 		 // ||	!update_polyhedron(vertex_tobechanged, vertex_tobechanged)

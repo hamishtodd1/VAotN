@@ -11,7 +11,7 @@ var CUBIC_LATTICE_MODE = 3;
 var QC_SPHERE_MODE = 4;
 var IRREGULAR_MODE = 5; //so we're going to have a button below the thing
 	
-var MODE = IRREGULAR_MODE;
+var MODE = CUBIC_LATTICE_MODE;
 
 //--------------Technologically fundamental
 var playing_field_width = MODE === IRREGULAR_MODE ? HS3 * 16 : 7*HS3;
@@ -93,6 +93,8 @@ var quasicutouts = Array(60);
 
 var cubicLattice_width = 5;
 var cubicLattice;
+var golden_rhombohedra = Array(20);
+var golden_triacontahedra = Array(12);
 
 var flatnet;
 var flatnet_vertices_numbers;
@@ -124,6 +126,9 @@ var groovepoints = Array(
 
 var surface_triangle_side_unit_vectors = new Array();
 var shear_matrix = new Array(20);
+
+var radii = new Float32Array([100,100,100, 100,100,100, 100,100,100, 100,100,100]); //initial values chosen rather randomly. Potential speedup by decreasing this? Does algorithm ever increase them?
+var polyhedron_edge_length;
 
 var lattice_colors = new Float32Array(number_of_lattice_points * 3);
 

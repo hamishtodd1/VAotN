@@ -15,6 +15,10 @@
 
 //TODO "length[i][j]"
 
+
+
+//numeric.solve([[1,2],[3,4]],[17,39]) == [5,6]
+
 function get_curvatures(radii) {
 	var curvature_array = Array([0,0,0,0,0,0,0,0,0,0,0,0]);
 	for( var i = 0; i < 12; i++) {
@@ -69,7 +73,9 @@ function get_dihedral_angles() {
 	var curvatures_current = get_curvatures(radii);	
 	var curvatures_intended = Array();
 	
-	while( Math.sqrt(quadrance(curvatures_current)) > epsilon)  {
+	var epsilon = 0.01; //randomly chosen
+	
+	while( quadrance(curvatures_current) > epsilon)  {
 		for( var i = 0; i < curvatures_current.length; i++)
 			curvatures_intended[i] = (1 - stepsize) * curvatures_current[i];
 		
@@ -102,8 +108,10 @@ function get_dihedral_angles() {
 			stepsize = stepsize*stepsize;
 	}
 
-	//TODO work out how things map to our data
-	minimum_angles[i] = Math.acos(get_cos_tetrahedron_dihedral_angle_from_indices(i,j)) + Math.acos(get_cos_tetrahedron_dihedral_angle_from_indices(i,j));
+	for(var i = 0; i< minimum_angles.length; i++){
+		//you need to get the two points on either end of the length
+		minimum_angles[i] = Math.acos(get_cos_tetrahedron_dihedral_angle_from_indices(i,j)) + Math.acos(get_cos_tetrahedron_dihedral_angle_from_indices(j,i));
+	}	
 }
 
 function get_Jacobian(radii){
@@ -140,7 +148,7 @@ function get_Jacobian(radii){
 }
 
 //this gets us the radii such that curvature = 0.
-//ok remember you're running this not for get_curvature, but for get_curvature - intended curvature, which happens to have the same jacobian
+//ok remember you're running this not for get_curvature, but for (get_curvature-intended curvature), which happens to have the same jacobian
 function newton_solve(guessed_radii, intended_curvature) {
 	var hoped_result;
 	var augmented_matrix;
@@ -172,51 +180,4 @@ function newton_solve(guessed_radii, intended_curvature) {
 	if(iterations > 9)
 		return 666;
 	else return intended_radii;
-}
-
-//get vector such that Ax = b, with b the last column of the matrix
-//there is also the numerical.js option which may well be faster
-function gauss(A) {
-    var n = A.length;
-
-    for (var i=0; i<n; i++) {
-        // Search for maximum in this column
-        var maxEl = Math.abs(A[i][i]);
-        var maxRow = i;
-        for(var k=i+1; k<n; k++) {
-            if (Math.abs(A[k][i]) > maxEl) {
-                maxEl = Math.abs(A[k][i]);
-                maxRow = k;
-            }
-        }
-
-        // Swap maximum row with current row (column by column)
-        for (var k=i; k<n+1; k++) {
-            var tmp = A[maxRow][k];
-            A[maxRow][k] = A[i][k];
-            A[i][k] = tmp;
-        }
-
-        // Make all rows below this one 0 in current column
-        for (k=i+1; k<n; k++) {
-            var c = -A[k][i]/A[i][i];
-            for(var j=i; j<n+1; j++) {
-                if (i==j) {
-                    A[k][j] = 0;
-                } else {
-                    A[k][j] += c * A[i][j];
-                }
-            }
-        }
-    }
-
-    // Solve equation Ax=b for an upper triangular matrix A
-    var x= new Array(n);
-    for (var i=n-1; i>-1; i--) {
-        x[i] = A[i][n]/A[i][i];
-        for (var k=i-1; k>-1; k--) {
-            A[k][n] -= A[k][i] * x[i];
-        }
-    }
-    return x;
 }
