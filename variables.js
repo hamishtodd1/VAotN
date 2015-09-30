@@ -11,7 +11,7 @@ var CUBIC_LATTICE_MODE = 3;
 var QC_SPHERE_MODE = 4;
 var IRREGULAR_MODE = 5; //so we're going to have a button below the thing
 	
-var MODE = CUBIC_LATTICE_MODE;
+var MODE = IRREGULAR_MODE;
 
 //--------------Technologically fundamental
 var playing_field_width = MODE === IRREGULAR_MODE ? HS3 * 16 : 7*HS3;
@@ -91,10 +91,10 @@ var quasicutouts_vertices_components = Array(36);
 var quasicutout_line_pairs = new Uint16Array(36*2);
 var quasicutouts = Array(60);
 
-var cubicLattice_width = 5;
-var cubicLattice;
 var golden_rhombohedra = Array(20);
 var golden_triacontahedra = Array(12);
+var goldenicos = Array(12);
+var explodedness = 1;
 
 var flatnet;
 var flatnet_vertices_numbers;

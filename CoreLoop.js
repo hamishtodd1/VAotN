@@ -37,7 +37,7 @@ function UpdateWorld() {
 			break;
 			
 		case CUBIC_LATTICE_MODE:
-			update_cubicLattice();
+			update_3DLattice();
 			break;
 			
 		case QC_SPHERE_MODE:
@@ -97,7 +97,10 @@ function ChangeScene() {
 			break;
 			
 		case CUBIC_LATTICE_MODE:
-			scene.add(cubicLattice);
+			//scene.add(golden_triacontahedra[0]);
+			//scene.add(goldenicos[0]);
+			for( var i = 0; i < golden_rhombohedra.length; i++)
+				scene.add(golden_rhombohedra[i]);
 			break;
 			
 		case QC_SPHERE_MODE:

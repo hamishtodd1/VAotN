@@ -424,7 +424,7 @@ function squash_mouse(vertex_tobechanged ) {
 
 function HandleVertexRearrangement() {
 	var movement_vector = new THREE.Vector2(0,0);
-	if( InputObject.isMouseDown && !LatticeGrabbed ) {
+	if( InputObject.isMouseDown && !LatticeGrabbed ) { //also, capsidopenness ===0!
 		if( vertex_tobechanged === 666) {
 			var lowest_quadrance_so_far = 10;
 			var closest_vertex_so_far = 666;
@@ -583,7 +583,6 @@ function HandleVertexRearrangement() {
 			polyhedron_edge_length[b_index][a_index] = polyhedron_edge_length[a_index][b_index]; 
 		}
 	}
-	logged=1;
 	
 	// if(		!correct_defects()
 		 // ||	!update_polyhedron(vertex_tobechanged, vertex_tobechanged)

@@ -81,7 +81,7 @@ function correct_minimum_angles() {
 	}
 	
 	for(var i = 2; i< minimum_angles.length; i++) {
-		minimum_angles[i] = get_polyhedron_dihedral_angle_from_indices(polyhedron_index( vertices_derivations[i][0] ),polyhedron_index( vertices_derivations[i][1] ));
+		//minimum_angles[i] = get_polyhedron_dihedral_angle_from_indices(polyhedron_index( vertices_derivations[i][0] ),polyhedron_index( vertices_derivations[i][1] ));
 	}
 	
 	logged = 1;
@@ -123,16 +123,14 @@ function newton_solve(final_curvatures_intended) {
 	
 	var jacobian;
 	var delta_radii;
-	var desired_jacobianmultiplication_output; //clones it
+	var desired_jacobianmultiplication_output = get_curvatures(radii_guess); //This is the result of the function at the next place we intend to call it at it.
+	for( var i = 0; i < 12; i++)
+		desired_jacobianmultiplication_output[i] = final_curvatures_intended[i] - desired_jacobianmultiplication_output[i]; //make sure the destination is zero.
 	
 	var iterations = 0;
 	var epsilon = 0.01; //it converges quadratically so you can be greedy
 	do {
 		jacobian = get_Jacobian(radii_guess);
-		
-		desired_jacobianmultiplication_output = get_curvatures(radii_guess);
-		for( var i = 0; i < 12; i++)
-			desired_jacobianmultiplication_output[i] = final_curvatures_intended[i] - desired_jacobianmultiplication_output[i]; //make sure the destination is zero.
 		
 		delta_radii = numeric.solve(jacobian, desired_jacobianmultiplication_output);
 		
@@ -140,9 +138,14 @@ function newton_solve(final_curvatures_intended) {
 			radii_guess[i] += delta_radii[i];
 		if(!logged)console.log(quadrance(radii_guess));
 		
+		desired_jacobianmultiplication_output = get_curvatures(radii_guess);
+		for( var i = 0; i < 12; i++)
+			desired_jacobianmultiplication_output[i] = final_curvatures_intended[i] - desired_jacobianmultiplication_output[i];
+		
 		//We may also want to check the thirty triangle inequalities concerning two radii and an edge
+		
 		iterations++;
-	} while( quadrance(delta_radii) / quadrance(radii_guess) > epsilon && iterations < 20);
+	} while( quadrance(desired_jacobianmultiplication_output) > epsilon && iterations < 20);
 	
 	if(iterations > 9)
 		return 666;
