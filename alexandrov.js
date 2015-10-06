@@ -1,27 +1,14 @@
-/*	The below gets you radii, from which you can get minimum_angles
-	which should be called polyhedron dihedral angles
-	
-	So you need to write something that gets the dihedral angle of a tetrahedron from edge lengths
-*/
-
-//stepsize is step width
-//T is triangulation
-//epsilon is error
-//r is the set of radii
 //curvatures is a 12D vector with all the curvatures curvatures_i coming from r. Get its length to zero!
-//curvatures_i = TAU - omega_i. Omega_i is the defect when the tetrahedra are glued around edge i
 
-//you had better be sure that your inputs are con-bloody-vex.
+//you had better be sure that your inputs are con-bloody-vex. Is it enough that defects are right?
 
 //TODO "length[i][j]"
 
-
-
-//numeric.solve([[1,2],[3,4]],[17,39]) == [5,6]
+//we're hoping to converge on about 0.96
 
 
 function correct_minimum_angles() {
-	var stepsizemax = 0.75;	
+	var stepsizemax = 0.75;	//we can change this a lot to respond to what we're seeing
 	var stepsize = stepsizemax;
 	
 	//Possibly, the only thing that is important in terms of preserving the illusion is that the angles be strictly decreasing.
@@ -40,11 +27,10 @@ function correct_minimum_angles() {
 		var curvatures_intended = Array(curvatures_current.length);
 		for( var i = 0; i < curvatures_current.length; i++)
 			curvatures_intended[i] = (1 - stepsize) * curvatures_current[i];
+
+		var radii_intended = newton_solve(curvatures_intended); //we get radii_intended : curvatures(radii_intended) === curvatures_intended	
 		
-		var radii_intended = newton_solve(curvatures_intended); //assign 666 to this if we get nowt.	
-		//we get radii_intended : curvatures(radii_intended) === curvatures_intended
-		
-		if( radii_intended !== 666 ) {
+		if( radii_intended !== 666 ) { //it worked!
 			var concave_edges = Array();
 			for( var i = 0; i < radii.length; i++) {
 				for(var j = i+1; j < radii.length; j++) {
@@ -53,7 +39,7 @@ function correct_minimum_angles() {
 					
 					var angle = get_polyhedron_dihedral_angle_from_indices(i,j);		
 					
-					if(angle >= TAU / 2 ) {
+					if(angle * 2 >= TAU ) {
 						concave_edges.push(i);
 						concave_edges.push(j);
 					}
@@ -61,7 +47,10 @@ function correct_minimum_angles() {
 			}
 			
 			if(concave_edges.length > 0) {
-				console.log("Fuck, concave edges: ", concave_edges);
+				if( !logged ){
+					logged = 1;
+					console.log("Fuck, concave edges: ", concave_edges); //so it seems you HAVE taken a step and this is happenning. Perhaps you could try a smaller step size. But you may have to confront this
+				}
 				return;
 			}
 			else { //hooray, we took a step size the correct amount and can progress
@@ -71,6 +60,9 @@ function correct_minimum_angles() {
 				if(this_all_takes_place_in_one_frame) {
 					curvatures_current = get_curvatures(radii);
 					curvatures_current_quadrance = quadrance(curvatures_current);
+					
+					if(!logged)console.log(curvatures_current_quadrance);
+					
 					stepsize = stepsizemax;
 				}
 				else break; //we only want one step
@@ -80,42 +72,14 @@ function correct_minimum_angles() {
 			stepsize = stepsize*stepsize;
 	}
 	
-	for(var i = 2; i< minimum_angles.length; i++) {
-		//minimum_angles[i] = get_polyhedron_dihedral_angle_from_indices(polyhedron_index( vertices_derivations[i][0] ),polyhedron_index( vertices_derivations[i][1] ));
+	for(var i = 2; i < minimum_angles.length; i++) {
+		minimum_angles[i] = get_polyhedron_dihedral_angle_from_indices(polyhedron_index( vertices_derivations[i][0] ),polyhedron_index( vertices_derivations[i][1] ));
 	}
 	
 	logged = 1;
 }
 
-//curvature is like angular defect, but of dihedral angles around a radius.
-function get_curvatures(input_radii) {
-	var curvature_array = new Float32Array([0,0,0,0,0,0,0,0,0,0,0,0]);
-	for( var i = 0; i < 12; i++) {
-		for( var j = 0; j < 12; j++) {
-			if(polyhedron_edge_length[i][j] === 666 )
-				continue;
-			
-			for( var k = j+1; k < 12; k++) { //if k is strictly greater than j we avoid counting jk twice
-				if(polyhedron_edge_length[j][k] === 666 || polyhedron_edge_length[k][i] === 666 )
-					continue;
-				
-				var cos_gamma_ijk = get_cos_rule(polyhedron_edge_length[j][k],polyhedron_edge_length[i][j], polyhedron_edge_length[k][i]);
-				var cos_rho_ij = get_cos_rule(input_radii[j], polyhedron_edge_length[i][j], input_radii[i]);
-				var cos_rho_ik = get_cos_rule(input_radii[k], polyhedron_edge_length[i][k], input_radii[i]);
-				var sin_rho_ij_TIMES_sin_rho_ik = Math.sqrt((1-cos_rho_ij*cos_rho_ij)*(1-cos_rho_ik*cos_rho_ik));
-				var cos_omega_ijk = ( cos_gamma_ijk - cos_rho_ij * cos_rho_ik ) / sin_rho_ij_TIMES_sin_rho_ik;
-				
-				curvature_array[i] += Math.acos(cos_omega_ijk);
-			}
-		}		
-		curvature_array[i] = TAU - curvature_array[i];
-	}
-		
-	return curvature_array;
-}
-
 //this gets us the radii such that curvature = curvatures_intended
-//ok remember you're running this not for get_curvature, but for (get_curvature-intended curvature), which happens to have the same jacobian
 function newton_solve(final_curvatures_intended) {
 	var radii_guess = Array(12);
 	for( var i = 0; i < 12; i++)
@@ -128,7 +92,9 @@ function newton_solve(final_curvatures_intended) {
 		desired_jacobianmultiplication_output[i] = final_curvatures_intended[i] - desired_jacobianmultiplication_output[i]; //make sure the destination is zero.
 	
 	var iterations = 0;
-	var epsilon = 0.01; //it converges quadratically so you can be greedy
+	var impossibility_alert = 0;
+	var epsilon = 0.01; //it converges quadratically so you can be greedier?
+	
 	do {
 		jacobian = get_Jacobian(radii_guess);
 		
@@ -136,19 +102,35 @@ function newton_solve(final_curvatures_intended) {
 		
 		for( var i = 0; i < 12; i++)
 			radii_guess[i] += delta_radii[i];
-		if(!logged)console.log(quadrance(radii_guess));
+		//if(!logged)console.log(quadrance(radii_guess));
+		
+		for(var i = 0; i < 12; i++){
+			for(var j = 0; j < 12; j++){
+				if(polyhedron_edge_length[i][j] === 666 ) continue;
+				
+				if(radii_guess[i] + radii_guess[j] < polyhedron_edge_length[i][j]) return 666;
+				if(radii_guess[j] + polyhedron_edge_length[i][j] < radii_guess[i]) return 666;
+				if(polyhedron_edge_length[i][j] + radii_guess[i] < radii_guess[j]) return 666;
+			}
+		}
 		
 		desired_jacobianmultiplication_output = get_curvatures(radii_guess);
+		if(desired_jacobianmultiplication_output === 666 &&!logged) {
+			console.log("had NaN curvature during Newton");
+			return 666;
+		}
+		
 		for( var i = 0; i < 12; i++)
 			desired_jacobianmultiplication_output[i] = final_curvatures_intended[i] - desired_jacobianmultiplication_output[i];
-		
-		//We may also want to check the thirty triangle inequalities concerning two radii and an edge
 		
 		iterations++;
 	} while( quadrance(desired_jacobianmultiplication_output) > epsilon && iterations < 20);
 	
-	if(iterations > 9)
+	console.log(iterations);
+	if(iterations >= 20 ) {
+		console.log("newton failed to converge after 20 iterations");
 		return 666;
+	}
 	else return radii_guess;
 }
 
@@ -182,19 +164,46 @@ function get_Jacobian(input_radii){
 			jacobian[i][i] += cos_phi_ij * jacobian[i][j];
 		}
 		
-		jacobian[i][i] *= -jacobian[i][i];
+		jacobian[i][i] *= -1;
 	}
-//	if(!logged)console.log(input_radii); //they don't make much sense, did you mishandle the subtraction bit?
-//	for(var i = 11; i < 12; i++)
-//		if(!logged)console.log(jacobian[i]);
+
 	return jacobian;
 }
 
-//refer to diagram in thesis - i->j is anticlockwise around face
+//curvature is like angular defect, but of dihedral angles around a radius.
+function get_curvatures(input_radii) {
+	var curvature_array = new Float32Array([-TAU,-TAU,-TAU,-TAU,-TAU,-TAU,-TAU,-TAU,-TAU,-TAU,-TAU,-TAU]);
+	for( var i = 0; i < 12; i++) {
+		for( var j = 0; j < 12; j++) {
+			if(polyhedron_edge_length[i][j] === 666 )
+				continue;
+			
+			for( var k = j+1; k < 12; k++) { //if k is strictly greater than j we avoid counting jk twice
+				if(polyhedron_edge_length[j][k] === 666 || polyhedron_edge_length[k][i] === 666 )
+					continue;
+				
+				var cos_gamma_ijk = get_cos_rule(polyhedron_edge_length[j][k],polyhedron_edge_length[i][j], polyhedron_edge_length[k][i]);
+				var cos_rho_ij = get_cos_rule(input_radii[j], polyhedron_edge_length[i][j], input_radii[i]);
+				var cos_rho_ik = get_cos_rule(input_radii[k], polyhedron_edge_length[i][k], input_radii[i]);
+				var sin_rho_ij_TIMES_sin_rho_ik = Math.sqrt((1-cos_rho_ij*cos_rho_ij)*(1-cos_rho_ik*cos_rho_ik));
+
+				var cos_omega_ijk = ( cos_gamma_ijk - cos_rho_ij * cos_rho_ik ) / sin_rho_ij_TIMES_sin_rho_ik;
+				
+				curvature_array[i] += Math.acos(cos_omega_ijk);
+			}
+		}		
+		curvature_array[i] *= -1;
+		if(isNaN(curvature_array[i])) return 666;
+	}
+	//currently the question is "what's giving us NaN curvatures?"
+	return curvature_array;
+}
+
+//refer to diagram in thesis: i->j is anticlockwise around face
 function get_cos_tetrahedron_dihedral_angle_from_indices(i,j) {
 	var k = 666;
 
-	//we need that k that is clockwise of j		
+	//we need that k that is clockwise of j, for some triangle
 	for(var a = 0; a < net_triangle_vertex_indices.length; a+=3){ //TODO place where things collide
 		if( polyhedron_index( net_triangle_vertex_indices[ a ] ) === i && polyhedron_index( net_triangle_vertex_indices[a+1] ) === j)
 			{k = polyhedron_index( net_triangle_vertex_indices[a+2] ); break;}
@@ -208,7 +217,6 @@ function get_cos_tetrahedron_dihedral_angle_from_indices(i,j) {
 		return 0;
 	}
 	
-	//if(!logged)console.log(radii[j], polyhedron_edge_length[i][j], radii[i]);
 	var cos_rho_ij = get_cos_rule(radii[j], polyhedron_edge_length[i][j], radii[i]);
 	var cos_rho_ik = get_cos_rule(radii[k], polyhedron_edge_length[i][k], radii[i]);
 	var cos_gamma_ijk = get_cos_rule(polyhedron_edge_length[j][k],polyhedron_edge_length[i][j], polyhedron_edge_length[k][i]);

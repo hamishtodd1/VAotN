@@ -1,3 +1,9 @@
+/*
+ * So maybe things should scale a little, or indeed indefinitely
+ * You can perhaps turn it on one axis which also makes it generate
+ */
+
+
 function update_3DLattice() {
 	if(InputObject.isMouseDown) {
 		var MovementVector = MousePosition.clone();
@@ -152,9 +158,9 @@ function init_cubicLattice_stuff() {
 		corner_spindle.cross(corner_to_origin);
 		var desired_rhombohedron_Y = corner_to_origin.clone();
 		desired_rhombohedron_Y.cross(corner_spindle);
-		console.log(desired_rhombohedron_Y);
+		//console.log(desired_rhombohedron_Y);
 		golden_rhombohedra[i].worldToLocal(desired_rhombohedron_Y);
-		console.log(desired_rhombohedron_Y);
+		//console.log(desired_rhombohedron_Y);
 		
 		var Y = new THREE.Vector3(0,1,0); //of course this isn't at a right angle to cornertoorigin
 		var second_rotation_axis = desired_rhombohedron_Y.clone();

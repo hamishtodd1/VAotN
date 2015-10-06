@@ -127,7 +127,8 @@ var groovepoints = Array(
 var surface_triangle_side_unit_vectors = new Array();
 var shear_matrix = new Array(20);
 
-var radii = new Float32Array([100,100,100, 100,100,100, 100,100,100, 100,100,100]); //initial values chosen rather randomly. Potential speedup by decreasing this? Does algorithm ever increase them?
+//initial values chosen rather randomly. Potential speedup by decreasing this? Does algorithm ever increase them? Probably easy to work out a better bound.
+var radii = new Float32Array([100,100,100, 100,100,100, 100,100,100, 100,100,100]);
 var polyhedron_edge_length;
 
 var lattice_colors = new Float32Array(number_of_lattice_points * 3);

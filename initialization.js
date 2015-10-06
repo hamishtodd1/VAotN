@@ -91,7 +91,7 @@ function init() {
 	for(var i = 0; i< polyhedron_edge_length.length; i++) {
 		polyhedron_edge_length[i] = new Float32Array(12);
 		for(var j = 0; j < polyhedron_edge_length[i].length; j++)
-			polyhedron_edge_length[i][j] = 666;
+			polyhedron_edge_length[i][j] = 666; //not an actual edge
 	}		
 	for(var i = 0; i< net_triangle_vertex_indices.length / 3; i++) {
 		for(var j = 0; j < 3; j++){

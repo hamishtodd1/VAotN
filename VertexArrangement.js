@@ -579,10 +579,10 @@ function HandleVertexRearrangement() {
 			
 			polyhedron_edge_length[a_index][b_index] = Math.sqrt( Math.pow(flatnet_vertices.array[3*net_triangle_vertex_indices[i*3 + j]]-flatnet_vertices.array[3*net_triangle_vertex_indices[i*3 + (j+1)%3]],2)
 																+ Math.pow(flatnet_vertices.array[3*net_triangle_vertex_indices[i*3 + j]+1]-flatnet_vertices.array[3*net_triangle_vertex_indices[i*3 + (j+1)%3]+1],2) );
-			if(!logged)console.log(polyhedron_edge_length[a_index][b_index]);
 			polyhedron_edge_length[b_index][a_index] = polyhedron_edge_length[a_index][b_index]; 
 		}
 	}
+	logged = 0;
 	
 	// if(		!correct_defects()
 		 // ||	!update_polyhedron(vertex_tobechanged, vertex_tobechanged)

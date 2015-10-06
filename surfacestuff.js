@@ -60,7 +60,8 @@ function deduce_first_triangle(openness, vertices_numbers, rotation) {
 	return Math.acos(v2.dot(top_planar) / v2.length() / top_planar.length());
 }
 	
-function deduce_surface(openness, vertices_numbers) {	
+function deduce_surface(openness, vertices_numbers) {
+	//you need to just rotate it so that the first two points are in the same 2D locations as the 2D ones.
 	//the first three vertices
 	{		
 		var triangle_projected_angle = deduce_first_triangle(openness, vertices_numbers, 0);
