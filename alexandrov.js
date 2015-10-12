@@ -32,12 +32,12 @@ function correct_minimum_angles() {
 		
 		if( radii_intended !== 666 ) { //it worked!
 			var concave_edges = Array();
-			for( var i = 0; i < radii.length; i++) {
-				for(var j = i+1; j < radii.length; j++) {
+			for( var i = 0; i < radii_intended.length; i++) {
+				for(var j = i+1; j < radii_intended.length; j++) {
 					if( polyhedron_edge_length[i][j] === 666)
 						continue;
 					
-					var angle = get_polyhedron_dihedral_angle_from_indices(i,j);		
+					var angle = get_polyhedron_dihedral_angle_from_indices(i,j, radii_intended);
 					
 					if(angle * 2 >= TAU ) {
 						concave_edges.push(i);
@@ -46,14 +46,7 @@ function correct_minimum_angles() {
 				}
 			}
 			
-			if(concave_edges.length > 0) {
-				if( !logged ){
-					logged = 1;
-					console.log("Fuck, concave edges: ", concave_edges); //so it seems you HAVE taken a step and this is happenning. Perhaps you could try a smaller step size. But you may have to confront this
-				}
-				return;
-			}
-			else { //hooray, we took a step size the correct amount and can progress
+			if(concave_edges.length == 0) { //hooray, we took a step size the correct amount and can progress
 				for( var i = 0; i < curvatures_current.length; i++)
 					radii[i] = radii_intended[i];
 				
@@ -61,19 +54,29 @@ function correct_minimum_angles() {
 					curvatures_current = get_curvatures(radii);
 					curvatures_current_quadrance = quadrance(curvatures_current);
 					
-					if(!logged)console.log(curvatures_current_quadrance);
-					
 					stepsize = stepsizemax;
 				}
 				else break; //we only want one step
 			}
+			else {//unsolvable, concave edges
+				console.log("concave edges");
+				stepsize = stepsize*stepsize;
+			}
 		}
 		else //unsolvable, step size was too much
 			stepsize = stepsize*stepsize;
+		
+		if(stepsize < 0.00001){
+			console.log("Sigh")
+			break;
+		}
 	}
-	
+
 	for(var i = 2; i < minimum_angles.length; i++) {
-		minimum_angles[i] = get_polyhedron_dihedral_angle_from_indices(polyhedron_index( vertices_derivations[i][0] ),polyhedron_index( vertices_derivations[i][1] ));
+		minimum_angles[i] = get_polyhedron_dihedral_angle_from_indices(
+				polyhedron_index( vertices_derivations[i][0] ),
+				polyhedron_index( vertices_derivations[i][1] ), 
+				radii);
 	}
 	
 	logged = 1;
@@ -144,8 +147,8 @@ function get_Jacobian(input_radii){
 				continue;
 			}
 			
-			var cos_alpha_ij = get_cos_tetrahedron_dihedral_angle_from_indices(i,j);
-			var cos_alpha_ji = get_cos_tetrahedron_dihedral_angle_from_indices(j,i);
+			var cos_alpha_ij = get_cos_tetrahedron_dihedral_angle_from_indices(i,j, input_radii);
+			var cos_alpha_ji = get_cos_tetrahedron_dihedral_angle_from_indices(j,i, input_radii);
 			var cot_alpha_ij = cos_alpha_ij / Math.sqrt( 1 - cos_alpha_ij*cos_alpha_ij);
 			var cot_alpha_ji = cos_alpha_ji / Math.sqrt( 1 - cos_alpha_ji*cos_alpha_ji);
 
@@ -197,7 +200,7 @@ function get_curvatures(input_radii) {
 }
 
 //refer to diagram in thesis: i->j is anticlockwise around face
-function get_cos_tetrahedron_dihedral_angle_from_indices(i,j) {
+function get_cos_tetrahedron_dihedral_angle_from_indices(i,j,input_radii) {
 	var k = 666;
 
 	//we need that k that is clockwise of j, for some triangle
@@ -214,16 +217,16 @@ function get_cos_tetrahedron_dihedral_angle_from_indices(i,j) {
 		return 0;
 	}
 	
-	var cos_rho_ij = get_cos_rule(radii[j], polyhedron_edge_length[i][j], radii[i]);
-	var cos_rho_ik = get_cos_rule(radii[k], polyhedron_edge_length[i][k], radii[i]);
+	var cos_rho_ij = get_cos_rule(input_radii[j], polyhedron_edge_length[i][j], input_radii[i]);
+	var cos_rho_ik = get_cos_rule(input_radii[k], polyhedron_edge_length[i][k], input_radii[i]);
 	var cos_gamma_ijk = get_cos_rule(polyhedron_edge_length[j][k],polyhedron_edge_length[i][j], polyhedron_edge_length[k][i]);
 	var sin_rho_ij_TIMES_sin_gamma_ijk = Math.sqrt((1-cos_rho_ij*cos_rho_ij)*(1-cos_gamma_ijk*cos_gamma_ijk));
 	
 	return (cos_rho_ik - cos_gamma_ijk * cos_rho_ij)/sin_rho_ij_TIMES_sin_gamma_ijk;
 }
 
-function get_polyhedron_dihedral_angle_from_indices(i,j){
-	return Math.acos(get_cos_tetrahedron_dihedral_angle_from_indices(i,j) ) + Math.acos(get_cos_tetrahedron_dihedral_angle_from_indices(j,i) );
+function get_polyhedron_dihedral_angle_from_indices(i,j, input_radii){
+	return Math.acos(get_cos_tetrahedron_dihedral_angle_from_indices(i,j, input_radii) ) + Math.acos(get_cos_tetrahedron_dihedral_angle_from_indices(j,i, input_radii) );
 }
 
 function quadrance(vector_values) {

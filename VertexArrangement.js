@@ -582,7 +582,8 @@ function HandleVertexRearrangement() {
 			polyhedron_edge_length[b_index][a_index] = polyhedron_edge_length[a_index][b_index]; 
 		}
 	}
-	logged = 0;
+
+	//surely you've written something to check angular defects?
 	
 	// if(		!correct_defects()
 		 // ||	!update_polyhedron(vertex_tobechanged, vertex_tobechanged)

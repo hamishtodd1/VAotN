@@ -258,12 +258,12 @@ function change_radius(sphere, radius) {
 }
 
 function update_surfperimeter() {
-	var surfperimeterradius = 0;
-	var proportion_of_opening_for_swell = 1;
-	if( capsidopenness < proportion_of_opening_for_swell )
-		surfperimeterradius = capsidopenness / proportion_of_opening_for_swell * surfperimeter_default_radius;
-	else
-		surfperimeterradius = surfperimeter_default_radius;
+	var surfperimeterradius = 0.02;
+//	var proportion_of_opening_for_swell = 1;
+//	if( capsidopenness < proportion_of_opening_for_swell )
+//		surfperimeterradius = capsidopenness / proportion_of_opening_for_swell * surfperimeter_default_radius;
+//	else
+//		surfperimeterradius = surfperimeter_default_radius;
 	
 	var a1index, a2index, b1index, b2index;
 	var a1,a2,b1,b2;
@@ -275,7 +275,7 @@ function update_surfperimeter() {
 		surfperimeter_cylinders[i].geometry.attributes.position.needsUpdate = true;
 		surfperimeter_spheres[i].geometry.attributes.position.needsUpdate = true;
 	}
-	if(capsidopenness != 0 ) {
+	 {
 		for(var i = 0; i < 22; i++) {
 			var Aindex = surfperimeter_line_index_pairs[i*2];
 			var Bindex = surfperimeter_line_index_pairs[i*2+1];

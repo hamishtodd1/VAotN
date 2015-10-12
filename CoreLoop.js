@@ -113,8 +113,11 @@ function ChangeScene() {
 			
 		case IRREGULAR_MODE:
 			scene.add(flatnet);
-			scene.add(polyhedron);
 			scene.add(surface);
+			for( var i = 0; i < surfperimeter_cylinders.length; i++) {
+				scene.add(surfperimeter_spheres[i]);
+				scene.add(surfperimeter_cylinders[i]);
+			}
 			break;
 	}
 }
