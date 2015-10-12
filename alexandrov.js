@@ -115,23 +115,20 @@ function newton_solve(final_curvatures_intended) {
 		}
 		
 		desired_jacobianmultiplication_output = get_curvatures(radii_guess);
-		if(desired_jacobianmultiplication_output === 666 &&!logged) {
-			console.log("had NaN curvature during Newton");
+		if(desired_jacobianmultiplication_output === 666 )
 			return 666;
-		}
 		
 		for( var i = 0; i < 12; i++)
 			desired_jacobianmultiplication_output[i] = final_curvatures_intended[i] - desired_jacobianmultiplication_output[i];
 		
 		iterations++;
+		if(iterations >= 20 ) {
+			console.log("newton failed to converge after 20 iterations");
+			return 666;
+		}
 	} while( quadrance(desired_jacobianmultiplication_output) > epsilon && iterations < 20);
-	
-	console.log(iterations);
-	if(iterations >= 20 ) {
-		console.log("newton failed to converge after 20 iterations");
-		return 666;
-	}
-	else return radii_guess;
+
+	return radii_guess;
 }
 
 function get_Jacobian(input_radii){
