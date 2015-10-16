@@ -1,3 +1,10 @@
+/* Ok so you should probably actually be scaling and rotating the net and the lattice stays in place.
+ * The lattice maybe stays where it is all the time.
+ * No protein gets cut up, they merely overlap?
+ * And you should have the translational net for the irreg
+ * 
+ */ 
+
 function Update_net_variables() {
 	var centralaxis = new THREE.Vector3(0, 0, 1);	
 	for( var i = 0; i < 22; i++) {

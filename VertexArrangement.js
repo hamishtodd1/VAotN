@@ -1,46 +1,11 @@
-function tetrahedron_top(P1,P2,P3, r1,r2,r3) {
-	P3.sub(P1);
-	P2.sub(P1);
-	var P3_P2_angle = Math.acos(P3.dot(P2)/P2.length()/P3.length());
-	
-	var P1_t = new THREE.Vector3(0,0,0);
-	var P2_t = new THREE.Vector3(P2.length(),0,0);
-	var P3_t = new THREE.Vector3(P3.length() * Math.cos(P3_P2_angle), P3.length() * Math.sin(P3_P2_angle),0);
-	
-	var cp_t = new THREE.Vector3(0,0,0);
-	cp_t.x = ( r1*r1 - r2*r2 + P2_t.x * P2_t.x ) / ( 2 * P2_t.x );
-	cp_t.y = ( r1*r1 - r3*r3 + P3_t.x * P3_t.x + P3_t.y * P3_t.y ) / ( P3_t.y * 2 ) - ( P3_t.x / P3_t.y ) * cp_t.x;
-	if(r1*r1 - cp_t.x*cp_t.x - cp_t.y*cp_t.y < 0) {
-		//console.log("Impossible tetrahedron");
-		return false;			
-	}
-	cp_t.z = Math.sqrt(r1*r1 - cp_t.x*cp_t.x - cp_t.y*cp_t.y);
-	
-	var cp = new THREE.Vector3(0,0,0);
-	
-	var z_direction = new THREE.Vector3();
-	z_direction.crossVectors(P2,P3);
-	z_direction.normalize(); 
-	z_direction.multiplyScalar(cp_t.z);
-	cp.add(z_direction);
-	
-	var x_direction = P2.clone();
-	x_direction.normalize();
-	x_direction.multiplyScalar(cp_t.x);
-	cp.add(x_direction);
-	
-	var y_direction = new THREE.Vector3();
-	y_direction.crossVectors(z_direction,x_direction);
-	y_direction.normalize();
-	y_direction.multiplyScalar(cp_t.y);
-	cp.add(y_direction);		
-	cp.add(P1);
-	
-	P2.add(P1);
-	P3.add(P1);
-	
-	return cp;
-}
+/*
+ * Todo:
+ * -check under what circumstances angular defects are ok
+ * -get triangles in those triangular holes
+ * -put cylinders on the edges and spheres on the corners
+ * -add a button
+ * -take away every reference to inputobject outside of inputgetter.js
+ */
 
 function update_movementzone() {
 	//we have an array of 20 points, paired in 10 line segments.
@@ -100,132 +65,6 @@ function update_movementzone() {
 	//LEEEEEET's just turn off everything except keeping identified edge lengths the same and see what happens
 }
 
-//we're going to assume the net is sorted.
-function update_polyhedron(vertex_tobechanged, initial_changed_vertex) {
-	//update that one vertex
-	{
-		var Vmode;
-		if( initial_changed_vertex === vertex_tobechanged)
-			Vmode = CORE;
-		else
-			Vmode = ASSOCIATED;
-		
-		var P1_index = V_vertex_indices[Vmode][initial_changed_vertex][6];
-		var P2_index = V_vertex_indices[Vmode][initial_changed_vertex][10]; //P2 could also be 9.
-		var P3_index = V_vertex_indices[Vmode][initial_changed_vertex][3];
-		var P4_index = V_vertex_indices[Vmode][initial_changed_vertex][7];
-		
-		//it's triangle 1 and 2 (array indices) in the V diagram		
-		var P1_side_net = new THREE.Vector3(
-			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][8] * 3 + 0]	-	flatnet_vertices.array[P1_index * 3 + 0],
-			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][8] * 3 + 1]	-	flatnet_vertices.array[P1_index * 3 + 1],
-			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][8] * 3 + 2]	-	flatnet_vertices.array[P1_index * 3 + 2] );
-		var P2_side_net = new THREE.Vector3(
-			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][11] * 3 + 0]	-	flatnet_vertices.array[P2_index * 3 + 0],
-			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][11] * 3 + 1]	-	flatnet_vertices.array[P2_index * 3 + 1],
-			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][11] * 3 + 2]	-	flatnet_vertices.array[P2_index * 3 + 2] );
-		var P3_side_net = new THREE.Vector3(
-			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][5] * 3 + 0]	-	flatnet_vertices.array[P3_index * 3 + 0],
-			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][5] * 3 + 1]	-	flatnet_vertices.array[P3_index * 3 + 1],
-			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][5] * 3 + 2]	-	flatnet_vertices.array[P3_index * 3 + 2] );
-		var P4_side_net = new THREE.Vector3(
-			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][8] * 3 + 0]	-	flatnet_vertices.array[P4_index * 3 + 0],
-			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][8] * 3 + 1]	-	flatnet_vertices.array[P4_index * 3 + 1],
-			flatnet_vertices.array[V_vertex_indices[Vmode][initial_changed_vertex][8] * 3 + 2]	-	flatnet_vertices.array[P4_index * 3 + 2] );
-			
-		var r1 = P1_side_net.length();
-		var r2 = P2_side_net.length();
-		var r3 = P3_side_net.length();
-		var r4 = P4_side_net.length();
-		
-		var P1 = new THREE.Vector3(
-			polyhedron_vertices.array[P1_index * 3 + 0],
-			polyhedron_vertices.array[P1_index * 3 + 1],
-			polyhedron_vertices.array[P1_index * 3 + 2] );
-		var P2 = new THREE.Vector3(
-			polyhedron_vertices.array[P2_index * 3 + 0],
-			polyhedron_vertices.array[P2_index * 3 + 1],
-			polyhedron_vertices.array[P2_index * 3 + 2] );
-		var P3 = new THREE.Vector3(
-			polyhedron_vertices.array[P3_index * 3 + 0],
-			polyhedron_vertices.array[P3_index * 3 + 1],
-			polyhedron_vertices.array[P3_index * 3 + 2] );
-		var P4 = new THREE.Vector3(
-			polyhedron_vertices.array[P4_index * 3 + 0],
-			polyhedron_vertices.array[P4_index * 3 + 1],
-			polyhedron_vertices.array[P4_index * 3 + 2] );
-		
-		var cp_without_4 = tetrahedron_top(P1,P2,P3, r1,r2,r3).clone();
-		var cp_without_1 = tetrahedron_top(P2,P3,P4, r2,r3,r4).clone();
-		var tetrahedron_wiggle_room = 0.01;
-		if( !cp_without_4 || !cp_without_1 || cp_without_4.distanceTo(cp_without_1) > tetrahedron_wiggle_room) {
-			var discrepancy_percentage = cp_without_4.distanceTo(cp_without_1) / ((r1+r4)/2) * 100;
-			discrepancy_percentage = Math.floor(discrepancy_percentage * 10) / 10;
-			//console.log("difficulty folding: tetrahedra off by " + discrepancy_percentage + "%");
-			return false;
-		}
-		cp_without_1.lerp(cp_without_4, 0.5);
-		
-		for( var i = 0; i < 22; i++) {
-			if(vertex_identifications[vertex_tobechanged][i]) {
-				polyhedron_vertices.array[i * 3 + 0] = cp_without_1.x;
-				polyhedron_vertices.array[i * 3 + 1] = cp_without_1.y;
-				polyhedron_vertices.array[i * 3 + 2] = cp_without_1.z;
-			}
-		}
-	}
-	
-	polyhedron_vertices.needsUpdate = true;
-	
-	//minimum angles
-	{
-		for( var d_index = 0; d_index < 22; d_index++) { //22*3?
-			var a_index = vertices_derivations[d_index][0];
-			var b_index = vertices_derivations[d_index][1];
-			var c_index = vertices_derivations[d_index][2];
-			
-			var a_p = new THREE.Vector3(
-				polyhedron_vertices.array[a_index * 3 + 0],
-				polyhedron_vertices.array[a_index * 3 + 1],
-				polyhedron_vertices.array[a_index * 3 + 2] );
-			var b_p = new THREE.Vector3(
-				polyhedron_vertices.array[b_index * 3 + 0],
-				polyhedron_vertices.array[b_index * 3 + 1],
-				polyhedron_vertices.array[b_index * 3 + 2] );
-			var c_p = new THREE.Vector3(
-				polyhedron_vertices.array[c_index * 3 + 0],
-				polyhedron_vertices.array[c_index * 3 + 1],
-				polyhedron_vertices.array[c_index * 3 + 2] );
-			var d_p = new THREE.Vector3(
-				polyhedron_vertices.array[d_index * 3 + 0],
-				polyhedron_vertices.array[d_index * 3 + 1],
-				polyhedron_vertices.array[d_index * 3 + 2] );
-				
-			var a_to_b = new THREE.Vector3();
-			a_to_b.subVectors(b_p,a_p);
-			a_to_b.normalize();
-			
-			var c_a = new THREE.Vector3();
-			var d_a = new THREE.Vector3();
-			c_a.subVectors(c_p,a_p);
-			d_a.subVectors(d_p,a_p);
-			
-			var c_hinge_origin = c_a.clone();
-			var d_hinge_origin = d_a.clone();			
-			d_hinge_origin.projectOnVector(a_to_b);
-			c_hinge_origin.projectOnVector(a_to_b);
-			
-			var d_hinge = new THREE.Vector3();
-			var c_hinge = new THREE.Vector3();
-			d_hinge.subVectors(d_a,d_hinge_origin);
-			c_hinge.subVectors(c_a,c_hinge_origin);
-			
-			minimum_angles[d_index] = Math.acos( d_hinge.dot(c_hinge) / c_hinge.length() / d_hinge.length() );
-		}
-	}
-	
-	return true;
-}
 
 function move_vertices(vertex_tobechanged, starting_movement_vector, initial_changed_vertex)
 {
@@ -382,50 +221,10 @@ function corner_angle_from_indices(triangle_index, corner_vertex_index) {
 	return Math.acos(get_cos( sideA, sideB) );
 }
 
-function update_surface() {
-	for(var i = 0; i < 22*3; i++)
-		surface_vertices.array[i] = flatnet_vertices.array[i];
-	surface_vertices.needsUpdate = true;
-}
-
-function squash_mouse(vertex_tobechanged ) {
-	var using_right_side = 0;
-	if(V_squasher[vertex_tobechanged][6] === 666 )
-		using_right_side = 1;
-	
-	var vertex_tobechanged_vector = new THREE.Vector2(
-		flatnet_vertices.array[ 0 + 3 * vertex_tobechanged ],
-		flatnet_vertices.array[ 1 + 3 * vertex_tobechanged ] );
-	
-	var angleA = corner_angle_from_indices(V_squasher[vertex_tobechanged][1], V_squasher[vertex_tobechanged][3]);
-	var angleB = corner_angle_from_indices(V_squasher[vertex_tobechanged][2], V_squasher[vertex_tobechanged][4]);
-	
-	var side_to_locus_angle = TAU*5/12 - angleA - angleB;
-	if( using_right_side ) side_to_locus_angle = corner_angle_from_indices(V_squasher[vertex_tobechanged][0], V_squasher[vertex_tobechanged][5]) - side_to_locus_angle;
-	
-	var side = new THREE.Vector2(
-		flatnet_vertices.array[ 0 + 3 * V_squasher[vertex_tobechanged][6+using_right_side] ],
-		flatnet_vertices.array[ 1 + 3 * V_squasher[vertex_tobechanged][6+using_right_side] ] );
-	side.sub(vertex_tobechanged_vector);
-	side.negate();
-		
-	var locus_unit_vector = vector_from_bearing(side, 1, -side_to_locus_angle * ( 1 - 2*using_right_side) );
-	
-	var MousePosition_relative = MousePosition.clone();
-	MousePosition_relative.x -= flatnet.position.x; //coz that's where the net is
-	MousePosition_relative.sub(vertex_tobechanged_vector);
-		
-	var projected_position = locus_unit_vector.clone();
-	projected_position.multiplyScalar( MousePosition_relative.dot(locus_unit_vector) );
-	projected_position.add(vertex_tobechanged_vector);
-	
-	return projected_position;
-}
-
 function HandleVertexRearrangement() {
 	var movement_vector = new THREE.Vector2(0,0);
-	if( InputObject.isMouseDown && !LatticeGrabbed ) { //also, capsidopenness ===0!
-		if( vertex_tobechanged === 666) {
+	if( InputObject.isMouseDown ) {
+		if( vertex_tobechanged === 666 && capsidopenness === 1) {
 			var lowest_quadrance_so_far = 10;
 			var closest_vertex_so_far = 666;
 			for( var i = 0; i < 22; i++) {
@@ -582,16 +381,14 @@ function HandleVertexRearrangement() {
 			polyhedron_edge_length[b_index][a_index] = polyhedron_edge_length[a_index][b_index]; 
 		}
 	}
-
-	//surely you've written something to check angular defects?
 	
-	// if(		!correct_defects()
-		 // ||	!update_polyhedron(vertex_tobechanged, vertex_tobechanged)
-		 // ||	!update_polyhedron(right_defect_index, vertex_tobechanged)
-		// ) {
-		// for( var i = 0; i < 66; i++)
-			// flatnet_vertices.array[i] = net_log[i];
-		// return;
-	// }
-	// compare_polyhedron_with_net();
+//	for(var i = 0; i < 20; i++){
+//		corner_angle_from_indices()
+//	}
+
+	if(!correct_minimum_angles()){ //we'd rather not have this dependence, you should be able to predict what won't work and put correct_minimum_angles in coreloop.
+		for( var i = 0; i < 66; i++)
+			flatnet_vertices.array[i] = net_log[i];
+		correct_minimum_angles();
+	}
 }

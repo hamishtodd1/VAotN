@@ -114,6 +114,18 @@ function init() {
 		line_index_pairs[i*6 + 5] = net_triangle_vertex_indices[i*3 + 0];
 	}
 	
+	var cylinder_triangle_indices = new Uint16Array(6 * 8);
+	for( var i = 0; i < 8; i++){
+		//hopefully this is clockwise
+		cylinder_triangle_indices[i*6+0] = (i*2)%16;
+		cylinder_triangle_indices[i*6+1] = (i*2+1)%16;
+		cylinder_triangle_indices[i*6+2] = (i*2+2)%16;
+		
+		cylinder_triangle_indices[i*6+3] = (i*2+1)%16;
+		cylinder_triangle_indices[i*6+4] = (i*2+3)%16;
+		cylinder_triangle_indices[i*6+5] = (i*2+2)%16;
+	}
+	
 	for(var i = 0; i < 22; i++) {
 		V_angles[i] = Array(4);
 		for(var j = 0; j < 4; j++)
@@ -162,14 +174,32 @@ function init() {
 			color: 0x0000ff
 		});
 		
+		//so the flatnet will no longer be flat. At some stable point, change its names.
 		flatnet_vertices = new THREE.BufferAttribute( flatnet_vertices_numbers, 3 );
 		
 		flatnet_geometry = new THREE.BufferGeometry();
 		flatnet_geometry.addAttribute( 'position', flatnet_vertices );
-		flatnet_geometry.addAttribute( 'index', new THREE.BufferAttribute( line_index_pairs, 1 ) ); //allowed to put that in there?
+		flatnet_geometry.addAttribute( 'index', new THREE.BufferAttribute( net_triangle_vertex_indices, 1 ) );
 
-		flatnet = new THREE.Line( flatnet_geometry, material1, THREE.LinePieces );
-		flatnet.position.x = -4;
+		flatnet = new THREE.Mesh( flatnet_geometry, surfacematerial );
+		
+		var varyingsurface_edgesmaterial = new THREE.MeshBasicMaterial({
+			color:	0x000000,
+			side:	THREE.DoubleSide
+		});
+		for( var i = 0; i < varyingsurface_cylinders.length; i++) {
+			var cylinder_vertices_numbers = new Float32Array(16*3);
+			put_tube_in_buffer(0,0,0,1,1,1, varyingsurface_edges_default_radius, cylinder_vertices_numbers);
+			
+			var varyingsurface_cylinders_geometry = new THREE.BufferGeometry();
+			varyingsurface_cylinders_geometry.addAttribute( 'index', new THREE.BufferAttribute( cylinder_triangle_indices, 1 ) );
+			varyingsurface_cylinders_geometry.addAttribute( 'position', new THREE.BufferAttribute( cylinder_vertices_numbers, 3 ) );
+			
+			varyingsurface_cylinders[i] = new THREE.Mesh( varyingsurface_cylinders_geometry, varyingsurface_edgesmaterial );
+		}
+		for(var i = 0; i<varyingsurface_spheres.length;i++)
+			varyingsurface_spheres[i] = new THREE.Mesh( (new THREE.BufferGeometry).fromGeometry(new THREE.SphereGeometry(varyingsurface_edges_default_radius,8,4)),varyingsurface_edgesmaterial);
+		varyingsurface = new THREE.Mesh( flatnet_geometry.clone(), surfacematerial );
 		
 		polyhedron_vertices = new THREE.BufferAttribute( polyhedron_vertices_numbers, 3 );
 		
@@ -228,20 +258,15 @@ function init() {
 		surfperimeter_line_index_pairs[0] = 0; surfperimeter_line_index_pairs[1] = 1;
 		surfperimeter_line_index_pairs[2] = 1;
 		surfperimeter_line_index_pairs[42] = 18; surfperimeter_line_index_pairs[43] = 0;
+		surfinterior_line_index_pairs = new Uint16Array([
+		                                                 1,2,	2,3,	3,4,
+		                                                 2,6,	6,7,	7,8,
+		                                                 6,10,	10,11,	11,12,
+		                                                 10,14,	14,15,	15,16,
+		                                                 14,18,	18,19,	19,20,
+		                                                 0,2,	0,6,	0,10,	0,14]);
 		
 		
-		
-		var cylinder_triangle_indices = new Uint16Array(6 * 8);
-		for( var i = 0; i < 8; i++){
-			//hopefully this is clockwise
-			cylinder_triangle_indices[i*6+0] = (i*2)%16;
-			cylinder_triangle_indices[i*6+1] = (i*2+1)%16;
-			cylinder_triangle_indices[i*6+2] = (i*2+2)%16;
-			
-			cylinder_triangle_indices[i*6+3] = (i*2+1)%16;
-			cylinder_triangle_indices[i*6+4] = (i*2+3)%16;
-			cylinder_triangle_indices[i*6+5] = (i*2+2)%16;
-		}
 		
 		var surfperimeter_cylindersmaterial = new THREE.MeshBasicMaterial({
 			color: 0xccccff,
@@ -283,9 +308,12 @@ function init() {
 
 		var radius = 0.08;
 
-		circleGeometry = new THREE.CircleGeometry( radius );				
-		circle = new THREE.Mesh( circleGeometry, material3 );
+		circle = new THREE.Mesh( new THREE.CircleGeometry( radius ), material3 );
 		scene.add( circle );
+		
+		Button = new THREE.Mesh( new THREE.CircleGeometry( 0.3 ), new THREE.MeshBasicMaterial({color: 0x00ff00}) );
+		Button.position.x += 1.5;
+		Button.position.y -= 1.5;
 	}
 	
 	for( var i = 0; i < 3 * 3; i++)

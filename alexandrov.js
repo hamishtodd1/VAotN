@@ -15,8 +15,8 @@ function correct_minimum_angles() {
 	//Perhaps find some way to relate the angle that is used to epsilon and openness in a way that makes it so they're strictly decreasing?
 	//or, only write to those dihedral angles that are less than what they were in the previous frame (which may be dependent on openness)
 	var this_all_takes_place_in_one_frame = true;
-	if( this_all_takes_place_in_one_frame && InputObject.isMouseDown)
-		return;
+//	if( this_all_takes_place_in_one_frame && InputObject.isMouseDown)
+//		return 1;
 	
 	var curvatures_current = get_curvatures(radii);	//get this to zero!
 	var curvatures_current_quadrance = quadrance(curvatures_current);
@@ -68,18 +68,17 @@ function correct_minimum_angles() {
 		
 		if(stepsize < 0.00001){
 			console.log("Sigh")
-			break;
+			return 0;
 		}
 	}
 
 	for(var i = 2; i < minimum_angles.length; i++) {
-		minimum_angles[i] = get_polyhedron_dihedral_angle_from_indices(
-				polyhedron_index( vertices_derivations[i][0] ),
-				polyhedron_index( vertices_derivations[i][1] ), 
-				radii);
+		minimum_angles[i] = get_polyhedron_dihedral_angle_from_indices( polyhedron_index( vertices_derivations[i][0] ),
+																		polyhedron_index( vertices_derivations[i][1] ), 
+																		radii);
 	}
 	
-	logged = 1;
+	return 1;
 }
 
 //this gets us the radii such that curvature = curvatures_intended

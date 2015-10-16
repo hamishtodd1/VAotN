@@ -258,12 +258,12 @@ function change_radius(sphere, radius) {
 }
 
 function update_surfperimeter() {
-	var surfperimeterradius = 0.02;
-//	var proportion_of_opening_for_swell = 1;
-//	if( capsidopenness < proportion_of_opening_for_swell )
-//		surfperimeterradius = capsidopenness / proportion_of_opening_for_swell * surfperimeter_default_radius;
-//	else
-//		surfperimeterradius = surfperimeter_default_radius;
+	var surfperimeterradius = 0;
+	var proportion_of_opening_for_swell = 1;
+	if( capsidopenness < proportion_of_opening_for_swell )
+		surfperimeterradius = capsidopenness / proportion_of_opening_for_swell * surfperimeter_default_radius;
+	else
+		surfperimeterradius = surfperimeter_default_radius;
 	
 	var a1index, a2index, b1index, b2index;
 	var a1,a2,b1,b2;
@@ -275,7 +275,7 @@ function update_surfperimeter() {
 		surfperimeter_cylinders[i].geometry.attributes.position.needsUpdate = true;
 		surfperimeter_spheres[i].geometry.attributes.position.needsUpdate = true;
 	}
-	 {
+	if(capsidopenness!=0) {
 		for(var i = 0; i < 22; i++) {
 			var Aindex = surfperimeter_line_index_pairs[i*2];
 			var Bindex = surfperimeter_line_index_pairs[i*2+1];
@@ -352,4 +352,74 @@ function update_surfperimeter() {
 			blast_cylinders[grooveside].geometry.attributes.position.needsUpdate = true;
 		}
 	}
+}
+
+function CheckButton() {
+	var mouse_dist_from_buttoncenter = Math.sqrt( (Button.position.x-MousePosition.x) * (Button.position.x-MousePosition.x) + (Button.position.y-MousePosition.y) * (Button.position.y-MousePosition.y) );  
+	if( mouse_dist_from_buttoncenter < 0.3){
+		if( isMouseDown && !isMouseDown_previously ){
+			if(varyingsurface_openmode === true)
+				varyingsurface_openmode = false;
+			else
+				varyingsurface_openmode = true;
+		}
+	} 
+}
+
+function update_varyingsurface() {
+	if(varyingsurface_openmode)
+		capsidopeningspeed = 0.018;
+	else
+		capsidopeningspeed = -0.018;
+	
+	capsidopenness += capsidopeningspeed;
+	
+	if(capsidopenness > 1) {
+		capsidopenness = 1;
+		capsidopeningspeed = 0;
+	}
+	if(capsidopenness < 0) {
+		capsidopenness = 0;
+		capsidopeningspeed = 0;
+	}
+	
+	deduce_surface(capsidopenness, varyingsurface.geometry.attributes.position);
+	
+	for(var i = 0; i < surfperimeter_line_index_pairs.length / 2; i++) {
+		var Aindex = surfperimeter_line_index_pairs[i*2];
+		var Bindex = surfperimeter_line_index_pairs[i*2+1];
+		
+		A = new THREE.Vector3(
+				varyingsurface.geometry.attributes.position.array[Aindex*3+0],
+				varyingsurface.geometry.attributes.position.array[Aindex*3+1],
+				varyingsurface.geometry.attributes.position.array[Aindex*3+2]);
+		B = new THREE.Vector3(
+				varyingsurface.geometry.attributes.position.array[Bindex*3+0],
+				varyingsurface.geometry.attributes.position.array[Bindex*3+1],
+				varyingsurface.geometry.attributes.position.array[Bindex*3+2]);
+		
+		surfperimeter_spheres[i].position.copy(A);
+		
+		put_tube_in_buffer(A,B, varyingsurface_cylinders[i].geometry.attributes.position.array, varyingsurface_edges_default_radius);
+		varyingsurface_cylinders[i].geometry.attributes.position.needsUpdate = true;
+	}
+	for(var i = 0; i < surfinterior_line_index_pairs.length / 2; i++) {
+		var Aindex = surfinterior_line_index_pairs[i*2];
+		var Bindex = surfinterior_line_index_pairs[i*2+1];
+		
+		A = new THREE.Vector3(
+				varyingsurface.geometry.attributes.position.array[Aindex*3+0],
+				varyingsurface.geometry.attributes.position.array[Aindex*3+1],
+				varyingsurface.geometry.attributes.position.array[Aindex*3+2]);
+		B = new THREE.Vector3(
+				varyingsurface.geometry.attributes.position.array[Bindex*3+0],
+				varyingsurface.geometry.attributes.position.array[Bindex*3+1],
+				varyingsurface.geometry.attributes.position.array[Bindex*3+2]);
+		
+		put_tube_in_buffer(A,B, varyingsurface_cylinders[surfperimeter_line_index_pairs.length / 2 + i].geometry.attributes.position.array, varyingsurface_edges_default_radius);
+		varyingsurface_cylinders[surfperimeter_line_index_pairs.length / 2 + i].geometry.attributes.position.needsUpdate = true;
+	}
+	//if(!logged)console.log(varyingsurface.geometry.verticesNeedUpdate);logged=1;
+	//console.log(varyingsurface.geometry.verticesNeedUpdate)
+	varyingsurface.geometry.attributes.position.needsUpdate = true;
 }

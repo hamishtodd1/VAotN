@@ -14,7 +14,7 @@ var IRREGULAR_MODE = 5; //so we're going to have a button below the thing
 var MODE = IRREGULAR_MODE;
 
 //--------------Technologically fundamental
-var playing_field_width = MODE === IRREGULAR_MODE ? HS3 * 16 : 7*HS3;
+var playing_field_width = 7*HS3;
 var playing_field_height = 6;
 var window_height = 600; //100 pixels per unit
 var window_width = window_height * playing_field_width / playing_field_height;
@@ -42,6 +42,7 @@ var showdebugstuff = 0;
 var net_warnings = 0;
 
 var surfperimeter_default_radius = 0.02;
+var varyingsurface_edges_default_radius = 0.02;
 
 //Not including the central vertex
 //mimivirus needs exactly 100. Try and work out how many a human can distinguish though
@@ -67,7 +68,7 @@ var logged = 0;
 //--------------Varying
 var vertex_tobechanged = 666;
 
-var capsidopenness = 0; //much depends on this, but we should have as few sharp changes as possible
+var capsidopenness = 1; //much depends on this, but we should have as few sharp changes as possible
 var capsidclock = 0;
 var capsidopeningspeed = 0;
 
@@ -101,6 +102,8 @@ var flatnet_vertices_numbers;
 var flatnet_vertices;
 var flatnet_geometry;
 
+var varyingsurface;
+
 //we need the polyhedron to be seen
 var polyhedron;
 var polyhedron_vertices_numbers = new Float32Array(22 * 3);
@@ -113,6 +116,7 @@ var surface_vertices;
 var surface_geometry;
 
 var surfperimeter_line_index_pairs = new Uint16Array(22 * 2);
+var surfinterior_line_index_pairs;
 var surfperimeter_cylinders = Array(22);
 var surfperimeter_spheres = Array(22);
 var blast_cylinders = Array(10);
@@ -155,9 +159,13 @@ var vertices_derivations;
 var minimum_angles = new Array(22); //between these two, we derive the polyhedron and surface
 
 var circle;
-var circleGeometry;
+var Button;
 
 var cutout_mode = true;
+
+var varyingsurface_cylinders = Array(41);
+var varyingsurface_spheres = Array(22);
+var varyingsurface_openmode = true;
 
 var vertex_identifications = new Array();
 var W_triangle_indices = new Array();
@@ -179,6 +187,9 @@ var InputObject = {};
 InputObject.mousex = window_width/2+30;
 InputObject.mousey = window_height/2+30;
 InputObject.isMouseDown = false;
+
+var isMouseDown = false;
+var isMouseDown_previously = false;
 
 var raycaster = new THREE.Raycaster();
 var MousePosition = new THREE.Vector2(0,0);

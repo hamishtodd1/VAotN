@@ -47,15 +47,10 @@ function UpdateWorld() {
 			break;
 			
 		case IRREGULAR_MODE:
-			HandleCapsidOpenness(); //really this is "update surface"
-			HandleCapsidRotation();
-			update_surfperimeter();
-			
+			CheckButton();
+			update_varyingsurface();
 			HandleVertexRearrangement();
-			correct_minimum_angles();
-			Update_net_variables();
-			
-			Map_lattice();
+			//correct_minimum_angles();
 			break;
 	}
 }
@@ -112,12 +107,12 @@ function ChangeScene() {
 			break;
 			
 		case IRREGULAR_MODE:
-			scene.add(flatnet);
-			scene.add(surface);
-			for( var i = 0; i < surfperimeter_cylinders.length; i++) {
-				scene.add(surfperimeter_spheres[i]);
-				scene.add(surfperimeter_cylinders[i]);
-			}
+			scene.add(varyingsurface);
+			scene.add(Button);
+			for( var i = 0; i < varyingsurface_cylinders.length; i++)
+				scene.add(varyingsurface_cylinders[i]);
+			for( var i = 0; i < varyingsurface_spheres.length; i++)
+				scene.add(varyingsurface_spheres[i]);
 			break;
 	}
 }
