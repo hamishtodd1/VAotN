@@ -72,7 +72,8 @@ init();
 render();
 
 //eventually we'll add some trigger to this that makes it reasonable to call every frame
-function ChangeScene() {	
+function ChangeScene() {
+
 	switch(MODE){
 		case STATIC_PROTEIN_MODE:
 			break;
@@ -94,7 +95,7 @@ function ChangeScene() {
 		case CUBIC_LATTICE_MODE:
 			//scene.add(golden_triacontahedra[0]);
 			//scene.add(goldenicos[0]);
-			for( var i = 0; i < 2; i++)
+			for( var i = 0; i < golden_rhombohedra.length; i++)
 				scene.add(golden_rhombohedra[i]);
 			break;
 			

@@ -25,15 +25,44 @@ function update_3DLattice() {
 			myaxis.normalize();
 			golden_rhombohedra[i].rotateOnAxis(myaxis,MovementVector.length() / 5);
 		}
+
+		var explosion_speed = 0.004; 
+		if( exploding ) {
+			togetherness -= explosion_speed;
+			if(togetherness < 0)
+				togetherness = 0;
+		}
+		else {
+			togetherness += explosion_speed;
+			if(togetherness > 1)
+				togetherness = 1;
+		}
+	}
+	else {
+		if(togetherness === 0)
+			exploding = false;
+		if(togetherness === 1)
+			exploding = true;
 	}
 	
 	//if explodedness =1 they're all out, if it's 0 they're at their fixed radius.
 	//the second layer of rhombohedra has the extra aspect that clusters are a certain distance from a special point
-//	var rhombohedra_dist = rhombohedra_min_dist + clamp(explodedness - rhombohedra_convergence_time,0) * rhombohedra_convergence_speed;
-//	for(var i = 0; i<golden_rhombohedra.length; i++){
-//		golden_rhombohedra[i].position.normalize();
-//		golden_rhombohedra[i].position.multiplyScalar(rhombohedra_dist);
-//	}
+	//they all have a fade-in period
+	//at togetherness = 0, everything is out and moving in. First thing to get in is rhombs
+	var rhombohedra_convergence_time = 0.01; //this will be much less but we want to stretch it out for now
+	//console.log(togetherness )
+	rhombohedra_accel = 10; //guess
+	rhombohedra_starting_velocity = -rhombohedra_accel * rhombohedra_convergence_time / 2;
+	rhombohedra_dist = rhombohedra_starting_velocity * togetherness + 0.5 * rhombohedra_accel * togetherness * togetherness;
+	if(togetherness < rhombohedra_convergence_time)
+		rhombohedra_dist = 0;
+	var rhombohedra_final_position = 1.2;
+	rhombohedra_dist += rhombohedra_final_position;
+	
+	for(var i = 0; i < golden_rhombohedra.length; i++) {
+		golden_rhombohedra[i].position.normalize();
+		golden_rhombohedra[i].position.multiplyScalar(rhombohedra_dist);
+	}
 }
 
 function clamp(val, minval){
@@ -41,33 +70,77 @@ function clamp(val, minval){
 	else return minval;
 }
 
-//we have layers of shapes. Their distance is a radius
+//long axis points down long diagonal, short axis from the center to a vertex. Short axis we think of as y, long as z.
+function fill_buffer_with_rhombohedron(long_axis, short_axis,array){
+	var x_axis = short_axis.clone(); 
+	x_axis.cross(long_axis);
+	long_axis.normalize();
+	short_axis.normalize();
+	x_axis.normalize();
+	
+	var rhombohedron_r = 4/Math.sqrt(10+2*Math.sqrt(5))/Math.sqrt(3);
+	var rhombohedron_s = rhombohedron_r * HS3;
+	var rhombohedron_h = Math.sqrt(1-rhombohedron_r*rhombohedron_r);
+	
+	var vectors = Array(8);
+	vectors[0] = long_axis.clone();
+	vectors[0].multiplyScalar(rhombohedron_h*1.5);
+	vectors[1] = short_axis.clone();
+	vectors[1].multiplyScalar(rhombohedron_r);
+	vectors[1].addScaledVector( long_axis, 0.5*rhombohedron_h );
+	vectors[2] = short_axis.clone();
+	vectors[2].multiplyScalar(-rhombohedron_r/2);
+	vectors[2].addScaledVector( x_axis, rhombohedron_s );
+	vectors[2].addScaledVector( long_axis, 0.5*rhombohedron_h );
+	vectors[3] = short_axis.clone();
+	vectors[3].multiplyScalar(-rhombohedron_r/2);
+	vectors[3].addScaledVector( x_axis, -rhombohedron_s );
+	vectors[3].addScaledVector( long_axis, 0.5*rhombohedron_h );
+	vectors[4] = short_axis.clone();
+	vectors[4].multiplyScalar( rhombohedron_r/2);
+	vectors[4].addScaledVector( x_axis, -rhombohedron_s );
+	vectors[4].addScaledVector( long_axis, -0.5*rhombohedron_h );
+	vectors[5] = short_axis.clone();
+	vectors[5].multiplyScalar( rhombohedron_r/2);
+	vectors[5].addScaledVector( x_axis, rhombohedron_s );
+	vectors[5].addScaledVector( long_axis, -0.5*rhombohedron_h );
+	vectors[6] = short_axis.clone();
+	vectors[6].multiplyScalar(-rhombohedron_r);
+	vectors[6].addScaledVector( long_axis, -0.5*rhombohedron_h );
+	vectors[7] = long_axis.clone();
+	vectors[7].multiplyScalar(-rhombohedron_h*1.5);
 
+	for(var i = 0; i<vectors.length; i++){
+		array[i*3+0] = vectors[i].x;
+		array[i*3+1] = vectors[i].y;
+		array[i*3+2] = vectors[i].z;
+	}
+}
 
 function init_cubicLattice_stuff() {
-	var dodecahedron_vertices = Array(20);
-	dodecahedron_vertices[0] = new THREE.Vector3(1,-1,1);
-	dodecahedron_vertices[1] = new THREE.Vector3(0,-1/PHI, PHI);
-	dodecahedron_vertices[2] = new THREE.Vector3(-1,-1,1);
-	dodecahedron_vertices[3] = new THREE.Vector3(-PHI,0, 1/PHI);
-	dodecahedron_vertices[4] = new THREE.Vector3(-PHI,0,-1/PHI);
-	dodecahedron_vertices[5] = new THREE.Vector3(-1,1,-1);
-	dodecahedron_vertices[6] = new THREE.Vector3(0, 1/PHI,-PHI);
-	dodecahedron_vertices[7] = new THREE.Vector3(1,1,-1);
-	dodecahedron_vertices[8] =  new THREE.Vector3( 1/PHI, PHI,0);
-	dodecahedron_vertices[9] =  new THREE.Vector3(-1/PHI, PHI,0);
-	dodecahedron_vertices[10] = new THREE.Vector3(-1,1,1);
-	dodecahedron_vertices[11] = new THREE.Vector3(0, 1/PHI, PHI);
-	dodecahedron_vertices[12] = new THREE.Vector3(1,1,1);
-	dodecahedron_vertices[13] = new THREE.Vector3( PHI,0, 1/PHI);
-	dodecahedron_vertices[14] = new THREE.Vector3( PHI,0,-1/PHI);
-	dodecahedron_vertices[15] = new THREE.Vector3(1,-1,-1);
-	dodecahedron_vertices[16] = new THREE.Vector3(0,-1/PHI,-PHI);
-	dodecahedron_vertices[17] = new THREE.Vector3(-1,-1,-1);
-	dodecahedron_vertices[18] = new THREE.Vector3(-1/PHI,-PHI,0);
-	dodecahedron_vertices[19] = new THREE.Vector3( 1/PHI,-PHI,0);
-	for(var i = 0; i< dodecahedron_vertices.length; i++)
-		dodecahedron_vertices[i].normalize();
+	var virtual_dodecahedron_vertices = Array(20);
+	virtual_dodecahedron_vertices[0] = new THREE.Vector3(1,-1,1);
+	virtual_dodecahedron_vertices[1] = new THREE.Vector3(0,-1/PHI, PHI);
+	virtual_dodecahedron_vertices[2] = new THREE.Vector3(-1,-1,1);
+	virtual_dodecahedron_vertices[3] = new THREE.Vector3(-PHI,0, 1/PHI);
+	virtual_dodecahedron_vertices[4] = new THREE.Vector3(-PHI,0,-1/PHI);
+	virtual_dodecahedron_vertices[5] = new THREE.Vector3(-1,1,-1);
+	virtual_dodecahedron_vertices[6] = new THREE.Vector3(0, 1/PHI,-PHI);
+	virtual_dodecahedron_vertices[7] = new THREE.Vector3(1,1,-1);
+	virtual_dodecahedron_vertices[8] =  new THREE.Vector3( 1/PHI, PHI,0);
+	virtual_dodecahedron_vertices[9] =  new THREE.Vector3(-1/PHI, PHI,0);
+	virtual_dodecahedron_vertices[10] = new THREE.Vector3(-1,1,1);
+	virtual_dodecahedron_vertices[11] = new THREE.Vector3(0, 1/PHI, PHI);
+	virtual_dodecahedron_vertices[12] = new THREE.Vector3(1,1,1);
+	virtual_dodecahedron_vertices[13] = new THREE.Vector3( PHI,0, 1/PHI);
+	virtual_dodecahedron_vertices[14] = new THREE.Vector3( PHI,0,-1/PHI);
+	virtual_dodecahedron_vertices[15] = new THREE.Vector3(1,-1,-1);
+	virtual_dodecahedron_vertices[16] = new THREE.Vector3(0,-1/PHI,-PHI);
+	virtual_dodecahedron_vertices[17] = new THREE.Vector3(-1,-1,-1);
+	virtual_dodecahedron_vertices[18] = new THREE.Vector3(-1/PHI,-PHI,0);
+	virtual_dodecahedron_vertices[19] = new THREE.Vector3( 1/PHI,-PHI,0);
+	for(var i = 0; i< virtual_dodecahedron_vertices.length; i++)
+		virtual_dodecahedron_vertices[i].normalize();
 	var virtual_icosahedron_vertices = Array(12);
 	virtual_icosahedron_vertices[0] = new THREE.Vector3(0, 1, PHI);
 	virtual_icosahedron_vertices[1] = new THREE.Vector3( PHI,0, 1);
@@ -91,8 +164,9 @@ function init_cubicLattice_stuff() {
 	
 	var p = 2*((1+Math.sqrt(5))/Math.sqrt(10+2*Math.sqrt(5)));
 	var q = 4/Math.sqrt(10+2*Math.sqrt(5));
-	var rhombohedron_h = Math.sqrt(1-(16/(30+6*Math.sqrt(5))));
-	var rhombohedron_r = 4/Math.sqrt(30+2*Math.sqrt(5));
+	
+	var rhombohedron_h = Math.sqrt(1/3+2/(3*Math.sqrt(5)));
+	var rhombohedron_r = 2*Math.sqrt(2/(15+Math.sqrt(5)));
 	var rhombohedron_s = 4/Math.sqrt(10+2*Math.sqrt(5));
 	
 	var rhombohedron_line_pairs = new Uint32Array([
@@ -109,6 +183,7 @@ function init_cubicLattice_stuff() {
 	   rhombohedron_s/2,rhombohedron_r/2,-0.5*rhombohedron_h,
 	   0,-rhombohedron_r,-0.5*rhombohedron_h,
 	   0,0,rhombohedron_h*-1.5]);
+	fill_buffer_with_rhombohedron(new THREE.Vector3(0,0,1), new THREE.Vector3(0,1,0),rhombohedron_vertices_numbers);
 	
 	var center = new THREE.Vector3(0,0,0);
 	for(var i = 0; i < 8; i++){
@@ -141,26 +216,24 @@ function init_cubicLattice_stuff() {
 		 * Going to need to make it a "fill a buffer with this"
 		 */
 		
-		var dodecahedron_edge = dodecahedron_vertices[(i+1)%20].clone();
-		dodecahedron_edge.sub(dodecahedron_vertices[i]);
+		var dodecahedron_edge = virtual_dodecahedron_vertices[(i+1)%20].clone();
+		dodecahedron_edge.sub(virtual_dodecahedron_vertices[i]);
 		
 		var first_rotation_axis = new THREE.Vector3(0,0,1);
-		var first_rotation_angle = Math.acos(dodecahedron_vertices[i].dot(first_rotation_axis));
-		first_rotation_axis.cross(dodecahedron_vertices[i]);
+		var first_rotation_angle = Math.acos(virtual_dodecahedron_vertices[i].dot(first_rotation_axis));
+		first_rotation_axis.cross(virtual_dodecahedron_vertices[i]);
 		first_rotation_axis.normalize();
 		var first_rotation_quaternion = new THREE.Quaternion();
 		golden_rhombohedra[i].rotateOnAxis( first_rotation_axis, first_rotation_angle );
 		golden_rhombohedra[i].updateMatrixWorld();
 		
-		var corner_to_origin = dodecahedron_vertices[i].clone();
+		var corner_to_origin = virtual_dodecahedron_vertices[i].clone();
 		corner_to_origin.negate();
 		var corner_spindle = dodecahedron_edge.clone();
 		corner_spindle.cross(corner_to_origin);
 		var desired_rhombohedron_Y = corner_to_origin.clone();
 		desired_rhombohedron_Y.cross(corner_spindle);
-		//console.log(desired_rhombohedron_Y);
 		golden_rhombohedra[i].worldToLocal(desired_rhombohedron_Y);
-		//console.log(desired_rhombohedron_Y);
 		
 		var Y = new THREE.Vector3(0,1,0); //of course this isn't at a right angle to cornertoorigin
 		var second_rotation_axis = desired_rhombohedron_Y.clone();
@@ -170,7 +243,7 @@ function init_cubicLattice_stuff() {
 
 		golden_rhombohedra[i].rotateOnAxis( second_rotation_axis, -second_rotation_angle );
 		
-		var rhomdisplacement = dodecahedron_vertices[i].clone();
+		var rhomdisplacement = virtual_dodecahedron_vertices[i].clone();
 		rhomdisplacement.multiplyScalar(1.2);
 		golden_rhombohedra[i].position.add(rhomdisplacement);
 	}

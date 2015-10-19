@@ -23,7 +23,7 @@ var vertical_fov = 2 * Math.atan(playing_field_height/(2*min_cameradist));
 
 var camera = new THREE.PerspectiveCamera( vertical_fov * 360 / TAU, window_width / window_height, 0.1, 1000 );
 //var camera = new THREE.OrthographicCamera( playing_field_width / -2, playing_field_width / 2, playing_field_height / 2, playing_field_height / -2, 0.1, 1000 );
-camera.position.z = min_cameradist;
+camera.position.z = MODE == CUBIC_LATTICE_MODE ? 3*min_cameradist : min_cameradist;
 
 var scene = new THREE.Scene();
 var renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -95,7 +95,7 @@ var quasicutouts = Array(60);
 var golden_rhombohedra = Array(20);
 var golden_triacontahedra = Array(12);
 var goldenicos = Array(12);
-var explodedness = 1;
+var togetherness = 0;
 
 var flatnet;
 var flatnet_vertices_numbers;

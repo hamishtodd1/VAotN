@@ -1,12 +1,26 @@
+//not allowed to do anything with camera outside of here!
 function UpdateCamera() {
 //	if(InputObject.isMouseDown)
 //		cameradist += 0.08;
 //	else
 //		cameradist -= 0.08;
 	
-	if(camera.position.z < min_cameradist)
-		camera.position.z = min_cameradist;
 
+	if(MODE == CUBIC_LATTICE_MODE){
+		camera.z = min_cameradist * 10;
+		camera.updateProjectionMatrix();
+	}
+	else{
+		camera.z = min_cameradist;
+		camera.updateProjectionMatrix();
+	}
+	console.log(camera.z)
+	
+	//vertical_fov = 2 * Math.atan(playing_field_height/(2*camera.position.z));
+	//camera.fov = vertical_fov * 360 / TAU;
+	camera.updateMatrix();
+	camera.updateProjectionMatrix();
+	
 	//watch the videos again when in need of inspiration
 	
 	//it should follow the mouse a little bit. Finger?
@@ -37,10 +51,5 @@ function UpdateCamera() {
 	//can you think of a way to engineer a situation where you really DON'T want to click on certain vertices? Would be interesting for a bit
 	
 	
-	vertical_fov = 2 * Math.atan(playing_field_height/(2*camera.position.z));
-		
-	//console.log(camera.position.z);
-	camera.fov = vertical_fov * 360 / TAU;
-	camera.updateProjectionMatrix();
-	camera.updateMatrix();
+	
 }
