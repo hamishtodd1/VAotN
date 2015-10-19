@@ -1,10 +1,7 @@
 /*
  * Todo:
  * -check under what circumstances angular defects are ok
- * -get triangles in those triangular holes
- * -put cylinders on the edges and spheres on the corners
- * -add a button
- * -take away every reference to inputobject outside of inputgetter.js
+ * -translational net, you can't move the top or bottom vertex
  */
 
 function update_movementzone() {
@@ -223,7 +220,7 @@ function corner_angle_from_indices(triangle_index, corner_vertex_index) {
 
 function HandleVertexRearrangement() {
 	var movement_vector = new THREE.Vector2(0,0);
-	if( InputObject.isMouseDown ) {
+	if( isMouseDown ) {
 		if( vertex_tobechanged === 666 && capsidopenness === 1) {
 			var lowest_quadrance_so_far = 10;
 			var closest_vertex_so_far = 666;
@@ -382,9 +379,9 @@ function HandleVertexRearrangement() {
 		}
 	}
 	
-//	for(var i = 0; i < 20; i++){
-//		corner_angle_from_indices()
-//	}
+	for(var i = 0; i < 20; i++){
+		corner_angle_from_indices()
+	}
 
 	if(!correct_minimum_angles()){ //we'd rather not have this dependence, you should be able to predict what won't work and put correct_minimum_angles in coreloop.
 		for( var i = 0; i < 66; i++)

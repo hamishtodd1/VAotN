@@ -94,7 +94,7 @@ function ChangeScene() {
 		case CUBIC_LATTICE_MODE:
 			//scene.add(golden_triacontahedra[0]);
 			//scene.add(goldenicos[0]);
-			for( var i = 0; i < golden_rhombohedra.length; i++)
+			for( var i = 0; i < 2; i++)
 				scene.add(golden_rhombohedra[i]);
 			break;
 			
@@ -102,7 +102,7 @@ function ChangeScene() {
 			//scene.add(dodeca);
 			for( var i = 0; i < quasicutouts.length; i++)
 				scene.add(quasicutouts[i]);
-			
+			scene.add(dodeca);
 			scene.add(back_hider);			
 			break;
 			

@@ -81,7 +81,7 @@ function updatelattice() {
 
 //you could move the net. There again, the lattice has to move on the screen, so.
 function HandleLatticeMovement() {
-	if(!InputObject.isMouseDown){
+	if(!isMouseDown){
 		LatticeGrabbed = false;
 
 		var centralaxis = new THREE.Vector3(0, 0, 1);	

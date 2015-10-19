@@ -1,5 +1,5 @@
 function HandleCapsidOpenness(openness, vertices_numbers) {
-	if(InputObject.isMouseDown)
+	if(isMouseDown)
 		capsidopeningspeed = 0.018;
 	else
 		capsidopeningspeed = -0.018;
@@ -31,6 +31,7 @@ function deduce_first_triangle(openness, vertices_numbers, rotation) {
 	var v = new THREE.Vector3( Math.sin(p)*polyhedron_edge_length[0][1], 0, -Math.cos(p)*polyhedron_edge_length[0][1]);
 	v.setY(-Math.sin(rotation)*v.x);
 	v.setX( Math.cos(rotation)*v.x);
+	
 	vertices_numbers.setXYZ(1, v.x, v.y, v.z + origin_height );
 	
 	var q = Math.atan(PHI/(PHI-1)) + capsidopenness* (TAU/4-Math.atan(PHI/(PHI-1))); //angle between triangle and the plane containing v and the z axis
@@ -53,14 +54,15 @@ function deduce_first_triangle(openness, vertices_numbers, rotation) {
 	var top = base_to_top_unit_vector.clone();
 	top.multiplyScalar(base_to_top_length);
 	top.add(top_origin);
+	
 	vertices_numbers.setXYZ(2, top.x, top.y, top.z + origin_height );
 	
 	var v2 = new THREE.Vector2(v.x,v.y);
 	var top_planar = new THREE.Vector2(top.x,top.y);
 	return Math.acos(v2.dot(top_planar) / v2.length() / top_planar.length());
 }
-	
-function deduce_surface(openness, vertices_numbers) {
+
+function deduce_surface(openness, vertices_numbers){
 	//you need to just rotate it so that the first two points are in the same 2D locations as the 2D ones.
 	//the first three vertices
 	{		
@@ -68,6 +70,10 @@ function deduce_surface(openness, vertices_numbers) {
 		deduce_first_triangle(openness, vertices_numbers, 2.5 * triangle_projected_angle - TAU/3);
 	}
 	
+	deduce_most_of_surface(openness, vertices_numbers);
+}
+	
+function deduce_most_of_surface(openness, vertices_numbers) {
 	for( var i = 3; i < 22; i++) {
 		var theta = minimum_angles[i] + openness * (TAU/2 - minimum_angles[i]);
 		
@@ -358,12 +364,22 @@ function CheckButton() {
 	var mouse_dist_from_buttoncenter = Math.sqrt( (Button.position.x-MousePosition.x) * (Button.position.x-MousePosition.x) + (Button.position.y-MousePosition.y) * (Button.position.y-MousePosition.y) );  
 	if( mouse_dist_from_buttoncenter < 0.3){
 		if( isMouseDown && !isMouseDown_previously ){
-			if(varyingsurface_openmode === true)
+			if(varyingsurface_openmode === true){
 				varyingsurface_openmode = false;
-			else
+			} else {
 				varyingsurface_openmode = true;
+			}
 		}
-	} 
+	}
+	
+	if(varyingsurface_openmode){
+		Button.material.color.r = 0;
+		Button.material.color.g = 1;
+	}
+	else{
+		Button.material.color.r = 1;
+		Button.material.color.g = 0;
+	}
 }
 
 function update_varyingsurface() {
@@ -419,7 +435,38 @@ function update_varyingsurface() {
 		put_tube_in_buffer(A,B, varyingsurface_cylinders[surfperimeter_line_index_pairs.length / 2 + i].geometry.attributes.position.array, varyingsurface_edges_default_radius);
 		varyingsurface_cylinders[surfperimeter_line_index_pairs.length / 2 + i].geometry.attributes.position.needsUpdate = true;
 	}
-	//if(!logged)console.log(varyingsurface.geometry.verticesNeedUpdate);logged=1;
-	//console.log(varyingsurface.geometry.verticesNeedUpdate)
+	
+	//we rotate by a quaternion if user moves
+	if(capsidopenness == 0 ){
+		//we do mouse movement thing
+		var mouse_dist_from_buttoncenter = Math.sqrt( (Button.position.x-MousePosition.x) * (Button.position.x-MousePosition.x) + (Button.position.y-MousePosition.y) * (Button.position.y-MousePosition.y) );  
+		if( mouse_dist_from_buttoncenter >= 0.3 && isMouseDown) {			
+			var MovementAxis = new THREE.Vector3(-Mouse_delta.y, Mouse_delta.x, 0);
+			MovementAxis.normalize();
+			
+			varyingsurface.worldToLocal(MovementAxis);
+			var extraquaternion = new THREE.Quaternion();
+			extraquaternion.setFromAxisAngle( MovementAxis, Mouse_delta.length() / 3 );
+			
+			varyingsurface.quaternion.multiply(extraquaternion);
+			for( var i = 0; i < varyingsurface_cylinders.length; i++)
+				varyingsurface_cylinders[i].quaternion.multiply(extraquaternion);
+			for( var i = 0; i < varyingsurface_spheres.length; i++)
+				varyingsurface_spheres[i].quaternion.multiply(extraquaternion);
+			
+			varyingsurface.updateMatrixWorld();
+		}
+	}
+	else {
+		var base_quaternion = new THREE.Quaternion(0,0,0,1);
+		var interpolationfactor = Math.pow(capsidopenness,10);
+		
+		varyingsurface.quaternion.slerp(base_quaternion, interpolationfactor); //if capsidopenness = 1 we want it to be entirely the base quaternion, i.e. t = 1
+		for( var i = 0; i < varyingsurface_cylinders.length; i++)
+			varyingsurface_cylinders[i].quaternion.slerp(base_quaternion, interpolationfactor);
+		for( var i = 0; i < varyingsurface_spheres.length; i++)
+			varyingsurface_spheres[i].quaternion.slerp(base_quaternion, interpolationfactor);
+	}
+
 	varyingsurface.geometry.attributes.position.needsUpdate = true;
 }

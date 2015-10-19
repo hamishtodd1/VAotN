@@ -21,7 +21,7 @@ function correct_minimum_angles() {
 	var curvatures_current = get_curvatures(radii);	//get this to zero!
 	var curvatures_current_quadrance = quadrance(curvatures_current);
 	
-	var epsilon = 0.01; //randomly chosen
+	var epsilon = 0.001; //randomly chosen
 	
 	while( curvatures_current_quadrance > epsilon)  {
 		var curvatures_intended = Array(curvatures_current.length);

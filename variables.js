@@ -11,7 +11,7 @@ var CUBIC_LATTICE_MODE = 3;
 var QC_SPHERE_MODE = 4;
 var IRREGULAR_MODE = 5; //so we're going to have a button below the thing
 	
-var MODE = IRREGULAR_MODE;
+var MODE = CUBIC_LATTICE_MODE;
 
 //--------------Technologically fundamental
 var playing_field_width = 7*HS3;
@@ -42,7 +42,7 @@ var showdebugstuff = 0;
 var net_warnings = 0;
 
 var surfperimeter_default_radius = 0.02;
-var varyingsurface_edges_default_radius = 0.02;
+var varyingsurface_edges_default_radius = 0.012;
 
 //Not including the central vertex
 //mimivirus needs exactly 100. Try and work out how many a human can distinguish though
@@ -68,7 +68,7 @@ var logged = 0;
 //--------------Varying
 var vertex_tobechanged = 666;
 
-var capsidopenness = 1; //much depends on this, but we should have as few sharp changes as possible
+var capsidopenness = 0; //much depends on this, but we should have as few sharp changes as possible
 var capsidclock = 0;
 var capsidopeningspeed = 0;
 
@@ -165,7 +165,7 @@ var cutout_mode = true;
 
 var varyingsurface_cylinders = Array(41);
 var varyingsurface_spheres = Array(22);
-var varyingsurface_openmode = true;
+var varyingsurface_openmode = false;
 
 var vertex_identifications = new Array();
 var W_triangle_indices = new Array();

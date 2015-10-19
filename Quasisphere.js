@@ -7,13 +7,15 @@
 function UpdateQuasiSurface(){
 	var atanphi = Math.atan(PHI);
 	
-	if(InputObject.isMouseDown) {
-		if(dodeca_angle === 0 || dodeca_angle === 2*atanphi-TAU/2 ) dodeca_openness += 0.018;
-		dodeca_faceflatness += 0.018; 
+	var dodeca_openingspeed = 0.018;
+	var dodeca_squashingspeed = 0.018;
+	if(isMouseDown) {
+		if(dodeca_angle === 0 || dodeca_angle === 2*atanphi-TAU/2 ) dodeca_openness += dodeca_openingspeed;
+		dodeca_faceflatness += dodeca_squashingspeed; //should really be determined by the difference between dodeca_angle and 0 or
 	}
 	else {
-		dodeca_openness -= 0.018;
-		dodeca_faceflatness -= 0.018;
+		dodeca_openness -= dodeca_openingspeed;
+		dodeca_faceflatness -= dodeca_squashingspeed;
 	}
 	
 	if(dodeca_openness > 1)
@@ -36,28 +38,33 @@ function UpdateQuasiSurface(){
 		back_hider.position.z = -0.01;
 	}
 	
+	dodeca.material.opacity = (dodeca_faceflatness + dodeca_openness) / 2;	
 	deduce_dodecahedron(dodeca_openness);
 	
 	{
 		var normalturningspeed = TAU/5/2; //this is the amount you want to do in a second
 		normalturningspeed *= delta_t;
 		
-		if( !InputObject.isMouseDown && dodeca_openness === 0) {
+		if( !isMouseDown && dodeca_openness === 0) {
 			dodeca_angle += normalturningspeed;
 		}
 		else {
-			if( atanphi-TAU/2 < dodeca_angle && dodeca_angle < 2*atanphi-TAU/2 )
-				dodeca_angle += normalturningspeed;
-			if( 2*atanphi-TAU/2 < dodeca_angle && dodeca_angle < atanphi - TAU/4 )
-				dodeca_angle -= normalturningspeed;
-			if( atanphi - TAU/4 < dodeca_angle && dodeca_angle < 0 )
-				dodeca_angle += normalturningspeed;
-			if( 0 < dodeca_angle && dodeca_angle < atanphi )
-				dodeca_angle -= normalturningspeed;
+			var dist_from_desired_angle = 666;
+			if( atanphi - TAU/4 < dodeca_angle && dodeca_angle < atanphi ) dist_from_desired_angle = Math.abs(dodeca_angle);
+			else dist_from_desired_angle = Math.abs(dodeca_angle - (atanphi - TAU/4));
 			
-			if( Math.abs(dodeca_angle) < normalturningspeed )
+			if( atanphi-TAU/2 < dodeca_angle && dodeca_angle < 2*atanphi-TAU/2 )
+				dodeca_angle += normalturningspeed * 1.45;
+			if( 2*atanphi-TAU/2 < dodeca_angle && dodeca_angle < atanphi - TAU/4 )
+				dodeca_angle -= normalturningspeed * 1.45;
+			if( atanphi - TAU/4 < dodeca_angle && dodeca_angle < 0 )
+				dodeca_angle += normalturningspeed * 1.45;
+			if( 0 < dodeca_angle && dodeca_angle < atanphi )
+				dodeca_angle -= normalturningspeed * 1.45;
+			
+			if( Math.abs(dodeca_angle) < normalturningspeed * 1.45 )
 				dodeca_angle = 0;
-			if( Math.abs(dodeca_angle - (2*atanphi-TAU/2) )  < normalturningspeed )
+			if( Math.abs(dodeca_angle - (2*atanphi-TAU/2) )  < normalturningspeed * 1.45 )
 				dodeca_angle = 2*atanphi-TAU/2;
 		}
 		
@@ -95,7 +102,7 @@ function UpdateQuasiSurface(){
 
 function MoveQuasiLattice(){
 	//might do rotation whatevers here
-	if( InputObject.isMouseDown) {
+	if( isMouseDown) {
 		var Mousedist = MousePosition.length();
 		var OldMousedist = OldMousePosition.length(); //unless the center is going to change?
 		if( Mousedist < HS3 * 10/3) { //we don't do anything if you're too far from the actual demo TODO replace with demo_radius
@@ -445,7 +452,9 @@ function initialize_QS_stuff() {
 	back_hider.position.z = -0.01;
  	
  	var materialy = new THREE.LineBasicMaterial({
- 		color: 0x00ffff
+ 		color: 0x00ffff,
+ 		transparent: true,
+ 		opacity: 0.5
  	});
  	var dodeca_line_pairs = new Uint16Array([
  	    2,1,	1,11,	11,20,	20,29,	29,2,
@@ -455,11 +464,11 @@ function initialize_QS_stuff() {
  	    20,31,	31,32,	32,33,	33,29,
  	    29,39,	39,40,	40,41,	41,2,
  	    
- 	    4,8,	8,9,	9,10,	10,5,
- 	    13,17,	17,18,	18,19,	19,14,
- 	    22,26,	26,27,	27,28,	28,23,
- 	    31,35,	35,36,	36,37,	37,32,
- 	    39,43,	43,44,	44,45,	45,40
+// 	    4,8,	8,9,	9,10,	10,5,
+// 	    13,17,	17,18,	18,19,	19,14,
+// 	    22,26,	26,27,	27,28,	28,23,
+// 	    31,35,	35,36,	36,37,	37,32,
+// 	    39,43,	43,44,	44,45,	45,40
  		]);
  	
  	dodeca_geometry = new THREE.BufferGeometry();

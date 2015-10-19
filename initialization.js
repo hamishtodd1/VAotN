@@ -184,7 +184,7 @@ function init() {
 		flatnet = new THREE.Mesh( flatnet_geometry, surfacematerial );
 		
 		var varyingsurface_edgesmaterial = new THREE.MeshBasicMaterial({
-			color:	0x000000,
+			color:	0xBF9FD6,
 			side:	THREE.DoubleSide
 		});
 		for( var i = 0; i < varyingsurface_cylinders.length; i++) {
@@ -310,6 +310,7 @@ function init() {
 
 		circle = new THREE.Mesh( new THREE.CircleGeometry( radius ), material3 );
 		scene.add( circle );
+		circle.position.z = 0.1;
 		
 		Button = new THREE.Mesh( new THREE.CircleGeometry( 0.3 ), new THREE.MeshBasicMaterial({color: 0x00ff00}) );
 		Button.position.x += 1.5;
