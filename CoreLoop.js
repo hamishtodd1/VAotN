@@ -93,10 +93,29 @@ function ChangeScene() {
 			break;
 			
 		case CUBIC_LATTICE_MODE:
-			//scene.add(golden_triacontahedra[0]);
-			//scene.add(goldenicos[0]);
-			for( var i = 0; i < golden_rhombohedra.length; i++)
-				scene.add(golden_rhombohedra[i]);
+			renderer.setClearColor( 0xffffff, 1);
+//			{
+//				var ambientLight = new THREE.AmbientLight( 0x000000 );
+//				scene.add( ambientLight );
+//				
+//				var lights = [];
+//				lights[0] = new THREE.PointLight( 0xffffff, 1, 0 );
+//				lights[1] = new THREE.PointLight( 0xffffff, 1, 0 );
+//				lights[2] = new THREE.PointLight( 0xffffff, 1, 0 );
+//				
+//				lights[0].position.set( 0, 200, 0 );
+//				lights[1].position.set( 100, 200, 100 );
+//				lights[2].position.set( -100, -200, -100 );
+//			
+//				scene.add( lights[0] );
+//				scene.add( lights[1] );
+//				scene.add( lights[2] );
+//			}
+			scene.add(golden_triacontahedra[0]);
+			//for( var i = 0; i < goldenicos.length; i++)
+//				scene.add(goldenicos[i]);
+//			for( var i = 0; i < golden_rhombohedra.length; i++)
+//				scene.add(golden_rhombohedra[i]);
 			break;
 			
 		case QC_SPHERE_MODE:

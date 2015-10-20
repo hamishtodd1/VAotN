@@ -114,7 +114,6 @@ function init() {
 		line_index_pairs[i*6 + 5] = net_triangle_vertex_indices[i*3 + 0];
 	}
 	
-	var cylinder_triangle_indices = new Uint16Array(6 * 8);
 	for( var i = 0; i < 8; i++){
 		//hopefully this is clockwise
 		cylinder_triangle_indices[i*6+0] = (i*2)%16;

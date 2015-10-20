@@ -1,3 +1,5 @@
+//you ought to make it so that no chapter's objects are referenced in any other chapter's functions
+
 //--------------Mathematically fundamental
 var HS3 = Math.sqrt(3)/2;
 var PHI = (Math.sqrt(5) + 1) / 2;
@@ -61,6 +63,7 @@ var backgroundtexture;
 
 var net_triangle_vertex_indices;
 var line_index_pairs = new Uint16Array(60 * 2);
+var cylinder_triangle_indices = new Uint16Array(6 * 8);
 
 //--------------Varying, fundamental
 var logged = 0;

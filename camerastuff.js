@@ -7,14 +7,26 @@ function UpdateCamera() {
 	
 
 	if(MODE == CUBIC_LATTICE_MODE){
-		camera.z = min_cameradist * 10;
+		if(InputObject.isMouseDown) {
+			var MovementVector = MousePosition.clone();
+			MovementVector.sub(OldMousePosition);
+			
+			var MovementAxis = new THREE.Vector3(-MovementVector.y, MovementVector.x, 0);
+			MovementAxis.normalize();
+			
+			camera.position.applyAxisAngle(MovementAxis, -MovementVector.length() / 5); //TODO doing this means that you can't rely on mouse position
+			
+			camera.lookAt(new THREE.Vector3(0,0,0));
+		}
+		
+		camera.position.normalize();
+		camera.position.multiplyScalar(min_cameradist * 3);		
 		camera.updateProjectionMatrix();
 	}
 	else{
 		camera.z = min_cameradist;
 		camera.updateProjectionMatrix();
 	}
-	console.log(camera.z)
 	
 	//vertical_fov = 2 * Math.atan(playing_field_height/(2*camera.position.z));
 	//camera.fov = vertical_fov * 360 / TAU;
