@@ -50,6 +50,25 @@ function update_3DLattice() {
 		golden_rhombohedra[i].position.normalize();
 		golden_rhombohedra[i].position.multiplyScalar(rhombohedra_dist);
 	}
+	
+	
+	
+	
+	var icosahedra_convergence_time = 0; //this will be much less but we want to stretch it out for now
+	//console.log(togetherness )
+	var icosahedra_accel = 15; //guess
+	var icosahedra_starting_velocity = -icosahedra_accel * icosahedra_convergence_time / 2;
+	var icosahedra_dist = icosahedra_starting_velocity * togetherness + 0.5 * icosahedra_accel * togetherness * togetherness;
+	if(togetherness < icosahedra_convergence_time)
+		icosahedra_dist = 0;
+	var icosahedra_final_position = (PHI-1/2) + 1;
+	console.log(icosahedra_final_position )
+	icosahedra_dist += icosahedra_final_position;
+	
+	for(var i = 0; i < goldenicos.length; i++) {
+		goldenicos[i].position.normalize();
+		goldenicos[i].position.multiplyScalar(icosahedra_dist);
+	}
 }
 
 function clamp(val, minval){
@@ -129,18 +148,18 @@ function init_cubicLattice_stuff() {
 	for(var i = 0; i< virtual_dodecahedron_vertices.length; i++)
 		virtual_dodecahedron_vertices[i].normalize();
 	var virtual_icosahedron_vertices = Array(12);
-	virtual_icosahedron_vertices[0] = new THREE.Vector3(0, 1, PHI);
-	virtual_icosahedron_vertices[1] = new THREE.Vector3( PHI,0, 1);
-	virtual_icosahedron_vertices[2] = new THREE.Vector3(0,-1, PHI);
-	virtual_icosahedron_vertices[3] = new THREE.Vector3(-PHI,0, 1);
-	virtual_icosahedron_vertices[4] = new THREE.Vector3(-1, PHI,0);
-	virtual_icosahedron_vertices[5] = new THREE.Vector3( 1, PHI,0);
-	virtual_icosahedron_vertices[6] = new THREE.Vector3( PHI,0,-1);
-	virtual_icosahedron_vertices[7] = new THREE.Vector3( 1,-PHI,0);
-	virtual_icosahedron_vertices[8] = new THREE.Vector3(-1,-PHI,0);
-	virtual_icosahedron_vertices[9] = new THREE.Vector3(-PHI,0,-1);
-	virtual_icosahedron_vertices[10] = new THREE.Vector3(0, 1,-PHI);
-	virtual_icosahedron_vertices[11] = new THREE.Vector3(0,-1,-PHI);
+	virtual_icosahedron_vertices[0] = new THREE.Vector3(0, 		1, 	PHI);
+	virtual_icosahedron_vertices[1] = new THREE.Vector3( PHI,	0, 	1);
+	virtual_icosahedron_vertices[2] = new THREE.Vector3(0,		-1, PHI);
+	virtual_icosahedron_vertices[3] = new THREE.Vector3(-PHI,	0, 	1);
+	virtual_icosahedron_vertices[4] = new THREE.Vector3(-1, 	PHI,0);
+	virtual_icosahedron_vertices[5] = new THREE.Vector3( 1, 	PHI,0);
+	virtual_icosahedron_vertices[6] = new THREE.Vector3( PHI,	0,	-1);
+	virtual_icosahedron_vertices[7] = new THREE.Vector3( 1,		-PHI,0);
+	virtual_icosahedron_vertices[8] = new THREE.Vector3(-1,		-PHI,0);
+	virtual_icosahedron_vertices[9] = new THREE.Vector3(-PHI,	0,	-1);
+	virtual_icosahedron_vertices[10] = new THREE.Vector3(0, 	1,	-PHI);
+	virtual_icosahedron_vertices[11] = new THREE.Vector3(0,		-1,	-PHI);
 	for(var i = 0; i < virtual_icosahedron_vertices.length; i++)
 		virtual_icosahedron_vertices[i].normalize();
 	
@@ -154,9 +173,6 @@ function init_cubicLattice_stuff() {
 		//shading: THREE.FlatShading, //light sources didn't seem to do anything
 		side:THREE.DoubleSide
 	});
-	
-	var p = 2*((1+Math.sqrt(5))/Math.sqrt(10+2*Math.sqrt(5)));
-	var q = 4/Math.sqrt(10+2*Math.sqrt(5));
 	
 	{
 		var rhombohedron_h = Math.sqrt(1/3+2/(3*Math.sqrt(5)));
@@ -273,6 +289,8 @@ function init_cubicLattice_stuff() {
 		}
 	}
 	
+	var p = 2*((1+Math.sqrt(5))/Math.sqrt(10+2*Math.sqrt(5)));
+	var q = 4/Math.sqrt(10+2*Math.sqrt(5));	
 	{
 		var triacontahedron_face_indices = new Uint32Array([
 			0,1,2,	0,2,3,	0,3,4,	0,4,5,	0,5,1,
@@ -369,6 +387,7 @@ function init_cubicLattice_stuff() {
 	   	goldenico_vertices_numbers[0] = 0;
 	   	goldenico_vertices_numbers[1] = 0;
 	   	goldenico_vertices_numbers[2] = 2.5*h;
+	   	console.log(2.5*h);
 	   	goldenico_vertices_numbers[21*3+0] = 0;
 	   	goldenico_vertices_numbers[21*3+1] = 0;
 	   	goldenico_vertices_numbers[21*3+2] = -2.5*h;
@@ -402,6 +421,48 @@ function init_cubicLattice_stuff() {
 				mycylinder = new THREE.Mesh( mycylinder_geometry, new THREE.MeshBasicMaterial({color:0x000000,side:THREE.DoubleSide}) );
 				THREE.SceneUtils.attach(mycylinder, scene, goldenicos[i]);
 			}
+	   		
+	   		var icosahedron_edge;
+	   		if(i>9)
+	   			icosahedron_edge = virtual_icosahedron_vertices[i-1].clone();
+	   		else
+	   			icosahedron_edge = virtual_icosahedron_vertices[(i+1)%12].clone();
+	   		icosahedron_edge.sub(virtual_icosahedron_vertices[i]);
+	   		icosahedron_edge.negate();
+			
+			var first_rotation_axis = new THREE.Vector3(0,0,1);
+			var first_rotation_angle = Math.acos(virtual_icosahedron_vertices[i].dot(first_rotation_axis));
+			first_rotation_axis.cross(virtual_icosahedron_vertices[i]);
+			first_rotation_axis.normalize();
+			var first_rotation_quaternion = new THREE.Quaternion();
+			goldenicos[i].rotateOnAxis( first_rotation_axis, first_rotation_angle );
+			goldenicos[i].updateMatrixWorld();
+			
+			var corner_to_origin = virtual_icosahedron_vertices[i].clone();
+			corner_to_origin.negate();
+			var corner_spindle = icosahedron_edge.clone();
+			corner_spindle.cross(corner_to_origin);
+			var desired_ico_Y = corner_to_origin.clone();
+			desired_ico_Y.cross(corner_spindle);
+			goldenicos[i].worldToLocal(desired_ico_Y);
+			
+			var Y = new THREE.Vector3(0,1,0); //of course this isn't at a right angle to cornertoorigin
+			var second_rotation_axis = desired_ico_Y.clone();
+			second_rotation_axis.cross(Y);
+			second_rotation_axis.normalize();
+			var second_rotation_angle = Math.acos(desired_ico_Y.dot(Y) / desired_ico_Y.length());
+	
+			goldenicos[i].rotateOnAxis( second_rotation_axis, -second_rotation_angle );
+			
+			var icodisplacement = virtual_icosahedron_vertices[i].clone();
+			icodisplacement.multiplyScalar(1.2);
+			goldenicos[i].position.add(icodisplacement);
+			goldenicos[i].updateMatrixWorld();
+			
+			goldenicos[i].position.copy(virtual_icosahedron_vertices[i]);
+			goldenicos[i].position.normalize();
+			goldenicos[i].position.multiplyScalar(3);
+			//y negative, x=0, z positive
 	   	}
 	}
 }

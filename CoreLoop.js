@@ -111,9 +111,9 @@ function ChangeScene() {
 //				scene.add( lights[1] );
 //				scene.add( lights[2] );
 //			}
-			scene.add(golden_triacontahedra[0]);
-			//for( var i = 0; i < goldenicos.length; i++)
-//				scene.add(goldenicos[i]);
+			//scene.add(golden_triacontahedra[0]);
+			for( var i = 0; i < goldenicos.length; i++)
+				scene.add(goldenicos[i]);
 //			for( var i = 0; i < golden_rhombohedra.length; i++)
 //				scene.add(golden_rhombohedra[i]);
 			break;
