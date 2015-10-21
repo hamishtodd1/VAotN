@@ -111,11 +111,15 @@ function ChangeScene() {
 //				scene.add( lights[1] );
 //				scene.add( lights[2] );
 //			}
-			//scene.add(golden_triacontahedra[0]);
-			for( var i = 0; i < goldenicos.length; i++)
-				scene.add(goldenicos[i]);
+//			for( var i = 0; i < golden_triacontahedra.length; i++)
+//				scene.add(golden_triacontahedra[i]);
+//			for( var i = 0; i < goldenicos.length; i++)
+//				scene.add(goldenicos[i]);
 //			for( var i = 0; i < golden_rhombohedra.length; i++)
 //				scene.add(golden_rhombohedra[i]);
+//			for( var i = 0; i < golden_stars.length; i++)
+//				scene.add(golden_stars[i]);
+			scene.add(rotated_icos[0]);
 			break;
 			
 		case QC_SPHERE_MODE:

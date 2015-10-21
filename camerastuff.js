@@ -20,7 +20,7 @@ function UpdateCamera() {
 		}
 		
 		camera.position.normalize();
-		camera.position.multiplyScalar(min_cameradist * 3);		
+		camera.position.multiplyScalar(min_cameradist * 4.5);		
 		camera.updateProjectionMatrix();
 	}
 	else{
