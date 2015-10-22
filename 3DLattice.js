@@ -537,6 +537,73 @@ function init_cubicLattice_stuff() {
 	   	
 	   	var goldenicos_edgematerial = shapes_edgesmaterial.clone();
 	   	
+	   	var rotated_icos_axis = new THREE.Vector3(1,0,0);
+	   	for(var i =0; i<rotated_icos.length; i++){
+	   		rotated_icos[i] = new THREE.Mesh( new THREE.BufferGeometry(), goldenico_material );
+	   		rotated_icos[i].geometry.addAttribute( 'position', new THREE.BufferAttribute( goldenico_vertices_numbers, 3 ) );
+	   		rotated_icos[i].geometry.addAttribute( 'index', new THREE.BufferAttribute( goldenico_face_indices, 1 ) );
+	   		
+	   		rotated_icos[i].rotateOnAxis(rotated_icos_axis, Math.atan(PHI));
+	   		
+	   		my_ico_index = i % 12; //ok so actually you may have to make a fucking icosidodecahedron
+	   		
+	   		var icosahedron_edge;
+	   		if(my_ico_index>9)
+	   			icosahedron_edge = virtual_icosahedron_vertices[my_ico_index-1].clone();
+	   		else
+	   			icosahedron_edge = virtual_icosahedron_vertices[(my_ico_index+1)%12].clone();
+	   		icosahedron_edge.sub(virtual_icosahedron_vertices[my_ico_index]);
+	   		icosahedron_edge.negate();
+	   		
+	   		var icosahedron_edgepoint = icosahedron_edge.clone();
+	   		icosahedron_edgepoint.multiplyScalar(0.5);
+	   		icosahedron_edgepoint.add(virtual_icosahedron_vertices[my_ico_index]);
+	   		icosahedron_edgepoint.normalize();
+	   		icosahedron_edge.normalize();
+	   		
+	   		var specific_position_addition = new THREE.Vector3(goldenico_vertices_numbers[3*15+0],goldenico_vertices_numbers[3*15+1],goldenico_vertices_numbers[3*15+2]);
+	   		specific_position_addition.applyAxisAngle(rotated_icos_axis, Math.atan(PHI));
+	   		
+	   		icosahedron_edgepoint.multiplyScalar(2*p+q + specific_position_addition.y);
+	   		var final_location = icosahedron_edgepoint.clone(); 
+	   		if(i%2==0)
+	   			final_location.addScaledVector(icosahedron_edge, specific_position_addition.z);
+	   		else
+	   			final_location.addScaledVector(icosahedron_edge, -specific_position_addition.z);
+	   		var theta = Math.atan((2*p+q + specific_position_addition.y) / specific_position_addition.z);
+	   		
+	   		rotated_icos[i].rotateOnAxis(rotated_icos_axis, (TAU/4 - theta));
+	   		
+	   		var lineup_vector = icosahedron_edgepoint.clone();
+	   		lineup_vector.sub(final_location);
+	   		
+	   		for( var j = 0; j < 40; j++) {
+				var mycylinder_vertices_numbers = new Float32Array(16*3);
+				var corner_index1 = goldenico_line_pairs[j*2];
+				var corner_index2 = goldenico_line_pairs[j*2+1];
+				put_tube_in_buffer(
+						new THREE.Vector3(
+							rotated_icos[i].geometry.attributes.position.array[corner_index1*3+0],
+							rotated_icos[i].geometry.attributes.position.array[corner_index1*3+1],
+							rotated_icos[i].geometry.attributes.position.array[corner_index1*3+2]),
+						new THREE.Vector3(
+							rotated_icos[i].geometry.attributes.position.array[corner_index2*3+0],
+							rotated_icos[i].geometry.attributes.position.array[corner_index2*3+1],
+							rotated_icos[i].geometry.attributes.position.array[corner_index2*3+2]),
+						mycylinder_vertices_numbers, golden_rhombohedra_edge_radius);
+				
+				var mycylinder_geometry = new THREE.BufferGeometry();
+				mycylinder_geometry.addAttribute( 'index', new THREE.BufferAttribute( cylinder_triangle_indices, 1 ) );
+				mycylinder_geometry.addAttribute( 'position', new THREE.BufferAttribute( mycylinder_vertices_numbers, 3 ) );
+				
+				mycylinder = new THREE.Mesh( mycylinder_geometry, goldenicos_edgematerial );
+				THREE.SceneUtils.attach(mycylinder, scene, rotated_icos[i]);
+			}
+	   		
+	   		orient_piece(final_location, lineup_vector, rotated_icos[i]);
+	   		//rotated_icos[i].position.copy(final_location);
+	   	}
+	   	
 	   	for( var i = 0; i < goldenicos.length; i++) { 
 	   		goldenicos[i] = new THREE.Mesh( new THREE.BufferGeometry(), goldenico_material );
 	   		goldenicos[i].geometry.addAttribute( 'position', new THREE.BufferAttribute( goldenico_vertices_numbers, 3 ) );
@@ -575,29 +642,6 @@ function init_cubicLattice_stuff() {
 	   		
 	   		orient_piece(virtual_icosahedron_vertices[i], icosahedron_edge, goldenicos[i]);
 	   	}
-	   	
-	   	rotated_icos[0] = goldenicos[0].clone();
-	   	//rotated_icos[0].position.x = 0;rotated_icos[0].position.y = 0;rotated_icos[0].position.z = 0;
-	   	
-//	   	rotated_icos[0] = new THREE.Object3D();
-//		var golden_star_edgesmaterial = shapes_edgesmaterial.clone();
-//		for(var j = 0; j<golden_rhombohedra.length; j++) {
-//			var myrhomb = golden_rhombohedra[j].clone();
-//			myrhomb.material = star_material;
-//			for(k = 0; k <myrhomb.children.length; k++)
-//				myrhomb.children[k].material = golden_star_edgesmaterial;
-//			myrhomb.position.normalize();
-//			myrhomb.position.multiplyScalar(1.2);
-//			myrhomb.updateMatrixWorld();
-//			
-//			THREE.SceneUtils.attach(myrhomb, scene, rotated_icos[0]);
-//		}
-//		for(var i = 1; i<rotated_icos.length; i++)
-//			rotated_icos[i] = rotated_icos[0].clone();
-//		for(var i = 0; i<rotated_icos.length; i++){
-//			rotated_icos[i].position.copy(virtual_icosahedron_vertices[i]);
-//	   		rotated_icos[i].position.multiplyScalar(10);
-//		}
 	}
 }
 

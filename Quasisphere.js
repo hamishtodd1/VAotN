@@ -268,7 +268,7 @@ function Map_To_Quasisphere() {
 	var forward_component_length = Math.tan(dihedral_angle - TAU / 4);
 	
 	var ourcenter_veclength = 0.5 * Math.tan(Math.atan(PHI) + dodeca_faceflatness*(TAU/4 - Math.atan(PHI))) / Math.tan(TAU/10);
-	
+
 	for( var i = 0; i < dodeca_triangle_vertex_indices.length; i++) { 
 		var rightindex = dodeca_triangle_vertex_indices[i][0];
 		var leftindex = dodeca_triangle_vertex_indices[i][1]; 
