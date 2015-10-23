@@ -15,7 +15,7 @@ function HandleCapsidOpenness(openness, vertices_numbers) {
 		capsidopeningspeed = 0;
 	}
 	
-	deduce_surface(capsidopenness, surface_vertices);
+	CK_deduce_surface(capsidopenness, surface_vertices);
 	
 	surface_vertices.needsUpdate = true;
 	
@@ -62,13 +62,22 @@ function deduce_first_triangle(openness, vertices_numbers, rotation) {
 	return Math.acos(v2.dot(top_planar) / v2.length() / top_planar.length());
 }
 
-function deduce_surface(openness, vertices_numbers){
+function CK_deduce_surface(openness, vertices_numbers){
 	//you need to just rotate it so that the first two points are in the same 2D locations as the 2D ones.
 	//the first three vertices
 	{		
 		var triangle_projected_angle = deduce_first_triangle(openness, vertices_numbers, 0);
 		deduce_first_triangle(openness, vertices_numbers, 2.5 * triangle_projected_angle - TAU/3);
 	}
+	
+	deduce_most_of_surface(openness, vertices_numbers);
+}
+
+function irreg_deduce_surface(openness, vertices_numbers){
+	//you need to just rotate it so that the first two points are in the same 2D locations as the 2D ones.
+	//the first three vertices
+	for(var i = 0; i<9; i++)
+		vertices_numbers.array[i] = flatnet_vertices.array[i];
 	
 	deduce_most_of_surface(openness, vertices_numbers);
 }
@@ -399,7 +408,7 @@ function update_varyingsurface() {
 		capsidopeningspeed = 0;
 	}
 	
-	deduce_surface(capsidopenness, varyingsurface.geometry.attributes.position);
+	irreg_deduce_surface(capsidopenness, varyingsurface.geometry.attributes.position);
 	
 	for(var i = 0; i < surfperimeter_line_index_pairs.length / 2; i++) {
 		var Aindex = surfperimeter_line_index_pairs[i*2];
@@ -459,7 +468,8 @@ function update_varyingsurface() {
 	}
 	else {
 		var base_quaternion = new THREE.Quaternion(0,0,0,1);
-		var interpolationfactor = Math.pow(capsidopenness,10);
+		var interpolationfactor = 0.03 + 0.97 * Math.pow(capsidopenness,10);
+		
 		
 		varyingsurface.quaternion.slerp(base_quaternion, interpolationfactor); //if capsidopenness = 1 we want it to be entirely the base quaternion, i.e. t = 1
 		for( var i = 0; i < varyingsurface_cylinders.length; i++)

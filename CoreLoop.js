@@ -73,7 +73,7 @@ render();
 
 //eventually we'll add some trigger to this that makes it reasonable to call every frame
 function ChangeScene() {
-
+	renderer.setClearColor( 0xffffff, 1);
 	switch(MODE){
 		case STATIC_PROTEIN_MODE:
 			break;
@@ -93,7 +93,6 @@ function ChangeScene() {
 			break;
 			
 		case CUBIC_LATTICE_MODE:
-			renderer.setClearColor( 0xffffff, 1);
 //			{
 //				var ambientLight = new THREE.AmbientLight( 0x000000 );
 //				scene.add( ambientLight );
@@ -136,8 +135,8 @@ function ChangeScene() {
 			scene.add(Button);
 			for( var i = 0; i < varyingsurface_cylinders.length; i++)
 				scene.add(varyingsurface_cylinders[i]);
-			for( var i = 0; i < varyingsurface_spheres.length; i++)
-				scene.add(varyingsurface_spheres[i]);
+//			for( var i = 0; i < varyingsurface_spheres.length; i++)
+//				scene.add(varyingsurface_spheres[i]);
 			break;
 	}
 }

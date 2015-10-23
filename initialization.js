@@ -183,7 +183,7 @@ function init() {
 		flatnet = new THREE.Mesh( flatnet_geometry, surfacematerial );
 		
 		var varyingsurface_edgesmaterial = new THREE.MeshBasicMaterial({
-			color:	0xBF9FD6,
+			color:	0x000000,
 			side:	THREE.DoubleSide
 		});
 		for( var i = 0; i < varyingsurface_cylinders.length; i++) {
@@ -200,17 +200,8 @@ function init() {
 			varyingsurface_spheres[i] = new THREE.Mesh( (new THREE.BufferGeometry).fromGeometry(new THREE.SphereGeometry(varyingsurface_edges_default_radius,8,4)),varyingsurface_edgesmaterial);
 		varyingsurface = new THREE.Mesh( flatnet_geometry.clone(), surfacematerial );
 		
-		polyhedron_vertices = new THREE.BufferAttribute( polyhedron_vertices_numbers, 3 );
-		
-		polyhedron_geometry = new THREE.BufferGeometry();
-		polyhedron_geometry.addAttribute( 'position', polyhedron_vertices );
-		polyhedron_geometry.addAttribute( 'index', new THREE.BufferAttribute( line_index_pairs, 1 ) );
-
-		polyhedron = new THREE.Line( polyhedron_geometry, material1, THREE.LinePieces );
-		polyhedron.position.x = 0;
-		
 		var flatlatticematerial = new THREE.PointCloudMaterial({
-			size: 0.065,
+			size: 0.09,
 			vertexColors: THREE.VertexColors
 		});
 		for( var i = 0; i < number_of_lattice_points; i++){
@@ -268,7 +259,7 @@ function init() {
 		
 		
 		var surfperimeter_cylindersmaterial = new THREE.MeshBasicMaterial({
-			color: 0xccccff,
+			color: 0x000000,
 			side:	THREE.DoubleSide
 		});
 		var blastcylindersmaterial = new THREE.MeshBasicMaterial({
@@ -316,10 +307,7 @@ function init() {
 		Button.position.y -= 1.5;
 	}
 	
-	for( var i = 0; i < 3 * 3; i++)
-		polyhedron_vertices.array[i] = surface_vertices.array[i];
-	deduce_surface(0, polyhedron_vertices);
-	deduce_surface(capsidopenness, surface_vertices);
+	CK_deduce_surface(capsidopenness, surface_vertices);
 	for( var i = 0; i < 20; i++) {
 		surface_triangle_side_unit_vectors[i] = new Array(2);
 		surface_triangle_side_unit_vectors[i][0] = new THREE.Vector3();

@@ -224,7 +224,7 @@ function HandleVertexRearrangement() {
 		if( vertex_tobechanged === 666 && capsidopenness === 1) {
 			var lowest_quadrance_so_far = 10;
 			var closest_vertex_so_far = 666;
-			for( var i = 0; i < 22; i++) {
+			for( var i = 1; i < 22; i++) {
 				var quadrance = (flatnet_vertices.array[i*3+0] - (MousePosition.x-flatnet.position.x)) * (flatnet_vertices.array[i*3+0] - (MousePosition.x-flatnet.position.x))
 								+ (flatnet_vertices.array[i*3+1] - MousePosition.y) * (flatnet_vertices.array[i*3+1] - MousePosition.y);
 				if( quadrance < lowest_quadrance_so_far) {
@@ -365,6 +365,8 @@ function HandleVertexRearrangement() {
 		right_defect_absolute.y - flatnet_vertices.array[right_defect_index * 3 + 1 ]);
 		
 	move_vertices(right_defect_index, imposed_movement_vector, vertex_tobechanged);
+	
+	
 	
 	for(var i = 0; i< radii.length; i++)
 		radii[i] = 100;

@@ -109,12 +109,6 @@ var flatnet_geometry;
 
 var varyingsurface;
 
-//we need the polyhedron to be seen
-var polyhedron;
-var polyhedron_vertices_numbers = new Float32Array(22 * 3);
-var polyhedron_vertices;
-var polyhedron_geometry;
-
 var surface;
 var surface_vertices_numbers = new Float32Array(22*3);
 var surface_vertices;
