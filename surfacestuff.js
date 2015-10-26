@@ -22,6 +22,7 @@ function HandleCapsidOpenness(openness, vertices_numbers) {
 	//you should definitely have this happen for the protein as well
 }
 
+//TODO this could be done with the irreg one actually. Replace this if there are ever any problems with either. 
 function deduce_first_triangle(openness, vertices_numbers, rotation) {
 	var origin_height = (1-capsidopenness) * Math.sqrt( PHI*PHI+1) / 2;
 	
