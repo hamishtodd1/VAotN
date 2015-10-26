@@ -23,6 +23,8 @@ function correct_minimum_angles() {
 	
 	var epsilon = 0.001; //randomly chosen
 	
+	var found_potentially_resolvable_concave_edge = 0;
+	
 	while( curvatures_current_quadrance > epsilon)  {
 		var curvatures_intended = Array(curvatures_current.length);
 		for( var i = 0; i < curvatures_current.length; i++)
@@ -54,12 +56,17 @@ function correct_minimum_angles() {
 					curvatures_current = get_curvatures(radii);
 					curvatures_current_quadrance = quadrance(curvatures_current);
 					
+					if(found_potentially_resolvable_concave_edge == 1)
+						console.log("we resolved a concave edge!")
+					found_potentially_resolvable_concave_edge = 0;
+					
 					stepsize = stepsizemax;
 				}
 				else break; //we only want one step
 			}
 			else {//unsolvable, concave edges
-				console.log("concave edges");
+				found_potentially_resolvable_concave_edge = 1;
+
 				stepsize = stepsize*stepsize;
 			}
 		}
@@ -67,7 +74,7 @@ function correct_minimum_angles() {
 			stepsize = stepsize*stepsize;
 		
 		if(stepsize < 0.00001){
-			console.log("Sigh")
+			console.log("Unresolvable concave edge. Quitting.")
 			return 0;
 		}
 	}

@@ -224,7 +224,9 @@ function HandleVertexRearrangement() {
 		if( vertex_tobechanged === 666 && capsidopenness === 1) {
 			var lowest_quadrance_so_far = 10;
 			var closest_vertex_so_far = 666;
-			for( var i = 1; i < 22; i++) {
+			for( var i = 0; i < 22; i++) {
+				if(i==0||i==5||i==9||i==13||i==17||i==21)
+					continue;
 				var quadrance = (flatnet_vertices.array[i*3+0] - (MousePosition.x-flatnet.position.x)) * (flatnet_vertices.array[i*3+0] - (MousePosition.x-flatnet.position.x))
 								+ (flatnet_vertices.array[i*3+1] - MousePosition.y) * (flatnet_vertices.array[i*3+1] - MousePosition.y);
 				if( quadrance < lowest_quadrance_so_far) {
@@ -381,13 +383,45 @@ function HandleVertexRearrangement() {
 		}
 	}
 	
-	for(var i = 0; i < 20; i++){
-		corner_angle_from_indices()
-	}
-
 	if(!correct_minimum_angles()){ //we'd rather not have this dependence, you should be able to predict what won't work and put correct_minimum_angles in coreloop.
 		for( var i = 0; i < 66; i++)
 			flatnet_vertices.array[i] = net_log[i];
 		correct_minimum_angles();
 	}
+	
+	//TODO remove this on release
+//	for(var i = 0; i < 20; i++){
+//		var angular_defect = TAU;
+//		for(var j = 0; j < 5; j++){
+//			angular_defect -= corner_angle_from_indices(V_triangle_indices[0][i][j], V_vertex_indices[0][i][3*j+2]);
+//		}
+//		if(Math.abs(angular_defect-TAU/6) > 0.01 ) console.log("angular defect off at vertex" + i);
+//		
+//		for(var j = 0; j < 5; j++){
+//			var central_vertex1_index = V_vertex_indices[0][i][3*j+2];
+//			var central_vertex2_index = V_vertex_indices[0][i][(3*(j+1))%15+2];
+//			var outer_vertex1_index = V_vertex_indices[0][i][3*j+1];
+//			var outer_vertex2_index = V_vertex_indices[0][i][(3*(j+1))%15+0];
+//			var central_vertex1 = new THREE.Vector3(flatnet_vertices.array[central_vertex1_index*3+0],flatnet_vertices.array[central_vertex1_index*3+1],flatnet_vertices.array[central_vertex1_index*3+2]);
+//			var central_vertex2 = new THREE.Vector3(flatnet_vertices.array[central_vertex2_index*3+0],flatnet_vertices.array[central_vertex2_index*3+1],flatnet_vertices.array[central_vertex2_index*3+2]);
+//			var outer_vertex1 = new THREE.Vector3(flatnet_vertices.array[outer_vertex1_index*3+0],flatnet_vertices.array[outer_vertex1_index*3+1],flatnet_vertices.array[outer_vertex1_index*3+2]);
+//			var outer_vertex2 = new THREE.Vector3(flatnet_vertices.array[outer_vertex2_index*3+0],flatnet_vertices.array[outer_vertex2_index*3+1],flatnet_vertices.array[outer_vertex2_index*3+2]);
+//			var length_difference = Math.abs(outer_vertex1.distanceTo(central_vertex1) - outer_vertex2.distanceTo(central_vertex2) );
+//			if(length_difference > 0.01)
+//				console.log("edge length discrepency", length_difference);
+//		}
+//	}
+	
+	//now we need the "height" of the capsid
+	for(var i = 0; i<9; i++)
+		varyingsurface.geometry.attributes.position.array[i] = flatnet_vertices.array[i];	
+	deduce_most_of_surface(0, varyingsurface.geometry.attributes.position);
+	var central_vertex = new THREE.Vector3(varyingsurface.geometry.attributes.position.array[0],varyingsurface.geometry.attributes.position.array[1],varyingsurface.geometry.attributes.position.array[2]);
+	var center_3D = new THREE.Vector3(varyingsurface.geometry.attributes.position.array[13*3+0],varyingsurface.geometry.attributes.position.array[13*3+1],varyingsurface.geometry.attributes.position.array[13*3+2]);
+	center_3D.sub(central_vertex);
+	center_3D.multiplyScalar(0.5);
+	varyingsurface_orientingradius[0] = center_3D.length();
+	center_3D.add(central_vertex);
+	varyingsurface_orientingradius[1] = center_3D.distanceTo(new THREE.Vector3(varyingsurface.geometry.attributes.position.array[1*3+0],varyingsurface.geometry.attributes.position.array[1*3+1],varyingsurface.geometry.attributes.position.array[1*3+2]) );
+	varyingsurface_orientingradius[2] = center_3D.distanceTo(new THREE.Vector3(varyingsurface.geometry.attributes.position.array[2*3+0],varyingsurface.geometry.attributes.position.array[2*3+1],varyingsurface.geometry.attributes.position.array[2*3+2]) );
 }

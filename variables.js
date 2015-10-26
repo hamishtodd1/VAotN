@@ -108,6 +108,7 @@ var flatnet_vertices;
 var flatnet_geometry;
 
 var varyingsurface;
+var varyingsurface_orientingradius = new Float32Array([0.95,0.95,0.95]);
 
 var surface;
 var surface_vertices_numbers = new Float32Array(22*3);

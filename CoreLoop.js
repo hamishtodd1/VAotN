@@ -48,8 +48,8 @@ function UpdateWorld() {
 			
 		case IRREGULAR_MODE:
 			CheckButton();
-			update_varyingsurface();
 			HandleVertexRearrangement();
+			update_varyingsurface();
 			//correct_minimum_angles();
 			break;
 	}
