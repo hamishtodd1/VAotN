@@ -1,29 +1,34 @@
-//curvatures is a 12D vector with all the curvatures curvatures_i coming from r. Get its length to zero!
-
 //you had better be sure that your inputs are con-bloody-vex. Is it enough that defects are right?
+//You could have a function draw red dots in the places that work, will they form a curve or straight lines?
+//So what are limitations that could ensure we always converge? Or indeed that we remain biologically relevant?
+//could limit edge lengths to a minimum size, like jeez, that breaks the angular defects
+//it would be a size minimum based on the size of the longest edge, like you can't be less than about a twentieth of its length - that seems to hold for HIV.
 
-//TODO "length[i][j]"
+//TODO You could graph number of step size reductions over a run. Major tweakables are stepsizemax, initial radii, and newton solver accuracy.
 
-//we're hoping to converge on about 0.96
+//TODO frame-stagger. Notes on that:
+//Possibly, the only thing that is important in terms of preserving the illusion is that the angles be strictly decreasing.
+//Perhaps find some way to relate the angle that is used to epsilon and openness in a way that makes it so they're strictly decreasing?
+//or, only write to those dihedral angles that are less than what they were in the previous frame (which may be dependent on openness)
 
 
 function correct_minimum_angles() {
-	var stepsizemax = 0.75;	//we can change this a lot to respond to what we're seeing
+	var stepsizemax = 0.75;
 	var stepsize = stepsizemax;
 	
-	//Possibly, the only thing that is important in terms of preserving the illusion is that the angles be strictly decreasing.
-	//Perhaps find some way to relate the angle that is used to epsilon and openness in a way that makes it so they're strictly decreasing?
-	//or, only write to those dihedral angles that are less than what they were in the previous frame (which may be dependent on openness)
 	var this_all_takes_place_in_one_frame = true;
 //	if( this_all_takes_place_in_one_frame && InputObject.isMouseDown)
 //		return 1;
 	
+	//curvatures is a 12D vector with curvatures_i coming from r. Get its length to zero!
 	var curvatures_current = get_curvatures(radii);	//get this to zero!
 	var curvatures_current_quadrance = quadrance(curvatures_current);
 	
-	var epsilon = 0.001; //randomly chosen
+	var epsilon = 0.0025; //subjectively chosen
 	
 	var found_concave_edge = 0;
+	
+	var steps = 0;
 	
 	while( curvatures_current_quadrance > epsilon)  {
 		var curvatures_intended = Array(curvatures_current.length);
@@ -57,7 +62,7 @@ function correct_minimum_angles() {
 					curvatures_current_quadrance = quadrance(curvatures_current);
 					
 					if(found_concave_edge != 0){
-						console.log("Concave edge resolved. " + found_concave_edge + " step reductions, step size " + stepsize);
+						console.log("Resolved concave edge. " + found_concave_edge + " step reduction(s)");
 					}
 					found_concave_edge = 0;
 					
@@ -70,11 +75,19 @@ function correct_minimum_angles() {
 				stepsize = stepsize*stepsize;
 			}
 		}
-		else //unsolvable, step size was too much
+		else { //unsolvable, step size was too much
 			stepsize = stepsize*stepsize;
+			found_concave_edge = 0;
+		}
 		
-		if(found_concave_edge > 5){ //previously "stepsize < 0.00001"
-			console.log("Quit. Concave edge UNresolved after " + found_concave_edge + " step reductions")
+		if(found_concave_edge > 2){
+			console.log("Quitting alexandrov. Unresolved concave edge, tried " + found_concave_edge + " step reductions")
+			return 0;
+		}
+		
+		steps++;
+		if(steps > 1500){
+			console.log("Quitting alexandrov. More than " + steps + " steps");
 			return 0;
 		}
 	}
@@ -219,7 +232,7 @@ function get_cos_tetrahedron_dihedral_angle_from_indices(i,j,input_radii) {
 			{k = polyhedron_index( net_triangle_vertex_indices[a+1] ); break;}
 	}	
 	if( k === 666 ) {
-		console.log("error: requested dihedral angle from nonexistant tetrahedron connecting polyhedron vertices " + i + " and " + j);
+		console.log("Error: requested dihedral angle from nonexistant tetrahedron connecting polyhedron vertices " + i + " and " + j);
 		return 0;
 	}
 	

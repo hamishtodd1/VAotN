@@ -477,6 +477,38 @@ function update_varyingsurface() {
 	
 	irreg_deduce_surface(capsidopenness, varyingsurface.geometry.attributes.position);
 	
+	//we rotate by a quaternion if user moves
+	if(capsidopenness == 0 ){
+		//we do mouse movement thing
+		var mouse_dist_from_buttoncenter = Math.sqrt( (Button.position.x-MousePosition.x) * (Button.position.x-MousePosition.x) + (Button.position.y-MousePosition.y) * (Button.position.y-MousePosition.y) );  
+		if( mouse_dist_from_buttoncenter >= 0.3 && isMouseDown) {			
+			var MovementAxis = new THREE.Vector3(-Mouse_delta.y, Mouse_delta.x, 0);
+			MovementAxis.normalize();
+			
+			varyingsurface.worldToLocal(MovementAxis);
+			var extraquaternion = new THREE.Quaternion();
+			extraquaternion.setFromAxisAngle( MovementAxis, Mouse_delta.length() / 3 );
+			
+			varyingsurface.quaternion.multiply(extraquaternion);
+			for( var i = 0; i < varyingsurface_cylinders.length; i++)
+				varyingsurface_cylinders[i].quaternion.multiply(extraquaternion);
+			for( var i = 0; i < varyingsurface_spheres.length; i++)
+				varyingsurface_spheres[i].quaternion.multiply(extraquaternion);
+			
+			varyingsurface.updateMatrixWorld();
+		}
+	}
+	else {
+		var base_quaternion = new THREE.Quaternion(0,0,0,1);
+		var interpolationfactor = 0.03 + 0.97 * Math.pow(capsidopenness,10);
+		
+		varyingsurface.quaternion.slerp(base_quaternion, interpolationfactor); //if capsidopenness = 1 we want it to be entirely the base quaternion, i.e. t = 1
+		for( var i = 0; i < varyingsurface_cylinders.length; i++)
+			varyingsurface_cylinders[i].quaternion.slerp(base_quaternion, interpolationfactor);
+		for( var i = 0; i < varyingsurface_spheres.length; i++)
+			varyingsurface_spheres[i].quaternion.slerp(base_quaternion, interpolationfactor);
+	}
+	
 	for(var i = 0; i < surfperimeter_line_index_pairs.length / 2; i++) {
 		var Aindex = surfperimeter_line_index_pairs[i*2];
 		var Bindex = surfperimeter_line_index_pairs[i*2+1];
@@ -508,41 +540,15 @@ function update_varyingsurface() {
 				varyingsurface.geometry.attributes.position.array[Bindex*3+1],
 				varyingsurface.geometry.attributes.position.array[Bindex*3+2]);
 		
+		//TODO radius appears to change??
 		put_tube_in_buffer(A,B, varyingsurface_cylinders[surfperimeter_line_index_pairs.length / 2 + i].geometry.attributes.position.array, varyingsurface_edges_default_radius);
 		varyingsurface_cylinders[surfperimeter_line_index_pairs.length / 2 + i].geometry.attributes.position.needsUpdate = true;
 	}
-	
-	//we rotate by a quaternion if user moves
-	if(capsidopenness == 0 ){
-		//we do mouse movement thing
-		var mouse_dist_from_buttoncenter = Math.sqrt( (Button.position.x-MousePosition.x) * (Button.position.x-MousePosition.x) + (Button.position.y-MousePosition.y) * (Button.position.y-MousePosition.y) );  
-		if( mouse_dist_from_buttoncenter >= 0.3 && isMouseDown) {			
-			var MovementAxis = new THREE.Vector3(-Mouse_delta.y, Mouse_delta.x, 0);
-			MovementAxis.normalize();
-			
-			varyingsurface.worldToLocal(MovementAxis);
-			var extraquaternion = new THREE.Quaternion();
-			extraquaternion.setFromAxisAngle( MovementAxis, Mouse_delta.length() / 3 );
-			
-			varyingsurface.quaternion.multiply(extraquaternion);
-			for( var i = 0; i < varyingsurface_cylinders.length; i++)
-				varyingsurface_cylinders[i].quaternion.multiply(extraquaternion);
-			for( var i = 0; i < varyingsurface_spheres.length; i++)
-				varyingsurface_spheres[i].quaternion.multiply(extraquaternion);
-			
-			varyingsurface.updateMatrixWorld();
-		}
-	}
-	else {
-		var base_quaternion = new THREE.Quaternion(0,0,0,1);
-		var interpolationfactor = 0.03 + 0.97 * Math.pow(capsidopenness,10);
-		
-		
-		varyingsurface.quaternion.slerp(base_quaternion, interpolationfactor); //if capsidopenness = 1 we want it to be entirely the base quaternion, i.e. t = 1
-		for( var i = 0; i < varyingsurface_cylinders.length; i++)
-			varyingsurface_cylinders[i].quaternion.slerp(base_quaternion, interpolationfactor);
-		for( var i = 0; i < varyingsurface_spheres.length; i++)
-			varyingsurface_spheres[i].quaternion.slerp(base_quaternion, interpolationfactor);
+	var sphereopacity = capsidopenness == 0 ? 0 : capsidopenness * Math.cos((ourclock.elapsedTime - ourclock.startTime)*4); 
+	for(var i = 0; i<varyingsurface_spheres.length; i++){
+		varyingsurface_spheres[i].position.set(varyingsurface.geometry.attributes.position.array[i*3+0],varyingsurface.geometry.attributes.position.array[i*3+1],varyingsurface.geometry.attributes.position.array[i*3+2]);
+		varyingsurface.localToWorld(varyingsurface_spheres[i].position);
+		varyingsurface_spheres[i].material.opacity = sphereopacity;
 	}
 
 	varyingsurface.geometry.attributes.position.needsUpdate = true;

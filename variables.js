@@ -13,7 +13,7 @@ var CUBIC_LATTICE_MODE = 3;
 var QC_SPHERE_MODE = 4;
 var IRREGULAR_MODE = 5; //so we're going to have a button below the thing
 	
-var MODE = IRREGULAR_MODE;
+var MODE = CUBIC_LATTICE_MODE;
 
 //--------------Technologically fundamental
 var playing_field_width = 7*HS3;
@@ -31,9 +31,6 @@ var scene = new THREE.Scene();
 var renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize( window_width, window_height );
 document.body.appendChild( renderer.domElement );
-
-var ourclock = new THREE.Clock( true );
-var delta_t = 0;
 
 //----------------Static
 var FLATNET = 0;
@@ -67,6 +64,9 @@ var cylinder_triangle_indices = new Uint16Array(6 * 8);
 
 //--------------Varying, fundamental
 var logged = 0;
+
+var ourclock = new THREE.Clock( true );
+var delta_t = 0;
 
 //--------------Varying
 var vertex_tobechanged = 666;
@@ -174,6 +174,7 @@ var W_surrounding_angles = new Float32Array([0,0,0,0,0,0]);
 var V_vertex_indices = new Array();
 var V_triangle_indices = new Array();
 var V_angles = new Array(22);
+var associated_vertices;
 
 var V_squasher;
 

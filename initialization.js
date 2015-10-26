@@ -186,6 +186,11 @@ function init() {
 			color:	0x000000,
 			side:	THREE.DoubleSide
 		});
+		var spherehandles_material = new THREE.MeshBasicMaterial({
+			color:	0xff0000,
+			side:	THREE.DoubleSide,
+			transparent: true
+		});
 		for( var i = 0; i < varyingsurface_cylinders.length; i++) {
 			var cylinder_vertices_numbers = new Float32Array(16*3);
 			put_tube_in_buffer(0,0,0,1,1,1, varyingsurface_edges_default_radius, cylinder_vertices_numbers);
@@ -196,8 +201,12 @@ function init() {
 			
 			varyingsurface_cylinders[i] = new THREE.Mesh( varyingsurface_cylinders_geometry, varyingsurface_edgesmaterial );
 		}
-		for(var i = 0; i<varyingsurface_spheres.length;i++)
-			varyingsurface_spheres[i] = new THREE.Mesh( (new THREE.BufferGeometry).fromGeometry(new THREE.SphereGeometry(varyingsurface_edges_default_radius,8,4)),varyingsurface_edgesmaterial);
+		for(var i = 0; i<varyingsurface_spheres.length;i++){
+			if( (i == 0 || i % 4 == 1) && i != 1)
+				varyingsurface_spheres[i] = new THREE.Mesh( (new THREE.BufferGeometry).fromGeometry(new THREE.SphereGeometry(varyingsurface_edges_default_radius,8,4)),varyingsurface_edgesmaterial);
+			else
+				varyingsurface_spheres[i] = new THREE.Mesh( (new THREE.BufferGeometry).fromGeometry(new THREE.SphereGeometry(varyingsurface_edges_default_radius * 3,8,4)),spherehandles_material);
+		}
 		varyingsurface = new THREE.Mesh( flatnet_geometry.clone(), surfacematerial );
 		
 		var flatlatticematerial = new THREE.PointCloudMaterial({
@@ -317,7 +326,7 @@ function init() {
 	//---------------------------------------------------Vertex Rearrangement stuff
 	associated_vertices = Array( //where there is a choice of index, you must have the version of the vertex in the 5th triangle of the W
 		1,
-		0,
+		3,
 		
 		7,
 		18,
@@ -392,8 +401,7 @@ function init() {
 	
 	W_triangle_indices = Array(
 		[4,8,12,17,18,1,	16,0], //the last numbers are the central triangle and the top triangle. The top is only to help the V's, so no vertices needed
-		[17,18,1,4,8,12,	0,16],
-		
+		[0, 16,17,19, 3, 2,	18,1],		
 		[4, 0, 1, 3,7,6,	2,5],
 		[19,3,2,0,16,17,	1,18],
 		[3,7,6, 4,0,1,		5,2],
@@ -451,6 +459,7 @@ function init() {
 			}
 		}
 	}
+	console.log(W_vertex_indices);
 	
 	//W_vertex_indices example:
 	//[2,6, 6,10, 10,14, 14,19, 19,20, 3,2,		14,1]

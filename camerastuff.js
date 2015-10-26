@@ -4,23 +4,22 @@ function UpdateCamera() {
 //		cameradist += 0.08;
 //	else
 //		cameradist -= 0.08;
-	
 
 	if(MODE == CUBIC_LATTICE_MODE){
 		if(InputObject.isMouseDown) {
-			var MovementVector = MousePosition.clone();
-			MovementVector.sub(OldMousePosition);
+			var mousedelta_transformed = new THREE.Vector3(Mouse_delta.x, Mouse_delta.y, 0);
+			mousedelta_transformed.applyQuaternion(camera.quaternion);
 			
-			var MovementAxis = new THREE.Vector3(-MovementVector.y, MovementVector.x, 0);
+			var MovementAxis = new THREE.Vector3(-mousedelta_transformed.y, mousedelta_transformed.x, 0);
 			MovementAxis.normalize();
 			
-			camera.position.applyAxisAngle(MovementAxis, -MovementVector.length() / 5); //TODO doing this means that you can't rely on mouse position
+			camera.position.applyAxisAngle(MovementAxis, -mousedelta_transformed.length() / 5); //TODO doing this means that you can't rely on mouse position
 			
 			camera.lookAt(new THREE.Vector3(0,0,0));
 		}
 		
 		camera.position.normalize();
-		camera.position.multiplyScalar(min_cameradist * 4.5);		
+		camera.position.multiplyScalar(min_cameradist);		
 		camera.updateProjectionMatrix();
 	}
 	else{

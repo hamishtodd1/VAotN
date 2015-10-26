@@ -32,7 +32,7 @@ function update_3DLattice() {
 			exploding = true;
 	}
 	
-	shape_accel = 200;
+	shape_accel = 160;
 	
 	var rhombohedra_convergence_time = 3/4;
 	var icosahedra_startfadein_time = rhombohedra_convergence_time;
@@ -55,7 +55,7 @@ function update_3DLattice() {
 	}
 	var rhombohedra_accel = shape_accel;
 	var rhombohedra_starting_velocity = -rhombohedra_accel * rhombohedra_convergence_time / 2;
-	var rhombohedra_dist = rhombohedra_starting_velocity * togetherness + 0.5 * rhombohedra_accel * togetherness * togetherness;
+	var rhombohedra_dist = rhombohedra_accel * (togetherness-rhombohedra_convergence_time) * (togetherness-rhombohedra_convergence_time);
 	if(togetherness < rhombohedra_convergence_time)
 		rhombohedra_dist = 0;
 	var rhombohedra_final_position = 1.2;
@@ -64,8 +64,6 @@ function update_3DLattice() {
 		golden_rhombohedra[i].position.normalize();
 		golden_rhombohedra[i].position.multiplyScalar(rhombohedra_dist);
 	}
-	
-	
 	
 	
 	if(togetherness < star_convergence_time)
@@ -78,7 +76,7 @@ function update_3DLattice() {
 	var icosahedra_finishfadein_time = (icosahedra_convergence_time + icosahedra_startfadein_time ) / 2; 
 	var icosahedra_accel = shape_accel;
 	var icosahedra_starting_velocity = -icosahedra_accel * icosahedra_convergence_time / 2;
-	var icosahedra_dist = icosahedra_starting_velocity * togetherness + 0.5 * icosahedra_accel * togetherness * togetherness;
+	var icosahedra_dist = icosahedra_accel * (togetherness-icosahedra_convergence_time) * (togetherness-icosahedra_convergence_time);
 	if(togetherness < icosahedra_convergence_time)
 		icosahedra_dist = 0;
 	var icosahedra_final_position = (PHI-1/2) + 1;
@@ -100,7 +98,7 @@ function update_3DLattice() {
 	var triacontahedra_finishfadein_time = (triacontahedra_convergence_time + triacontahedra_startfadein_time ) / 2; 
 	var triacontahedra_accel = shape_accel;
 	var triacontahedra_starting_velocity = -triacontahedra_accel * triacontahedra_convergence_time / 2;
-	var triacontahedra_dist = triacontahedra_starting_velocity * togetherness + 0.5 * triacontahedra_accel * togetherness * togetherness;
+	var triacontahedra_dist = triacontahedra_accel * (togetherness-triacontahedra_convergence_time) * (togetherness-triacontahedra_convergence_time);
 	if(togetherness < triacontahedra_convergence_time)
 		triacontahedra_dist = 0;
 	var triacontahedra_final_position = rhombohedron_h*3+Math.sqrt(3/10*(5+Math.sqrt(5)));
@@ -119,12 +117,10 @@ function update_3DLattice() {
 	golden_triacontahedra[0].children[0].material.opacity = golden_triacontahedra[0].material.opacity;
 	
 	
-	
-	
 	var star_finishfadein_time = (star_convergence_time + star_startfadein_time ) / 2; 
 	var star_accel = shape_accel;
 	var star_starting_velocity = -star_accel * star_convergence_time / 2;
-	var star_dist = star_starting_velocity * togetherness + 0.5 * star_accel * togetherness * togetherness;
+	var star_dist = star_accel * (togetherness-star_convergence_time) * (togetherness-star_convergence_time);
 	if(togetherness < star_convergence_time)
 		star_dist = 0;
 	var star_final_position = icosahedra_final_position * 2;	
@@ -281,15 +277,15 @@ function init_cubicLattice_stuff() {
 		transparent: true
 	});
 	var star_material = rhombohedron_material.clone();
-	var goldenico_material = new THREE.MeshBasicMaterial({ //could make lambert if this doesn't work
+	var goldenico_material = new THREE.MeshBasicMaterial({
 		color: 0x6ADEFF,
-		//shading: THREE.FlatShading, //light sources didn't seem to do anything
+		//shading: THREE.FlatShading,
 		side:THREE.DoubleSide,
 		transparent: true
 	});
-	var triacontahedron_material = new THREE.MeshBasicMaterial({ //could make lambert if this doesn't work
+	var triacontahedron_material = new THREE.MeshBasicMaterial({
 		color: 0xAC83FF,
-		//shading: THREE.FlatShading, //light sources didn't seem to do anything
+		//shading: THREE.FlatShading,
 		side:THREE.DoubleSide,
 		transparent: true
 	});
