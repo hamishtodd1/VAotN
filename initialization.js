@@ -459,7 +459,6 @@ function init() {
 			}
 		}
 	}
-	console.log(W_vertex_indices);
 	
 	//W_vertex_indices example:
 	//[2,6, 6,10, 10,14, 14,19, 19,20, 3,2,		14,1]
