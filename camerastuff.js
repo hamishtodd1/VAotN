@@ -6,27 +6,7 @@ function UpdateCamera() {
 //		cameradist -= 0.08;
 
 	if(MODE == CUBIC_LATTICE_MODE){
-		if(InputObject.isMouseDown) {
-			var mouse_transformed = new THREE.Vector3(MousePosition.x, MousePosition.y, 0);
-			camera.matrixWorld.multiplyVector3( mouse_transformed );
-			var oldmouse_transformed = new THREE.Vector3(OldMousePosition.x, OldMousePosition.y, 0);
-			camera.matrixWorld.multiplyVector3( oldmouse_transformed );
-			var mousedelta_transformed = mouse_transformed.clone();
-			mousedelta_transformed.sub(oldmouse_transformed);
-			
-			var MovementAxis = new THREE.Vector3(-mousedelta_transformed.y, mousedelta_transformed.x, 0);
-			MovementAxis.normalize();
-			
-			var extraquaternion = new THREE.Quaternion();
-			extraquaternion.setFromAxisAngle( MovementAxis, -mousedelta_transformed.length() / 5 );
-			
-			camera.position.applyQuaternion(extraquaternion);
-			
-//			camera.quaternion.multiply(extraquaternion);
-		}
-		
-		camera.position.normalize();
-		camera.position.multiplyScalar(min_cameradist * 4.5);
+		camera.position.setLength(min_cameradist * 4.5);
 		camera.updateProjectionMatrix();
 	}
 	else{
@@ -68,61 +48,4 @@ function UpdateCamera() {
 	
 	//can you think of a way to engineer a situation where you really DON'T want to click on certain vertices? Would be interesting for a bit
 	
-	
-	
 }
-
-//this.rotateCamera = ( function() {
-//
-//	var axis = new THREE.Vector3(),
-//		quaternion = new THREE.Quaternion(),
-//		eyeDirection = new THREE.Vector3(),
-//		objectUpDirection = new THREE.Vector3(),
-//		objectSidewaysDirection = new THREE.Vector3(),
-//		moveDirection = new THREE.Vector3(),
-//		angle;
-//
-//	return function rotateCamera() {
-//
-//		moveDirection.set( _moveCurr.x - _movePrev.x, _moveCurr.y - _movePrev.y, 0 );
-//		angle = moveDirection.length();
-//
-//		if ( angle ) {
-//
-//			_eye.copy( _this.object.position ).sub( _this.target );
-//
-//			eyeDirection.copy( _eye ).normalize();
-//			objectUpDirection.copy( _this.object.up ).normalize();
-//			objectSidewaysDirection.crossVectors( objectUpDirection, eyeDirection ).normalize();
-//
-//			objectUpDirection.setLength( _moveCurr.y - _movePrev.y );
-//			objectSidewaysDirection.setLength( _moveCurr.x - _movePrev.x );
-//
-//			moveDirection.copy( objectUpDirection.add( objectSidewaysDirection ) );
-//
-//			axis.crossVectors( moveDirection, _eye ).normalize();
-//
-//			angle *= _this.rotateSpeed;
-//			quaternion.setFromAxisAngle( axis, angle );
-//
-//			_eye.applyQuaternion( quaternion );
-//			_this.object.up.applyQuaternion( quaternion );
-//
-//			_lastAxis.copy( axis );
-//			_lastAngle = angle;
-//
-//		} else if ( ! _this.staticMoving && _lastAngle ) {
-//
-//			_lastAngle *= Math.sqrt( 1.0 - _this.dynamicDampingFactor );
-//			_eye.copy( _this.object.position ).sub( _this.target );
-//			quaternion.setFromAxisAngle( _lastAxis, _lastAngle );
-//			_eye.applyQuaternion( quaternion );
-//			_this.object.up.applyQuaternion( quaternion );
-//
-//		}
-//
-//		_movePrev.copy( _moveCurr );
-//
-//	};
-//
-//}() );

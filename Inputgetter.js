@@ -26,9 +26,12 @@ function update_mouseblob(){
 		Ydists_from_center[i] = circle.geometry.vertices[i].y - circle.geometry.vertices[0].y;
 	}
 	
+	var cursorposition = new THREE.Vector2(MousePosition.x,MousePosition.y);
+	if(MODE==CUBIC_LATTICE_MODE)
+		cursorposition.multiplyScalar(4.5);
 	for(var i = 0; i < circle.geometry.vertices.length; i++) {
-		circle.geometry.vertices[i].x = MousePosition.x + Xdists_from_center[i];
-		circle.geometry.vertices[i].y = MousePosition.y + Ydists_from_center[i];
+		circle.geometry.vertices[i].x = cursorposition.x + Xdists_from_center[i];
+		circle.geometry.vertices[i].y = cursorposition.y + Ydists_from_center[i];
 	}
 	
 	circle.geometry.verticesNeedUpdate = true;

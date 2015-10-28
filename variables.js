@@ -96,11 +96,15 @@ var quasicutout_line_pairs = new Uint16Array(36*2);
 var quasicutouts = Array(60);
 
 var golden_rhombohedra = Array(20);
-var golden_triacontahedra = Array(20);
 var goldenicos = Array(12);
+var golden_triacontahedra = Array(20);
 var golden_stars = Array(12);
-var rotated_icos = Array(60);
-var togetherness = 1;
+var ico_stars = Array(12);
+var animation_progress = 0;
+var progress_bar;
+var slider;
+var slider_grabbed = false;
+var quasiatoms = Array(4);
 
 var flatnet;
 var flatnet_vertices_numbers;

@@ -308,7 +308,6 @@ function init() {
 		var radius = 0.08;
 
 		circle = new THREE.Mesh( new THREE.CircleGeometry( radius ), material3 );
-		scene.add( circle );
 		circle.position.z = 0.1;
 		
 		Button = new THREE.Mesh( new THREE.CircleGeometry( 0.3 ), new THREE.MeshBasicMaterial({color: 0x00ff00}) );
@@ -622,5 +621,6 @@ function init() {
 	//------------------need this so there's something in there for the first frame
 	ourclock.getDelta();
 	
+	//must be kept at bottom
 	ChangeScene();
 }

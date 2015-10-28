@@ -1,4 +1,12 @@
-/*
+/*	EGW todo
+ * -protein capsid at beginning
+ * -DNA at beginning
+ * -get it ON a webpage. If you can't integrate with video, could have links to each chapter
+ * -integration into webpage... http://stackoverflow.com/questions/29401407/return-embed-youtube-current-time   https://developers.google.com/youtube/v3/code_samples/javascript
+ * -protein models in CK
+ * -everything sequential
+ * 
+ * 
  * Long term To Do
  * 
  *  -working on atoms doing random walks will make the one here easy
@@ -90,6 +98,7 @@ function ChangeScene() {
 			}
 			for( var i = 0; i < blast_cylinders.length; i++)
 				scene.add(blast_cylinders[i]);
+			scene.add( circle );
 			break;
 			
 		case CUBIC_LATTICE_MODE:
@@ -118,8 +127,11 @@ function ChangeScene() {
 				scene.add(golden_rhombohedra[i]);
 			for( var i = 0; i < golden_stars.length; i++)
 				scene.add(golden_stars[i]);
-//			for( var i = 0; i < rotated_icos.length; i++)
-//				scene.add(rotated_icos[i]);
+			for( var i = 0; i < ico_stars.length; i++)
+				scene.add(ico_stars[i]);
+			scene.add( circle );
+			scene.add(slider);
+			scene.add(progress_bar);
 			break;
 			
 		case QC_SPHERE_MODE:
@@ -127,7 +139,8 @@ function ChangeScene() {
 			for( var i = 0; i < quasicutouts.length; i++)
 				scene.add(quasicutouts[i]);
 			scene.add(dodeca);
-			scene.add(back_hider);			
+			scene.add(back_hider);		
+			scene.add( circle );	
 			break;
 			
 		case IRREGULAR_MODE:
@@ -137,6 +150,7 @@ function ChangeScene() {
 				scene.add(varyingsurface_cylinders[i]);
 			for( var i = 0; i < varyingsurface_spheres.length; i++)
 				scene.add(varyingsurface_spheres[i]);
+			scene.add( circle );
 			break;
 	}
 }
