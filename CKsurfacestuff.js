@@ -19,8 +19,6 @@ function UpdateCapsid() {
 	
 	surface_vertices.needsUpdate = true;
 	
-	//you should definitely have this happen for the protein as well
-	
 	
 	//when player clicks, it rotates so an axis points at them, then opens. Could be a nice anticipation, like the foot-stamp - make edges glow, or have particles from around it get sucked in
 	
@@ -49,14 +47,18 @@ function UpdateCapsid() {
 			surfaceangle = 0;
 	}
 	
-	var axis = new THREE.Vector3( 	surface_vertices.array[6*3+0] - surface_vertices.array[19*3+0],
+	var idle_axis = new THREE.Vector3( 	surface_vertices.array[6*3+0] - surface_vertices.array[19*3+0],
 									surface_vertices.array[6*3+1] - surface_vertices.array[19*3+1],
 									surface_vertices.array[6*3+2] - surface_vertices.array[19*3+2]);
-	axis.normalize();
+	idle_axis.normalize();
+	
+	var central_axis = new THREE.Vector3(0,0,1);
 	
 	for( var i = 0; i < 22; i++){
 		var d = get_vector(i, SURFACE);
-		d.applyAxisAngle(axis, surfaceangle);
+		d.applyAxisAngle(idle_axis, surfaceangle);
+		d.applyAxisAngle(central_axis, -LatticeAngle);
+		d.multiplyScalar(lattice_scalefactor/LatticeScale);
 		surface_vertices.setXYZ(i, d.x,d.y,d.z);
 	}
 }
@@ -112,8 +114,6 @@ function CK_deduce_surface(openness, vertices_numbers){
 	
 	deduce_most_of_surface(openness, vertices_numbers);
 }
-	
-
 
 function ziplocation(a1,a2,b1,b2,zipwidth){
 	dist1 = a1.distanceTo(b1);
@@ -193,7 +193,7 @@ function update_surfperimeter() {
 			change_radius(surfperimeter_spheres[i], surfperimeterradius);
 			surfperimeter_spheres[i].position.copy(A);
 			
-			put_tube_in_buffer(A,B, surfperimeter_cylinders[i].geometry.attributes.position.array, surfperimeterradius);
+			put_tube_in_buffer(A,B, surfperimeter_cylinders[i].geometry.attributes.position.array, surfperimeterradius/LatticeScale*lattice_scalefactor);
 		}
 	}
 	

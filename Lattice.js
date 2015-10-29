@@ -36,52 +36,86 @@ function updatelattice() {
 		var vertex_destinationY = (flatlattice_default_vertices[i*3+0] * sintheta + flatlattice_default_vertices[i*3+1] * costheta) * LatticeScale;
 		var vertex_destinationZ = (1-capsidopenness) * camera.position.z * 1.5;
 		
-		var destination_distance = Math.pow(vertex_destinationX - MousePosition.x, 2) + Math.pow(vertex_destinationY - MousePosition.y, 2) + Math.pow(vertex_destinationZ, 2);
-		destination_distance = Math.sqrt(destination_distance);
+		flatlattice_vertices.array[i*3+0] = vertex_destinationX;
+		flatlattice_vertices.array[i*3+1] = vertex_destinationY;
+		flatlattice_vertices.array[i*3+2] = 0;
 		
-		flatlattice_vertices.array[i*3+0] += delta_t * flatlattice_vertices_velocities[i*3+0];
-		flatlattice_vertices.array[i*3+1] += delta_t * flatlattice_vertices_velocities[i*3+1];
-		flatlattice_vertices.array[i*3+2] += delta_t * flatlattice_vertices_velocities[i*3+2];
-	
-		var accel = get_accel(i, vertex_destinationX, vertex_destinationY,vertex_destinationZ,destination_distance);
-		
-		flatlattice_vertices.array[i*3+0] += delta_t * delta_t * accel.x / 2;
-		flatlattice_vertices.array[i*3+1] += delta_t * delta_t * accel.y / 2;
-		flatlattice_vertices.array[i*3+2] += delta_t * delta_t * accel.z / 2;
-		
-		var intermediate_velocityX = flatlattice_vertices_velocities[i*3+0] + delta_t * accel.x / 2;
-		var intermediate_velocityY = flatlattice_vertices_velocities[i*3+1] + delta_t * accel.y / 2;
-		var intermediate_velocityZ = flatlattice_vertices_velocities[i*3+2] + delta_t * accel.z / 2;
-		
-		flatlattice_vertices_velocities[i*3+0] = intermediate_velocityX + delta_t / 2 * accel.x;
-		flatlattice_vertices_velocities[i*3+1] = intermediate_velocityY + delta_t / 2 * accel.y;
-		flatlattice_vertices_velocities[i*3+2] = intermediate_velocityZ + delta_t / 2 * accel.z;
-		
-		accel.copy( get_accel(i, vertex_destinationX, vertex_destinationY, vertex_destinationZ,destination_distance) );
-		
-		flatlattice_vertices_velocities[i*3+0] = intermediate_velocityX + delta_t * accel.x / 2;
-		flatlattice_vertices_velocities[i*3+1] = intermediate_velocityY + delta_t * accel.y / 2;
-		flatlattice_vertices_velocities[i*3+2] = intermediate_velocityZ + delta_t * accel.z / 2;
-		
-		var speed = Math.pow(flatlattice_vertices_velocities[i*3+0]*flatlattice_vertices_velocities[i*3+0]
-							+flatlattice_vertices_velocities[i*3+1]*flatlattice_vertices_velocities[i*3+1]
-							+flatlattice_vertices_velocities[i*3+2]*flatlattice_vertices_velocities[i*3+2], 0.5);
-		if(speed > maxspeed ) {
-			//flatlattice_vertices_velocities[i*3+0] *= maxspeed/speed;
-			speed = maxspeed;
-		}
-		lattice_colors[i*3+1] = speed/maxspeed;		
+//		var destination_distance = Math.pow(vertex_destinationX - MousePosition.x, 2) + Math.pow(vertex_destinationY - MousePosition.y, 2) + Math.pow(vertex_destinationZ, 2);
+//		destination_distance = Math.sqrt(destination_distance);
+//		
+//		flatlattice_vertices.array[i*3+0] += delta_t * flatlattice_vertices_velocities[i*3+0];
+//		flatlattice_vertices.array[i*3+1] += delta_t * flatlattice_vertices_velocities[i*3+1];
+//		flatlattice_vertices.array[i*3+2] += delta_t * flatlattice_vertices_velocities[i*3+2];
+//	
+//		var accel = get_accel(i, vertex_destinationX, vertex_destinationY,vertex_destinationZ,destination_distance);
+//		
+//		flatlattice_vertices.array[i*3+0] += delta_t * delta_t * accel.x / 2;
+//		flatlattice_vertices.array[i*3+1] += delta_t * delta_t * accel.y / 2;
+//		flatlattice_vertices.array[i*3+2] += delta_t * delta_t * accel.z / 2;
+//		
+//		var intermediate_velocityX = flatlattice_vertices_velocities[i*3+0] + delta_t * accel.x / 2;
+//		var intermediate_velocityY = flatlattice_vertices_velocities[i*3+1] + delta_t * accel.y / 2;
+//		var intermediate_velocityZ = flatlattice_vertices_velocities[i*3+2] + delta_t * accel.z / 2;
+//		
+//		flatlattice_vertices_velocities[i*3+0] = intermediate_velocityX + delta_t / 2 * accel.x;
+//		flatlattice_vertices_velocities[i*3+1] = intermediate_velocityY + delta_t / 2 * accel.y;
+//		flatlattice_vertices_velocities[i*3+2] = intermediate_velocityZ + delta_t / 2 * accel.z;
+//		
+//		accel.copy( get_accel(i, vertex_destinationX, vertex_destinationY, vertex_destinationZ,destination_distance) );
+//		
+//		flatlattice_vertices_velocities[i*3+0] = intermediate_velocityX + delta_t * accel.x / 2;
+//		flatlattice_vertices_velocities[i*3+1] = intermediate_velocityY + delta_t * accel.y / 2;
+//		flatlattice_vertices_velocities[i*3+2] = intermediate_velocityZ + delta_t * accel.z / 2;
+//		
+//		var speed = Math.pow(flatlattice_vertices_velocities[i*3+0]*flatlattice_vertices_velocities[i*3+0]
+//							+flatlattice_vertices_velocities[i*3+1]*flatlattice_vertices_velocities[i*3+1]
+//							+flatlattice_vertices_velocities[i*3+2]*flatlattice_vertices_velocities[i*3+2], 0.5);
+//		if(speed > maxspeed ) {
+//			//flatlattice_vertices_velocities[i*3+0] *= maxspeed/speed;
+//			speed = maxspeed;
+//		}
+//		lattice_colors[i*3+1] = speed/maxspeed;		
 		
 		//it's more like you want to limit how far away they get from their neighbours, pretty hard
 	}
 	
 	flatlattice.geometry.attributes.position.needsUpdate = true;
-	flatlattice.geometry.attributes.color.needsUpdate = true;
 }
 
 //you could move the net. There again, the lattice has to move on the screen, so.
 function HandleLatticeMovement() {
-	if(!isMouseDown){
+	if( isMouseDown){
+		LatticeGrabbed = true;
+		
+		var Mousedist = MousePosition.distanceTo(flatlattice_center);
+		var OldMousedist = OldMousePosition.distanceTo(flatlattice_center); //unless the center is going to change?
+		
+		var LatticeScaleChange = OldMousedist / Mousedist;
+		
+		LatticeScale *= LatticeScaleChange;
+		if(LatticeScale < 0.378 ) //10/3 * HS3 / number_of_hexagon_rings)
+			LatticeScale = 0.378; //10/3 * HS3 / number_of_hexagon_rings;
+		if(LatticeScale > 1)
+			LatticeScale = 1;
+		//you could have a more sophisticated upper limit, a flower or something that keeps things more valid
+		//however, it raises the possibility of people not realizing they can go to one, which'd be awful
+		
+		var MouseAngle = Math.atan2( (MousePosition.x - flatlattice_center.x), (MousePosition.y - flatlattice_center.y) );
+		if(MousePosition.x - flatlattice_center.x === 0 && MousePosition.y - flatlattice_center.y === 0)
+			MouseAngle = 0; //well, undefined
+		
+		var OldMouseAngle = Math.atan2( (OldMousePosition.x - flatlattice_center.x), (OldMousePosition.y - flatlattice_center.y) );
+		if(OldMousePosition.x - flatlattice_center.x === 0 && OldMousePosition.y - flatlattice_center.y === 0)
+			OldMouseAngle = 0;
+		
+		//speed up opening. TODO Sensetive enough so you know it happens, not so sensetive that touchscreens don't see slow opening
+		//if(Math.abs(OldMouseAngle - MouseAngle) > 0.08) capsidopeningspeed += 0.0045;
+		
+		var maxLatticeAngleChange = 0.5;
+		var LatticeAngleChange = MouseAngle - OldMouseAngle;
+		//if(Math.abs(LatticeAngleChange) > maxLatticeAngleChange) LatticeAngleChange = maxLatticeAngleChange * Math.sign(LatticeAngleChange);
+		LatticeAngle += LatticeAngleChange;
+	} else {
 		LatticeGrabbed = false;
 
 		var centralaxis = new THREE.Vector3(0, 0, 1);	
@@ -101,43 +135,6 @@ function HandleLatticeMovement() {
 		
 		LatticeScale *= scaleaugmentation;
 		LatticeAngle += angleaugmentation;
-	} else {
-		var Mousedist = MousePosition.distanceTo(flatlattice_center);
-		var OldMousedist = OldMousePosition.distanceTo(flatlattice_center); //unless the center is going to change?
-		if( Mousedist < HS3 * 10/3) {
-			LatticeGrabbed = true;
-			
-			var maxLatticeScaleChange = 10;
-			var minLatticeScaleChange = 0.9;
-			var LatticeScaleChange = Mousedist / OldMousedist;
-			//TODO impose limits. The "fuzz" comes from scaling, not rotation
-			//if( LatticeScaleChange > maxLatticeScaleChange) LatticeScaleChange = maxLatticeScaleChange;
-			//if( LatticeScaleChange < minLatticeScaleChange) LatticeScaleChange = minLatticeScaleChange;
-			
-			LatticeScale *= LatticeScaleChange;
-			if(LatticeScale < 10/3 * HS3 / number_of_hexagon_rings)
-				LatticeScale = 10/3 * HS3 / number_of_hexagon_rings;
-			if(LatticeScale > 1)
-				LatticeScale = 1;
-			//you could have a more sophisticated upper limit, a flower or something that keeps things more valid
-			//however, it raises the possibility of people not realizing they can go to one, which'd be awful
-			
-			var MouseAngle = Math.atan2( (MousePosition.x - flatlattice_center.x), (MousePosition.y - flatlattice_center.y) );
-			if(MousePosition.x - flatlattice_center.x === 0 && MousePosition.y - flatlattice_center.y === 0)
-				MouseAngle = 0; //well, undefined
-			
-			var OldMouseAngle = Math.atan2( (OldMousePosition.x - flatlattice_center.x), (OldMousePosition.y - flatlattice_center.y) );
-			if(OldMousePosition.x - flatlattice_center.x === 0 && OldMousePosition.y - flatlattice_center.y === 0)
-				OldMouseAngle = 0;
-			
-			//speed up opening. TODO Sensetive enough so you know it happens, not so sensetive that touchscreens don't see slow opening
-			//if(Math.abs(OldMouseAngle - MouseAngle) > 0.08) capsidopeningspeed += 0.0045;
-			
-			var maxLatticeAngleChange = 0.5;
-			var LatticeAngleChange = OldMouseAngle - MouseAngle;
-			//if(Math.abs(LatticeAngleChange) > maxLatticeAngleChange) LatticeAngleChange = maxLatticeAngleChange * Math.sign(LatticeAngleChange);
-			LatticeAngle += LatticeAngleChange;
-		}
 	}
 	updatelattice();
 }
@@ -148,7 +145,7 @@ function Map_lattice() {
 	for(var i = 0; i < number_of_lattice_points; i++) {
 		var triangle = locate_in_squarelattice_net(squarelattice_vertices[i*2+0],squarelattice_vertices[i*2+1]);
 		
-		if( triangle !== 666) {
+		if( triangle !== 666 && capsidopenness != 1) {
 			var mappedpoint = map_from_lattice_to_surface(
 				flatlattice_vertices.array[ i*3+0 ], flatlattice_vertices.array[ i*3+1 ],
 				triangle);
@@ -159,8 +156,15 @@ function Map_lattice() {
 			lattice_colors[i*3+1] = 0;
 			lattice_colors[i*3+2] = 0;
 		}
+		else if( triangle !== 666 && capsidopenness == 1) {
+			surflattice_vertices.setXYZ(i, lattice_scalefactor*flatlattice_default_vertices[ i*3+0 ],lattice_scalefactor*flatlattice_default_vertices[ i*3+1 ],0);
+			
+			lattice_colors[i*3+0] = 1;
+			lattice_colors[i*3+1] = 0;
+			lattice_colors[i*3+2] = 0;
+		}
 		else {
-			surflattice_vertices.setXYZ(i, flatlattice_vertices.array[ i*3+0 ],flatlattice_vertices.array[ i*3+1 ],flatlattice_vertices.array[ i*3+2 ]);
+			surflattice_vertices.setXYZ(i, lattice_scalefactor*flatlattice_default_vertices[ i*3+0 ],lattice_scalefactor*flatlattice_default_vertices[ i*3+1 ],0);
 			
 			lattice_colors[i*3+0] = 1;
 			lattice_colors[i*3+1] = 0.5;

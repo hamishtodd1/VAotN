@@ -96,7 +96,7 @@ function ChangeScene() {
 			scene.add(surface);
 			scene.add(surflattice);
 			for( var i = 0; i < surfperimeter_cylinders.length; i++) {
-				scene.add(surfperimeter_spheres[i]);
+//				scene.add(surfperimeter_spheres[i]);
 				scene.add(surfperimeter_cylinders[i]);
 			}
 			for( var i = 0; i < blast_cylinders.length; i++)

@@ -97,8 +97,9 @@ function put_tube_in_buffer(A,B, mybuffer, radius ) {
 		radius = 0.02; 
 	
 	var A_to_B = new THREE.Vector3(B.x-A.x, B.y-A.y, B.z-A.z);
-	var perp = new THREE.Vector3(A_to_B.y*A_to_B.y+A_to_B.z*A_to_B.z, A_to_B.y*-A_to_B.x,A_to_B.z*-A_to_B.x);
+	var perp = new THREE.Vector3(A_to_B.y*A_to_B.y+A_to_B.z*A_to_B.z,   A_to_B.y*-A_to_B.x,  A_to_B.z*-A_to_B.x);
 	perp.normalize();
+	A_to_B.normalize();
 	for( var i = 0; i < mybuffer.length/3/2; i++) {
 		var theta = i * TAU/(mybuffer.length/3/2);
 		var radiuscomponent = perp.clone();

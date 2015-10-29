@@ -63,6 +63,9 @@ function map_from_lattice_to_surface(x,y, net_triangle_index) {
 	side0_component.multiplyScalar(side0_component_length);
 	side1_component.multiplyScalar(side1_component_length);
 	
+	side0_component.multiplyScalar(lattice_scalefactor/LatticeScale);
+	side1_component.multiplyScalar(lattice_scalefactor/LatticeScale);
+	
 	var mappedpoint = new THREE.Vector3();
 	mappedpoint.addVectors(side0_component,side1_component);
 	mappedpoint.x += surface_vertices.array[(net_triangle_index+2) * 3 + 0];

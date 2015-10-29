@@ -47,7 +47,8 @@ var varyingsurface_edges_default_radius = 0.012;
 //Not including the central vertex
 //mimivirus needs exactly 100. Try and work out how many a human can distinguish though
 //you need 40 for phyconaviridae, which is pushing distinguishability
-var number_of_hexagon_rings = 30;
+var number_of_hexagon_rings = 7;
+var lattice_scalefactor = playing_field_width / 2 / number_of_hexagon_rings; //TODO there is a more intuitive representation of this (maybe all of it)
 var number_of_lattice_points = 1 + 3 * number_of_hexagon_rings*(number_of_hexagon_rings+1);
 
 //in the limited environment we will end up with (and might do well to be going with) a circle of existence for lattice pts is prb. best
