@@ -34,8 +34,7 @@ function UpdateWorld() {
 			break;
 			
 		case CK_MODE:
-			HandleCapsidOpenness(); //really this is "update surface"
-			HandleCapsidRotation(); //what you probably need to keep in mind is a picture of this as a list of the things that happen inside their functions
+			UpdateCapsid();
 			update_surfperimeter();
 			
 			HandleLatticeMovement();
