@@ -13,7 +13,7 @@ var CUBIC_LATTICE_MODE = 3;
 var QC_SPHERE_MODE = 4;
 var IRREGULAR_MODE = 5; //so we're going to have a button below the thing
 	
-var MODE = CUBIC_LATTICE_MODE;
+var MODE = CK_MODE;
 
 //--------------Technologically fundamental
 var playing_field_width = 7*HS3;
@@ -30,6 +30,7 @@ camera.position.z = MODE == CUBIC_LATTICE_MODE ? 3*min_cameradist : min_cameradi
 var scene = new THREE.Scene();
 var renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize( window_width, window_height );
+renderer.setClearColor( 0xffffff, 1);
 document.body.appendChild( renderer.domElement );
 
 //----------------Static
@@ -87,7 +88,7 @@ var dodeca_triangle_vertex_indices;
 var back_hider;
 var quasilattice_default_vertices = Array(18*5);
 var quasilattice_pairs = Array(29*5*2);
-var cutout_vector0; //these lie on the lattice
+var _vector0; //these lie on the lattice
 var cutout_vector1;
 var quasi_shear_matrix = Array(4);
 var quasicutout_intermediate_vertices = Array(36);
@@ -101,6 +102,7 @@ var golden_triacontahedra = Array(20);
 var golden_stars = Array(12);
 var ico_stars = Array(12);
 var animation_progress = 0;
+var previous_animation_progress = animation_progress; 
 var progress_bar;
 var slider;
 var slider_grabbed = false;
@@ -164,8 +166,6 @@ var minimum_angles = new Array(22); //between these two, we derive the polyhedro
 
 var circle;
 var Button;
-
-var cutout_mode = true;
 
 var varyingsurface_cylinders = Array(41);
 var varyingsurface_spheres = Array(22);

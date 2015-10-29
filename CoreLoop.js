@@ -81,7 +81,11 @@ render();
 
 //eventually we'll add some trigger to this that makes it reasonable to call every frame
 function ChangeScene() {
-	renderer.setClearColor( 0xffffff, 1);
+	
+	
+	//this is the one variable that seems to be conserved; at least if it isn't, then make it so.
+//	capsidopenness = 0;
+	
 	switch(MODE){
 		case STATIC_PROTEIN_MODE:
 			break;
@@ -102,33 +106,6 @@ function ChangeScene() {
 			break;
 			
 		case CUBIC_LATTICE_MODE:
-//			{
-//				var ambientLight = new THREE.AmbientLight( 0x000000 );
-//				scene.add( ambientLight );
-//				
-//				var lights = [];
-//				lights[0] = new THREE.PointLight( 0xffffff, 1, 0 );
-//				lights[1] = new THREE.PointLight( 0xffffff, 1, 0 );
-//				lights[2] = new THREE.PointLight( 0xffffff, 1, 0 );
-//				
-//				lights[0].position.set( 0, 200, 0 );
-//				lights[1].position.set( 100, 200, 100 );
-//				lights[2].position.set( -100, -200, -100 );
-//			
-//				scene.add( lights[0] );
-//				scene.add( lights[1] );
-//				scene.add( lights[2] );
-//			}
-			for( var i = 0; i < golden_triacontahedra.length; i++)
-				scene.add(golden_triacontahedra[i]);
-			for( var i = 0; i < goldenicos.length; i++)
-				scene.add(goldenicos[i]);
-			for( var i = 0; i < golden_rhombohedra.length; i++)
-				scene.add(golden_rhombohedra[i]);
-			for( var i = 0; i < golden_stars.length; i++)
-				scene.add(golden_stars[i]);
-			for( var i = 0; i < ico_stars.length; i++)
-				scene.add(ico_stars[i]);
 			scene.add( circle );
 			scene.add(slider);
 			scene.add(progress_bar);

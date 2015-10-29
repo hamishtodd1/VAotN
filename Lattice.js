@@ -155,19 +155,16 @@ function Map_lattice() {
 			
 			surflattice_vertices.setXYZ(i, mappedpoint.x, mappedpoint.y, mappedpoint.z );
 			
-			if(cutout_mode) {
-				lattice_colors[i*3+0] = 1;
-				lattice_colors[i*3+1] = 0;
-				lattice_colors[i*3+2] = 0;
-			}
+			lattice_colors[i*3+0] = 1;
+			lattice_colors[i*3+1] = 0;
+			lattice_colors[i*3+2] = 0;
 		}
 		else {
 			surflattice_vertices.setXYZ(i, flatlattice_vertices.array[ i*3+0 ],flatlattice_vertices.array[ i*3+1 ],flatlattice_vertices.array[ i*3+2 ]);
-			if(cutout_mode) {
-				lattice_colors[i*3+0] = 1;
-				lattice_colors[i*3+1] = 0.5;
-				lattice_colors[i*3+2] = 0;
-			}
+			
+			lattice_colors[i*3+0] = 1;
+			lattice_colors[i*3+1] = 0.5;
+			lattice_colors[i*3+2] = 0;
 		}
 	}
 	
