@@ -137,7 +137,7 @@ function update_varyingsurface() {
 	}
 	else {
 		var base_quaternion = new THREE.Quaternion(0,0,0,1);
-		var interpolationfactor = 0.03 + 0.97 * Math.pow(capsidopenness,10);
+		var interpolationfactor = 0.03 + 0.97 * Math.pow(capsidopenness,10); //may want to massively reduce this power
 		
 		varyingsurface.quaternion.slerp(base_quaternion, interpolationfactor); //if capsidopenness = 1 we want it to be entirely the base quaternion, i.e. t = 1
 		for( var i = 0; i < varyingsurface_cylinders.length; i++)

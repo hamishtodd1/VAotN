@@ -6,13 +6,27 @@
  */ 
 
 function Update_net_variables() {
-	var centralaxis = new THREE.Vector3(0, 0, 1);	
+	var old_net_vertices_closest_lattice_vertex = Array(net_vertices_closest_lattice_vertex.length);
+	for(var i = 0; i<net_vertices_closest_lattice_vertex.length; i++)
+		old_net_vertices_closest_lattice_vertex[i] = net_vertices_closest_lattice_vertex[i];
+	var centralaxis = new THREE.Vector3(0, 0, 1);
 	for( var i = 0; i < 22; i++) {
 		var netvertex = new THREE.Vector3(flatnet_vertices.array[ i*3+0 ],flatnet_vertices.array[ i*3+1 ],0);
 		netvertex.multiplyScalar(1/LatticeScale);
 		netvertex.applyAxisAngle(centralaxis,-LatticeAngle);
 
 		net_vertices_closest_lattice_vertex[i] = index_of_closest_default_lattice_vertex(netvertex.x,netvertex.y);
+	}
+	
+	//speedup opportunity: this part only exists for one situation, where LatticeScale is very low and such. Could be more specific
+	for(var i = 0; i<net_triangle_vertex_indices.length / 3; i++){
+		if(		net_vertices_closest_lattice_vertex[net_triangle_vertex_indices[i*3+0]] == net_vertices_closest_lattice_vertex[net_triangle_vertex_indices[i*3+1]]
+			 || net_vertices_closest_lattice_vertex[net_triangle_vertex_indices[i*3+0]] == net_vertices_closest_lattice_vertex[net_triangle_vertex_indices[i*3+2]]
+			 || net_vertices_closest_lattice_vertex[net_triangle_vertex_indices[i*3+1]] == net_vertices_closest_lattice_vertex[net_triangle_vertex_indices[i*3+2]] ) {
+			for(var i = 0; i<net_vertices_closest_lattice_vertex.length; i++)
+				net_vertices_closest_lattice_vertex[i] = old_net_vertices_closest_lattice_vertex[i];
+			break;
+		}
 	}
 	
 	for(var i = 0; i < 20; i++) {
@@ -91,13 +105,14 @@ function locate_in_net(x,y) {
 	return 666;
 }
 
+//a nasty problem causes the 
 function locate_in_squarelattice_net(x,y) {
 	//so this merits use when net vertices are close to lattice vertices
 	//when the capsid isn't closed, it doesn't really matter what lattice vertices are considered to be within it
 	//may as well continue using it for the whole lattice at all times, so it's easier.
 	for(var i = 0; i < 20; i++ ) {			
 		if( point_in_triangle(
-				x,y, //yeah, this is pretty crazy. Think it through and you get it though.
+				x,y, //yeah, the below is pretty crazy. Think it through and you get it though.
 				squarelattice_vertices[  net_vertices_closest_lattice_vertex[  net_triangle_vertex_indices[i*3+0]  ]  *2+0], squarelattice_vertices[net_vertices_closest_lattice_vertex[net_triangle_vertex_indices[i*3+0]] * 2 + 1],
 				squarelattice_vertices[  net_vertices_closest_lattice_vertex[  net_triangle_vertex_indices[i*3+1]  ]  *2+0], squarelattice_vertices[net_vertices_closest_lattice_vertex[net_triangle_vertex_indices[i*3+1]] * 2 + 1],
 				squarelattice_vertices[  net_vertices_closest_lattice_vertex[  net_triangle_vertex_indices[i*3+2]  ]  *2+0], squarelattice_vertices[net_vertices_closest_lattice_vertex[net_triangle_vertex_indices[i*3+2]] * 2 + 1],

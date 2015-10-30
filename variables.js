@@ -47,7 +47,9 @@ var varyingsurface_edges_default_radius = 0.012;
 //Not including the central vertex
 //mimivirus needs exactly 100. Try and work out how many a human can distinguish though
 //you need 40 for phyconaviridae, which is pushing distinguishability
-var number_of_hexagon_rings = 7;
+//it might be a lot better as a circle. And with a max T number of 49, to show the interesting ambiguity. That means a radius of 7*sqrt(7)
+//What'd be great would be every position corresponding to a valid virus
+var number_of_hexagon_rings = 14;
 var lattice_scalefactor = playing_field_width / 2 / number_of_hexagon_rings; //TODO there is a more intuitive representation of this (maybe all of it)
 var number_of_lattice_points = 1 + 3 * number_of_hexagon_rings*(number_of_hexagon_rings+1);
 
@@ -158,8 +160,8 @@ var surflattice_vertices_numbers = new Float32Array(3 * number_of_lattice_points
 var surflattice_vertices;
 var surflattice_geometry;
 
-var LatticeScale = 10/3 * HS3 / number_of_hexagon_rings;
-var LatticeAngle = TAU/12;
+var LatticeScale = 0.25; //10/3 * HS3 / number_of_hexagon_rings;
+var LatticeAngle = 0; //TAU/12;
 var LatticeGrabbed = false;
 
 var vertices_derivations;
