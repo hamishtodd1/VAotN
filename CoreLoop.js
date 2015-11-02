@@ -1,10 +1,12 @@
 /*	EGW todo
  * -protein capsid at beginning
  * -DNA at beginning
+ * -random walking atom
  * -get it ON a webpage. If you can't integrate with video, could have links to each chapter
  * -integration into webpage... http://stackoverflow.com/questions/29401407/return-embed-youtube-current-time   https://developers.google.com/youtube/v3/code_samples/javascript
  * -protein models in CK
  * -everything sequential
+ * -penrose tiling breakup demo? Urgh
  * 
  * 
  * Long term To Do

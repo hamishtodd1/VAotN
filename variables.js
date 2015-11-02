@@ -13,7 +13,7 @@ var CUBIC_LATTICE_MODE = 3;
 var QC_SPHERE_MODE = 4;
 var IRREGULAR_MODE = 5; //so we're going to have a button below the thing
 	
-var MODE = CK_MODE;
+var MODE = 3;
 
 //--------------Technologically fundamental
 var playing_field_width = 7*HS3;
@@ -64,7 +64,8 @@ var backgroundtexture;
 
 var net_triangle_vertex_indices;
 var line_index_pairs = new Uint16Array(60 * 2);
-var cylinder_triangle_indices = new Uint16Array(6 * 8);
+var cylinder_triangle_indices = new Uint16Array(6 * 8); //YO, YOU CAN'T QUITE PUT ANY NUMBER OF SEGMENTS IN THERE 
+var prism_triangle_indices = new Uint16Array(12);
 
 //--------------Varying, fundamental
 var logged = 0;
@@ -110,6 +111,7 @@ var progress_bar;
 var slider;
 var slider_grabbed = false;
 var quasiatoms = Array(4);
+var QC_atoms = Array(8 * 20);
 
 var flatnet;
 var flatnet_vertices_numbers;

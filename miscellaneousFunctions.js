@@ -116,6 +116,24 @@ function put_tube_in_buffer(A,B, mybuffer, radius ) {
 	}
 }
 
+//we're not going to treat this like it is performance sensetive
+function put_unbased_triangularprism_in_buffer(A,B,mybuffer,peak){
+	var A_to_B = new THREE.Vector3(B.x-A.x, B.y-A.y, B.z-A.z);
+	A_to_B.normalize();
+	peak.applyAxisAngle(A_to_B, -TAU/3);
+	for( var i = 0; i < 3; i++) {
+		mybuffer[ i*2 * 3 + 0] = A.x + peak.x;
+		mybuffer[ i*2 * 3 + 1] = A.y + peak.y;
+		mybuffer[ i*2 * 3 + 2] = A.z + peak.z;
+		
+		mybuffer[(i*2+1) * 3 + 0] = B.x + peak.x;
+		mybuffer[(i*2+1) * 3 + 1] = B.y + peak.y;
+		mybuffer[(i*2+1) * 3 + 2] = B.z + peak.z;
+		
+		peak.applyAxisAngle(A_to_B, TAU/3);
+	}
+}
+
 function point_to_the_right_of_line(ourpointx,ourpointy,
 									line_topx,line_topy, line_bottomx,line_bottomy) {
 	var z_coord = 	(ourpointx * line_topy + line_bottomx *-line_topy + ourpointx *-line_bottomy + line_bottomx * line_bottomy)

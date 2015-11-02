@@ -113,16 +113,26 @@ function init() {
 		line_index_pairs[i*6 + 4] = net_triangle_vertex_indices[i*3 + 2];
 		line_index_pairs[i*6 + 5] = net_triangle_vertex_indices[i*3 + 0];
 	}
-	
-	for( var i = 0; i < 8; i++){
-		//hopefully this is clockwise
-		cylinder_triangle_indices[i*6+0] = (i*2)%16;
-		cylinder_triangle_indices[i*6+1] = (i*2+1)%16;
-		cylinder_triangle_indices[i*6+2] = (i*2+2)%16;
+	console.log(cylinder_triangle_indices.length/3);
+	for( var i = 0; i < cylinder_triangle_indices.length / 3 / 2; i++){
+		cylinder_triangle_indices[i*6+0] = (i*2);
+		cylinder_triangle_indices[i*6+1] = (i*2+2)%(cylinder_triangle_indices.length/3);
+		cylinder_triangle_indices[i*6+2] = (i*2+1);
 		
-		cylinder_triangle_indices[i*6+3] = (i*2+1)%16;
-		cylinder_triangle_indices[i*6+4] = (i*2+3)%16;
-		cylinder_triangle_indices[i*6+5] = (i*2+2)%16;
+		cylinder_triangle_indices[i*6+3] = (i*2+2)%(cylinder_triangle_indices.length/3);
+		cylinder_triangle_indices[i*6+4] = (i*2+3)%(cylinder_triangle_indices.length/3);
+		cylinder_triangle_indices[i*6+5] = (i*2+1);
+	}
+	console.log(cylinder_triangle_indices)
+	for( var i = 0; i < 2; i++){
+		//hopefully this is clockwise
+		prism_triangle_indices[i*6+0] = (i*2);
+		prism_triangle_indices[i*6+1] = (i*2+2);
+		prism_triangle_indices[i*6+2] = (i*2+1);
+		
+		prism_triangle_indices[i*6+3] = (i*2+2);
+		prism_triangle_indices[i*6+4] = (i*2+3);
+		prism_triangle_indices[i*6+5] = (i*2+1);
 	}
 	
 	for(var i = 0; i < 22; i++) {

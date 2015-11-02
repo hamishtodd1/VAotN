@@ -6,7 +6,8 @@
  * So maybe things should scale a little, or indeed indefinitely
  * You can perhaps turn it on one axis which also makes it generate
  * 
- * We have a slider. At the end, everything fades out and you are left with spheres on the vertices
+ * Remove the lines and faces from the sides of the shapes that you can't see. This is trivial, just need a separate material
+ * The most worthwhile deletions would be what you can't see when the stars are in
  * 
  * the random walk: forces are ionic and hydrogen bonds vs electrostatics
  */
@@ -23,6 +24,12 @@ function rotate_every_shape_in_array(shape_array, MovementAxis,movementangle,qua
 		myquaternion.setFromAxisAngle( myaxis, movementangle );
 		shape_array[i].quaternion.multiply(myquaternion);
 		shape_array[i].updateMatrixWorld();
+	}	
+}
+
+function sphere_array_rotate(shape_array, MovementAxis,movementangle,quaternion){
+	for(var i = 0; i < shape_array.length; i++){		
+		shape_array[i].position.applyQuaternion(quaternion);
 	}	
 }
 
@@ -71,8 +78,15 @@ function update_3DLattice() {
 		 * Ahh fuck it, you don't need this. Certainly not for a while
 		 */
 		
+		
 		for(var i = 0; i < golden_rhombohedra.length; i++)
-			quasiatoms[0][i].position.copy(golden_rhombohedra[i].position);
+			for(var j = 0; j<golden_rhombohedra[i].geometry.attributes.position.length/3; j++){
+				QC_atoms[i* (golden_rhombohedra[i].geometry.attributes.position.length/3)+j].position.set(
+						golden_rhombohedra[i].geometry.attributes.position.array[j*3+0],
+						golden_rhombohedra[i].geometry.attributes.position.array[j*3+1],
+						golden_rhombohedra[i].geometry.attributes.position.array[j*3+2]);
+				golden_rhombohedra[i].localToWorld(QC_atoms[i* (golden_rhombohedra[i].geometry.attributes.position.length/3)+j].position);
+			}
 		for(var i = 0; i < goldenicos.length; i++)
 			quasiatoms[1][i].position.copy(goldenicos[i].position);
 		for(var i = 0; i < golden_triacontahedra.length; i++)
@@ -80,15 +94,21 @@ function update_3DLattice() {
 		for(var i = 0; i < golden_stars.length; i++)
 			quasiatoms[3][i].position.copy(golden_stars[i].position);
 		
-		for(var i = 0; i<quasiatoms.length; i++)
-			for(var j = 0; j < quasiatoms[i].length; j++)
-				scene.add(quasiatoms[i][j]);
+//		for(var i = 0; i<quasiatoms.length; i++)
+//			for(var j = 0; j < quasiatoms[i].length; j++)
+//				scene.add(quasiatoms[i][j]);
+		for(var i = 0; i<QC_atoms.length; i++)
+			scene.add(QC_atoms[i]);
 	}
 	if(animation_progress < allshape_fadeout_start_time && previous_animation_progress >= allshape_fadeout_start_time){
 		for(var i = 0; i<quasiatoms.length; i++)
 			for(var j = 0; j < quasiatoms[i].length; j++)
 				scene.remove(quasiatoms[i][j]);
-	}	
+		
+		for(var i = 0; i<QC_atoms.length; i++)
+			scene.remove(QC_atoms[i]);
+	}
+	logged = 1
 	
 	var shape_accel = 160;
 	
@@ -126,10 +146,12 @@ function update_3DLattice() {
 		rotate_every_shape_in_array(golden_stars, MovementAxis, MovementAngle,extraquaternion);
 		rotate_every_shape_in_array(ico_stars, MovementAxis, MovementAngle,extraquaternion);
 		
-		rotate_every_shape_in_array(quasiatoms[0], MovementAxis, MovementAngle,extraquaternion);
-		rotate_every_shape_in_array(quasiatoms[1], MovementAxis, MovementAngle,extraquaternion);
-		rotate_every_shape_in_array(quasiatoms[2], MovementAxis, MovementAngle,extraquaternion);
-		rotate_every_shape_in_array(quasiatoms[3], MovementAxis, MovementAngle,extraquaternion);
+		sphere_array_rotate(quasiatoms[0], MovementAxis, MovementAngle,extraquaternion);
+		sphere_array_rotate(quasiatoms[1], MovementAxis, MovementAngle,extraquaternion);
+		sphere_array_rotate(quasiatoms[2], MovementAxis, MovementAngle,extraquaternion);
+		sphere_array_rotate(quasiatoms[3], MovementAxis, MovementAngle,extraquaternion);
+		
+		sphere_array_rotate(QC_atoms, MovementAxis, MovementAngle,extraquaternion);
 	}
 }
 
@@ -197,6 +219,9 @@ function init_cubicLattice_stuff() {
 	for(var i = 0; i < quasiatoms[3].length; i++)
 		quasiatoms[3][i] = new THREE.Mesh( (new THREE.BufferGeometry).fromGeometry(new THREE.SphereGeometry(quasiatom_radius,8,4)),new THREE.MeshBasicMaterial({color: 0xD56252}));
 	
+	for(var i = 0; i < QC_atoms.length; i++)
+		QC_atoms[i] = new THREE.Mesh( (new THREE.BufferGeometry).fromGeometry(new THREE.SphereGeometry(quasiatom_radius,8,4)),new THREE.MeshBasicMaterial({color: 0xD56252}));
+	
 	var virtual_dodecahedron_vertices = Array(20);
 	virtual_dodecahedron_vertices[0] = new THREE.Vector3(1,-1,1);
 	virtual_dodecahedron_vertices[1] = new THREE.Vector3(0,-1/PHI, PHI);
@@ -246,24 +271,24 @@ function init_cubicLattice_stuff() {
 	var rhombohedron_material = new THREE.MeshBasicMaterial({ //could make lambert if this doesn't work
 		color: 0xD56252,
 		//shading: THREE.FlatShading, //light sources didn't seem to do anything
-		side:THREE.DoubleSide,
+		side:THREE.BackSide,
 		transparent: true
 	});
 	var star_material = rhombohedron_material.clone();
 	var goldenico_material = new THREE.MeshBasicMaterial({
 		color: 0x6ADEFF,
 		//shading: THREE.FlatShading,
-		side:THREE.DoubleSide,
+		side:THREE.BackSide,
 		transparent: true
 	});
 	var ico_star_material = goldenico_material.clone();
 	var triacontahedron_material = new THREE.MeshBasicMaterial({
 		color: 0xAC83FF,
 		//shading: THREE.FlatShading,
-		side:THREE.DoubleSide,
+		side:THREE.BackSide,
 		transparent: true
 	});
-	var shapes_edgesmaterial = new THREE.MeshBasicMaterial({color:0x000000,side:THREE.DoubleSide,transparent:true});
+	var shapes_edgesmaterial = new THREE.MeshBasicMaterial({color:0x000000,transparent:true});
 	
 	{
 		var rhombohedron_h = Math.sqrt(1/3+2/(3*Math.sqrt(5)));
@@ -322,16 +347,20 @@ function init_cubicLattice_stuff() {
 				var mycylinder_vertices_numbers = new Float32Array(16*3);
 				var corner_index1 = j < 3 ? 0 : Math.floor(j / 3) + 3;
 				var corner_index2 = corners_for_edge[j];
-				put_tube_in_buffer(
-						new THREE.Vector3(
-							golden_rhombohedra[i].geometry.attributes.position.array[corner_index1*3+0],
-							golden_rhombohedra[i].geometry.attributes.position.array[corner_index1*3+1],
-							golden_rhombohedra[i].geometry.attributes.position.array[corner_index1*3+2]),
-						new THREE.Vector3(
-							golden_rhombohedra[i].geometry.attributes.position.array[corner_index2*3+0],
-							golden_rhombohedra[i].geometry.attributes.position.array[corner_index2*3+1],
-							golden_rhombohedra[i].geometry.attributes.position.array[corner_index2*3+2]),
-						mycylinder_vertices_numbers, golden_rhombohedra_edge_radius);
+				var endA =new THREE.Vector3(
+						golden_rhombohedra[i].geometry.attributes.position.array[corner_index1*3+0],
+						golden_rhombohedra[i].geometry.attributes.position.array[corner_index1*3+1],
+						golden_rhombohedra[i].geometry.attributes.position.array[corner_index1*3+2]);
+				var endB = new THREE.Vector3(
+						golden_rhombohedra[i].geometry.attributes.position.array[corner_index2*3+0],
+						golden_rhombohedra[i].geometry.attributes.position.array[corner_index2*3+1],
+						golden_rhombohedra[i].geometry.attributes.position.array[corner_index2*3+2]);
+				var peak = new THREE.Vector3();
+				peak.addVectors(endA,endB);
+				peak.setLength(golden_rhombohedra_edge_radius);
+				put_unbased_triangularprism_in_buffer(
+						endA,endB,
+						mycylinder_vertices_numbers, peak);
 				
 				var mycylinder_geometry = new THREE.BufferGeometry();
 				mycylinder_geometry.addAttribute( 'index', new THREE.BufferAttribute( cylinder_triangle_indices, 1 ) );
@@ -439,16 +468,20 @@ function init_cubicLattice_stuff() {
 				var mycylinder_vertices_numbers = new Float32Array(16*3);
 				var corner_index1 = triacontahedron_line_pairs[j*2];
 				var corner_index2 = triacontahedron_line_pairs[j*2+1];
-				put_tube_in_buffer(
-					new THREE.Vector3(
+				var endA =new THREE.Vector3(
 						golden_triacontahedra[i].geometry.attributes.position.array[corner_index1*3+0],
 						golden_triacontahedra[i].geometry.attributes.position.array[corner_index1*3+1],
-						golden_triacontahedra[i].geometry.attributes.position.array[corner_index1*3+2]),
-					new THREE.Vector3(
+						golden_triacontahedra[i].geometry.attributes.position.array[corner_index1*3+2]);
+				var endB = new THREE.Vector3(
 						golden_triacontahedra[i].geometry.attributes.position.array[corner_index2*3+0],
 						golden_triacontahedra[i].geometry.attributes.position.array[corner_index2*3+1],
-						golden_triacontahedra[i].geometry.attributes.position.array[corner_index2*3+2]),
-					mycylinder_vertices_numbers, golden_rhombohedra_edge_radius);
+						golden_triacontahedra[i].geometry.attributes.position.array[corner_index2*3+2]);
+				var peak = new THREE.Vector3();
+				peak.addVectors(endA,endB);
+				peak.setLength(golden_rhombohedra_edge_radius);
+				put_unbased_triangularprism_in_buffer(
+						endA,endB,
+						mycylinder_vertices_numbers, peak);
 				
 				var mycylinder_geometry = new THREE.BufferGeometry();
 				mycylinder_geometry.addAttribute( 'index', new THREE.BufferAttribute( cylinder_triangle_indices, 1 ) );
@@ -515,16 +548,20 @@ function init_cubicLattice_stuff() {
 				var mycylinder_vertices_numbers = new Float32Array(16*3);
 				var corner_index1 = goldenico_line_pairs[j*2];
 				var corner_index2 = goldenico_line_pairs[j*2+1];
-				put_tube_in_buffer(
-						new THREE.Vector3(
-							goldenicos[i].geometry.attributes.position.array[corner_index1*3+0],
-							goldenicos[i].geometry.attributes.position.array[corner_index1*3+1],
-							goldenicos[i].geometry.attributes.position.array[corner_index1*3+2]),
-						new THREE.Vector3(
-							goldenicos[i].geometry.attributes.position.array[corner_index2*3+0],
-							goldenicos[i].geometry.attributes.position.array[corner_index2*3+1],
-							goldenicos[i].geometry.attributes.position.array[corner_index2*3+2]),
-						mycylinder_vertices_numbers, golden_rhombohedra_edge_radius);
+				var endA =new THREE.Vector3(
+						goldenicos[i].geometry.attributes.position.array[corner_index1*3+0],
+						goldenicos[i].geometry.attributes.position.array[corner_index1*3+1],
+						goldenicos[i].geometry.attributes.position.array[corner_index1*3+2]);
+				var endB = new THREE.Vector3(
+						goldenicos[i].geometry.attributes.position.array[corner_index2*3+0],
+						goldenicos[i].geometry.attributes.position.array[corner_index2*3+1],
+						goldenicos[i].geometry.attributes.position.array[corner_index2*3+2]);
+				var peak = new THREE.Vector3();
+				peak.addVectors(endA,endB);
+				peak.setLength(golden_rhombohedra_edge_radius);
+				put_unbased_triangularprism_in_buffer(
+						endA,endB,
+						mycylinder_vertices_numbers, peak);
 				
 				var mycylinder_geometry = new THREE.BufferGeometry();
 				mycylinder_geometry.addAttribute( 'index', new THREE.BufferAttribute( cylinder_triangle_indices, 1 ) );
