@@ -9,11 +9,11 @@ var TAU = Math.PI * 2;
 var STATIC_PROTEIN_MODE = 0;
 var STATIC_DNA_MODE = 1; 
 var CK_MODE = 2;
-var CUBIC_LATTICE_MODE = 3;
+var IRREGULAR_MODE = 3;
 var QC_SPHERE_MODE = 4;
-var IRREGULAR_MODE = 5; //so we're going to have a button below the thing
+var CUBIC_LATTICE_MODE = 5;
 	
-var MODE = 3;
+var MODE = 4;
 
 //--------------Technologically fundamental
 var playing_field_width = 7*HS3;
@@ -59,7 +59,6 @@ var number_of_lattice_points = 1 + 3 * number_of_hexagon_rings*(number_of_hexago
 var squarelattice_vertices = Array(number_of_lattice_points*2);
 var flatlattice_default_vertices = Array(number_of_lattice_points*3);
 
-var backgroundtexture_file;
 var backgroundtexture;
 
 var net_triangle_vertex_indices;
@@ -72,6 +71,8 @@ var logged = 0;
 
 var ourclock = new THREE.Clock( true );
 var delta_t = 0;
+
+var textures_loaded = 0;
 
 //--------------Varying
 var vertex_tobechanged = 666;
@@ -170,6 +171,8 @@ var vertices_derivations;
 var minimum_angles = new Array(22); //between these two, we derive the polyhedron and surface
 
 var circle;
+var forwardbutton;
+var backwardbutton;
 var Button;
 
 var varyingsurface_cylinders = Array(41);

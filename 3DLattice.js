@@ -1,6 +1,4 @@
 /*
- * What we're planning is 20 rhomohedra, then 12 icosahedra, then 20 triacontahedra,
- * then 20*12=240 rhombohedra. Maybe just get them in as hexecontahedra
  * Then 5x12=60 icosahedra, then (sigh, violation) 20 triacontahedra AND 12 icosahedra. Then perhaps 20*30 = 360 rhombohedra
  * 
  * So maybe things should scale a little, or indeed indefinitely

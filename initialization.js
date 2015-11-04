@@ -113,7 +113,6 @@ function init() {
 		line_index_pairs[i*6 + 4] = net_triangle_vertex_indices[i*3 + 2];
 		line_index_pairs[i*6 + 5] = net_triangle_vertex_indices[i*3 + 0];
 	}
-	console.log(cylinder_triangle_indices.length/3);
 	for( var i = 0; i < cylinder_triangle_indices.length / 3 / 2; i++){
 		cylinder_triangle_indices[i*6+0] = (i*2);
 		cylinder_triangle_indices[i*6+1] = (i*2+2)%(cylinder_triangle_indices.length/3);
@@ -123,7 +122,6 @@ function init() {
 		cylinder_triangle_indices[i*6+4] = (i*2+3)%(cylinder_triangle_indices.length/3);
 		cylinder_triangle_indices[i*6+5] = (i*2+1);
 	}
-	console.log(cylinder_triangle_indices)
 	for( var i = 0; i < 2; i++){
 		//hopefully this is clockwise
 		prism_triangle_indices[i*6+0] = (i*2);
@@ -143,24 +141,32 @@ function init() {
 	
 	//-------------stuff that goes in the scene
 	{
-//		backgroundtexture_file = THREE.ImageUtils.loadTexture( "Data/adenovirus256.jpg" );
-//		var backgroundtexture_material = new THREE.MeshBasicMaterial({
-//			map: backgroundtexture_file
-//		});
-//		var texturedist = -min_cameradist;
-//		var texturewidth = playing_field_width * 2;
-//		var textureheight = texturewidth; //currently we have a square texture
-//		var backgroundtexture_vertices_numbers = new Float32Array( [
-//		        -texturewidth/2, textureheight/2,texturedist,
-//				 texturewidth/2, textureheight/2,texturedist,
-//				 texturewidth/2,-textureheight/2,texturedist,
-//				-texturewidth/2,-textureheight/2,texturedist]);
-//		var backgroundtexture_triangle_vertices = new Uint32Array([0,1,2,0, 0,2,3,0]);		
-//		backgroundtexture_geometry = new THREE.BufferGeometry();
-//		backgroundtexture_geometry.addAttribute( 'index', new THREE.BufferAttribute( backgroundtexture_triangle_vertices, 1 ) );
-//		backgroundtexture_geometry.addAttribute( 'position', new THREE.BufferAttribute( backgroundtexture_vertices_numbers, 3 ) );
-//		backgroundtexture = new THREE.Mesh( backgroundtexture_geometry, backgroundtexture_material );
-//		scene.add(backgroundtexture);
+//		var texture_loader = new THREE.TextureLoader();
+//		texture_loader.load(
+//				'adenovirus256.jpg', //"http://icons.iconarchive.com/icons/aha-soft/torrent/256/virus-icon.png", 
+//				function(texture) {
+//					console.log("hey");
+//					
+//					var backgroundtexture_material = new THREE.MeshBasicMaterial({
+//						map: texture
+//					});
+//					var texturedist = -min_cameradist;
+//					var texturewidth = playing_field_width;
+//					var textureheight = texturewidth; //currently we have a square texture
+//		
+//					backgroundtexture_geometry = new THREE.CubeGeometry( texturewidth, textureheight, 0);
+//					backgroundtexture = new THREE.Mesh( backgroundtexture_geometry, backgroundtexture_material );
+//					backgroundtexture.position.z = -10;
+//					
+//					if(MODE == CK_MODE)
+//						scene.add(backgroundtexture);
+//					
+//					console.log(texture);
+//				},
+//				function ( xhr ) {},
+//				function ( xhr ) {
+//					console.log( 'texture loading error' );
+//				});
 		
 		var surfacematerial = new THREE.MeshBasicMaterial({
 			color: 0x00ffff,
@@ -171,7 +177,7 @@ function init() {
 		surface_vertices = new THREE.BufferAttribute( surface_vertices_numbers, 3 ); //note the 3 means 3 numbers to a vector, not three vectors to a triangle
 		
 		surface_geometry = new THREE.BufferGeometry();
-		surface_geometry.addAttribute( 'index', new THREE.BufferAttribute( net_triangle_vertex_indices, 1 ) );
+		surface_geometry.setIndex(new THREE.BufferAttribute( net_triangle_vertex_indices, 1 ) );
 		surface_geometry.addAttribute( 'position', surface_vertices );
 
 		surface = new THREE.Mesh( surface_geometry, surfacematerial );
@@ -188,7 +194,7 @@ function init() {
 		
 		flatnet_geometry = new THREE.BufferGeometry();
 		flatnet_geometry.addAttribute( 'position', flatnet_vertices );
-		flatnet_geometry.addAttribute( 'index', new THREE.BufferAttribute( net_triangle_vertex_indices, 1 ) );
+		flatnet_geometry.setIndex(new THREE.BufferAttribute( net_triangle_vertex_indices, 1 ) );
 
 		flatnet = new THREE.Mesh( flatnet_geometry, surfacematerial );
 		
@@ -206,7 +212,7 @@ function init() {
 			put_tube_in_buffer(0,0,0,1,1,1, varyingsurface_edges_default_radius, cylinder_vertices_numbers);
 			
 			var varyingsurface_cylinders_geometry = new THREE.BufferGeometry();
-			varyingsurface_cylinders_geometry.addAttribute( 'index', new THREE.BufferAttribute( cylinder_triangle_indices, 1 ) );
+			varyingsurface_cylinders_geometry.setIndex(new THREE.BufferAttribute( cylinder_triangle_indices, 1 ) );
 			varyingsurface_cylinders_geometry.addAttribute( 'position', new THREE.BufferAttribute( cylinder_vertices_numbers, 3 ) );
 			
 			varyingsurface_cylinders[i] = new THREE.Mesh( varyingsurface_cylinders_geometry, varyingsurface_edgesmaterial );
@@ -292,7 +298,7 @@ function init() {
 			put_tube_in_buffer(0,0,0,1,1,1, surfperimeter_default_radius, cylinder_vertices_numbers);
 			
 			var surfperimeter_cylinders_geometry = new THREE.BufferGeometry();
-			surfperimeter_cylinders_geometry.addAttribute( 'index', new THREE.BufferAttribute( cylinder_triangle_indices, 1 ) );
+			surfperimeter_cylinders_geometry.setIndex(new THREE.BufferAttribute( cylinder_triangle_indices, 1 ) );
 			surfperimeter_cylinders_geometry.addAttribute( 'position', new THREE.BufferAttribute( cylinder_vertices_numbers, 3 ) );
 			
 			surfperimeter_cylinders[i] = new THREE.Mesh( surfperimeter_cylinders_geometry, surfperimeter_cylindersmaterial );
@@ -302,7 +308,7 @@ function init() {
 			put_tube_in_buffer(0,0,0,1,1,1, surfperimeter_default_radius, cylinder_vertices_numbers);
 			
 			var blast_cylinders_geometry = new THREE.BufferGeometry();
-			blast_cylinders_geometry.addAttribute( 'index', new THREE.BufferAttribute( cylinder_triangle_indices, 1 ) );
+			blast_cylinders_geometry.setIndex(new THREE.BufferAttribute( cylinder_triangle_indices, 1 ) );
 			blast_cylinders_geometry.addAttribute( 'position', new THREE.BufferAttribute( cylinder_vertices_numbers, 3 ) );
 			
 			blast_cylinders[i] = new THREE.Mesh( blast_cylinders_geometry, blastcylindersmaterial );
@@ -319,6 +325,27 @@ function init() {
 
 		circle = new THREE.Mesh( new THREE.CircleGeometry( radius ), material3 );
 		circle.position.z = 0.1;
+		
+		var forwardbutton_geometry = new THREE.Geometry();
+		forwardbutton_geometry.vertices.push(
+				new THREE.Vector3( -0.2, 0.2, 0 ),
+				new THREE.Vector3( 0.2,  0, 0 ),
+				new THREE.Vector3( -0.2, -0.2, 0 )
+			);
+		forwardbutton_geometry.faces.push( new THREE.Face3( 0, 2, 1 ) );
+		forwardbutton = new THREE.Mesh( forwardbutton_geometry, new THREE.MeshBasicMaterial({color: 0x0000ff}) );
+		forwardbutton.position.x += 2.8;
+		forwardbutton.position.y -= 2.8;
+		var backwardbutton_geometry = new THREE.Geometry();
+		backwardbutton_geometry.vertices.push(
+				new THREE.Vector3( 0.2, 0.2, 0 ),
+				new THREE.Vector3( 0.2, -0.2, 0 ),
+				new THREE.Vector3( -0.2,  0, 0 )
+			);
+		backwardbutton_geometry.faces.push( new THREE.Face3( 0, 2, 1 ) );
+		backwardbutton = new THREE.Mesh( backwardbutton_geometry, new THREE.MeshBasicMaterial({color: 0x0000ff}) );
+		backwardbutton.position.x -= 2.8;
+		backwardbutton.position.y -= 2.8;
 		
 		Button = new THREE.Mesh( new THREE.CircleGeometry( 0.3 ), new THREE.MeshBasicMaterial({color: 0x00ff00}) );
 		Button.position.x += 1.5;
@@ -632,5 +659,5 @@ function init() {
 	ourclock.getDelta();
 	
 	//must be kept at bottom
-	ChangeScene();
+	ChangeScene(MODE);
 }
