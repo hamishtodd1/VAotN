@@ -109,13 +109,12 @@ function MoveQuasiLattice(){
 			cutout_vector0.multiplyScalar(OldMousedist / Mousedist);
 			cutout_vector1.multiplyScalar(OldMousedist / Mousedist);
 			var veclength = cutout_vector0.length();
+//			console.log(veclength)
 			
 			var maxlength = 3.55; //found through inspection. We'd like to make this bigger
 			if(veclength > maxlength) {
-				cutout_vector0.normalize();
-				cutout_vector0.multiplyScalar(maxlength);
-				cutout_vector1.normalize();
-				cutout_vector1.multiplyScalar(maxlength);
+				cutout_vector0.setLength(maxlength);
+				cutout_vector1.setLength(maxlength);
 				
 				veclength = maxlength;
 			}
@@ -175,8 +174,13 @@ function Map_To_Quasisphere() {
 	c0_c1_summed_unit.normalize();
 	
 	var axis = new THREE.Vector3(0,0,-1);
-	var adjacent_triangle_cutout_vector = new THREE.Vector3(cutout_vector1.x, cutout_vector1.y, 0);
-	adjacent_triangle_cutout_vector.applyAxisAngle(axis, TAU/5);
+	var left_triangle_cutout_vector = new THREE.Vector3(cutout_vector1.x, cutout_vector1.y, 0);
+	left_triangle_cutout_vector.applyAxisAngle(axis, TAU/5);
+	
+	var right_triangle_cutout_vector = new THREE.Vector3(cutout_vector0.x, cutout_vector0.y, 0);
+	right_triangle_cutout_vector.applyAxisAngle(axis, -TAU/5);
+//	right_triangle_cutout_vector.add(cutout_vector0);
+//	right_triangle_cutout_vector.multiplyScalar(0.5);	
 	
 	//TODO round off errors may mean things on the triangle edge are not in the triangle
 	for( var i = 0; i < quasilattice_default_vertices.length; i++ ) {
@@ -184,7 +188,10 @@ function Map_To_Quasisphere() {
 								0, 0, cutout_vector0.x, cutout_vector0.y, cutout_vector1.x, cutout_vector1.y, 
 								true)
 		 && !point_in_triangle(	quasilattice_default_vertices[i].x, quasilattice_default_vertices[i].y,
-								0, 0, cutout_vector1.x, cutout_vector1.y, adjacent_triangle_cutout_vector.x, adjacent_triangle_cutout_vector.y, 
+								0, 0, cutout_vector1.x, cutout_vector1.y, left_triangle_cutout_vector.x, left_triangle_cutout_vector.y, 
+								true)
+		 && !point_in_triangle(	quasilattice_default_vertices[i].x, quasilattice_default_vertices[i].y,
+								0, 0, right_triangle_cutout_vector.x, right_triangle_cutout_vector.y, cutout_vector0.x, cutout_vector0.y, 
 								true)
 		   ) continue;
 		
@@ -194,19 +201,18 @@ function Map_To_Quasisphere() {
 		quasicutouts_vertices_components[lowest_unused_vertex][2] = 0;
 		lowest_unused_vertex++;
 		
-		//we may make an extra point, if you're to the left of the middle and close to the bottom
+		//we may make an extra point, if you're to the right of the middle and close to the bottom
 		var c0_to_point = quasilattice_default_vertices[i].clone();
 		c0_to_point.sub(cutout_vector0);
 		var c1_to_point = quasilattice_default_vertices[i].clone();
 		c1_to_point.sub(cutout_vector1);
-		if( c0_to_point.lengthSq() > c1_to_point.lengthSq() ) {
-			var dist_from_bottom = quasilattice_default_vertices[i].distanceTo(cutout_vector0) * get_sin_Vector2(c0_to_point, c0_to_1);
+		if( c0_to_point.lengthSq() < c1_to_point.lengthSq() ) { //ok our repeated tab is not the ONLY thing that uses this
+			var dist_from_bottom = c0_to_point.length() * get_sin_Vector2(c0_to_point, c0_to_1);
 			
 			if(dist_from_bottom < 1) {
-				var horizontal_dist_from_c0 = Math.sqrt(c0_to_point.lengthSq() - dist_from_bottom * dist_from_bottom );
+				var horizontal_disp_from_c0 = c0_to_point.length() * get_cos( c0_to_point, c0_to_1);
 				var closest_point_on_bottom = c0_to_1.clone();
-				closest_point_on_bottom.normalize();
-				closest_point_on_bottom.multiplyScalar(c0_to_1.length() - horizontal_dist_from_c0 ); //mirrored
+				closest_point_on_bottom.setLength(c0_to_1.length() - horizontal_disp_from_c0 ); //mirrored, because we also mirror dist_from_bottom
 				closest_point_on_bottom.add(cutout_vector0);
 				
 				quasicutout_intermediate_vertices[lowest_unused_vertex].copy(c0_c1_summed_unit);
@@ -226,10 +232,10 @@ function Map_To_Quasisphere() {
 	var interior_wiggleroom = 0.0000000000000009; //tweakable; quite a lot of work has gone into it!
 	var exterior_wiggleroom = 0.1; //Just tries to make it workable. 0.003 let us avoid very skinny rhombs.
 	for( var i = 0; i < lowest_unused_vertex; i++) {
-		if( !point_in_triangle(	quasicutout_intermediate_vertices[i].x, quasicutout_intermediate_vertices[i].y,
-			0, 0, cutout_vector0.x, cutout_vector0.y, cutout_vector1.x, cutout_vector1.y, 
-			1)
-		   ) continue;
+//		if( !point_in_triangle(	quasicutout_intermediate_vertices[i].x, quasicutout_intermediate_vertices[i].y,
+//			0, 0, cutout_vector0.x, cutout_vector0.y, cutout_vector1.x, cutout_vector1.y, 
+//			1)
+//		   ) continue;
 		for( var j = 0; j < lowest_unused_vertex; j++) {
 			var proximity_to_1 = Math.abs(quasicutout_intermediate_vertices[i].distanceTo(quasicutout_intermediate_vertices[j]) - 1);
 			
@@ -242,7 +248,7 @@ function Map_To_Quasisphere() {
 					quasicutout_line_pairs[lowest_unused_edgepair*2+1] = j;
 					lowest_unused_edgepair++;
 					
-					//also here we might have stuff that "snaps". There is a mathematical rule, to be deduced, that would let you do this.
+					//TODO also here we might have stuff that "snaps". There is a mathematical rule, to be deduced, that would let you do this.
 					//This would probably be necessary to fill in the faces.
 					//you could just enumerate all possible connected positions and then put points there for the cutout vectors to gravitate to
 				}
@@ -342,8 +348,9 @@ function Map_To_Quasisphere() {
 		}
 		
 		quasicutouts[i].geometry.attributes.position.needsUpdate = true;
-		quasicutouts[i].geometry.attributes.index.needsUpdate = true;
+		quasicutouts[i].geometry.index.needsUpdate = true;
 	}
+	console.log(quasicutouts[0].geometry.attributes.position.length);
 }
 
 function deduce_dodecahedron(openness) {	
@@ -440,7 +447,7 @@ function initialize_QS_stuff() {
  	for( var i = 0; i < quasicutouts.length; i++) { 
  		quasicutouts[i] = new THREE.Line( new THREE.BufferGeometry(), materialx, THREE.LinePieces );
  		quasicutouts[i].geometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array(18 * 3), 3 ) );
- 		quasicutouts[i].geometry.addAttribute( 'index', new THREE.BufferAttribute( quasicutout_line_pairs, 1 ) );
+ 		quasicutouts[i].geometry.setIndex( new THREE.BufferAttribute( quasicutout_line_pairs, 1 ) );
  		for( var j = 0; j < 3; j++){
  			quasicutouts[i].geometry.attributes.position.array[j*3] = (j % 2) * 0.05; 
  			quasicutouts[i].geometry.attributes.position.array[j*3+1] = (Math.floor(j/2)+i) * 0.05;
@@ -473,7 +480,7 @@ function initialize_QS_stuff() {
  	
  	dodeca_geometry = new THREE.BufferGeometry();
  	dodeca_geometry.addAttribute( 'position', new THREE.BufferAttribute( dodeca_vertices_numbers, 3 ) );
- 	dodeca_geometry.addAttribute( 'index', new THREE.BufferAttribute( dodeca_line_pairs, 1 ) );
+ 	dodeca_geometry.setIndex( new THREE.BufferAttribute( dodeca_line_pairs, 1 ) );
  	dodeca = new THREE.Line( dodeca_geometry, materialy, THREE.LinePieces );
  	
  	var axis = new THREE.Vector3(0,0,-1);
