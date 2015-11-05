@@ -112,19 +112,15 @@ function MoveQuasiLattice(){
 			
 			var maxlength = 3.55; //found through inspection. We'd like to make this bigger
 			if(veclength > maxlength) {
-				cutout_vector0.normalize();
-				cutout_vector0.multiplyScalar(maxlength);
-				cutout_vector1.normalize();
-				cutout_vector1.multiplyScalar(maxlength);
+				cutout_vector0.setLength(maxlength);
+				cutout_vector1.setLength(maxlength);
 				
 				veclength = maxlength;
 			}
 			var minlength = 1.06;
 			if(veclength < minlength) {
-				cutout_vector0.normalize();
-				cutout_vector0.multiplyScalar(minlength);
-				cutout_vector1.normalize();
-				cutout_vector1.multiplyScalar(minlength);
+				cutout_vector0.setLength(minlength);
+				cutout_vector1.setLength(minlength);
 				
 				veclength = minlength;
 			}
@@ -205,8 +201,7 @@ function Map_To_Quasisphere() {
 			if(dist_from_bottom < 1) {
 				var horizontal_dist_from_c0 = Math.sqrt(c0_to_point.lengthSq() - dist_from_bottom * dist_from_bottom );
 				var closest_point_on_bottom = c0_to_1.clone();
-				closest_point_on_bottom.normalize();
-				closest_point_on_bottom.multiplyScalar(c0_to_1.length() - horizontal_dist_from_c0 ); //mirrored
+				closest_point_on_bottom.setLength(c0_to_1.length() - horizontal_dist_from_c0 ); //mirrored
 				closest_point_on_bottom.add(cutout_vector0);
 				
 				quasicutout_intermediate_vertices[lowest_unused_vertex].copy(c0_c1_summed_unit);
@@ -241,6 +236,8 @@ function Map_To_Quasisphere() {
 					quasicutout_line_pairs[ lowest_unused_edgepair*2 ] = i;
 					quasicutout_line_pairs[lowest_unused_edgepair*2+1] = j;
 					lowest_unused_edgepair++;
+					
+					//here we would put a "cutter". But first we want to decide what vertices we'll really have.
 					
 					//also here we might have stuff that "snaps". There is a mathematical rule, to be deduced, that would let you do this.
 					//This would probably be necessary to fill in the faces.
@@ -290,12 +287,10 @@ function Map_To_Quasisphere() {
 		
 		var forward_component = vectors[0].clone();
 		forward_component.add(vectors[1]);
-		forward_component.normalize();
-		forward_component.multiplyScalar(forward_component_length);
+		forward_component.setLength(forward_component_length);
 		vectors[2] = downward_vector.clone();
 		vectors[2].add(forward_component);
-		vectors[2].normalize();
-		vectors[2].multiplyScalar(vectors[1].length()/cutout_vector0.length());
+		vectors[2].setLength(vectors[1].length()/cutout_vector0.length());
 	
 		vectors[3] = new THREE.Vector3(
 			dodeca_vertices_numbers[topindex*3+0],
@@ -342,7 +337,9 @@ function Map_To_Quasisphere() {
 		}
 		
 		quasicutouts[i].geometry.attributes.position.needsUpdate = true;
-		quasicutouts[i].geometry.attributes.index.needsUpdate = true;
+		if(!logged)console.log(quasicutouts[i].geometry);
+		logged = 1;
+		quasicutouts[i].geometry.index.needsUpdate = true;
 	}
 }
 
@@ -440,7 +437,7 @@ function initialize_QS_stuff() {
  	for( var i = 0; i < quasicutouts.length; i++) { 
  		quasicutouts[i] = new THREE.Line( new THREE.BufferGeometry(), materialx, THREE.LinePieces );
  		quasicutouts[i].geometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array(18 * 3), 3 ) );
- 		quasicutouts[i].geometry.addAttribute( 'index', new THREE.BufferAttribute( quasicutout_line_pairs, 1 ) );
+ 		quasicutouts[i].geometry.setIndex( new THREE.BufferAttribute( quasicutout_line_pairs, 1 ) );
  		for( var j = 0; j < 3; j++){
  			quasicutouts[i].geometry.attributes.position.array[j*3] = (j % 2) * 0.05; 
  			quasicutouts[i].geometry.attributes.position.array[j*3+1] = (Math.floor(j/2)+i) * 0.05;
@@ -473,7 +470,7 @@ function initialize_QS_stuff() {
  	
  	dodeca_geometry = new THREE.BufferGeometry();
  	dodeca_geometry.addAttribute( 'position', new THREE.BufferAttribute( dodeca_vertices_numbers, 3 ) );
- 	dodeca_geometry.addAttribute( 'index', new THREE.BufferAttribute( dodeca_line_pairs, 1 ) );
+ 	dodeca_geometry.setIndex( new THREE.BufferAttribute( dodeca_line_pairs, 1 ) );
  	dodeca = new THREE.Line( dodeca_geometry, materialy, THREE.LinePieces );
  	
  	var axis = new THREE.Vector3(0,0,-1);
