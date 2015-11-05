@@ -350,6 +350,12 @@ function init() {
 		Button = new THREE.Mesh( new THREE.CircleGeometry( 0.3 ), new THREE.MeshBasicMaterial({color: 0x00ff00}) );
 		Button.position.x += 1.5;
 		Button.position.y -= 1.5;
+		
+		var indicatorblobmaterial = new THREE.MeshBasicMaterial({color: 0xf0f00f});
+		for( var i = 0; i<indicatorblobs.length; i++){
+			indicatorblobs[i] = new THREE.Mesh(new THREE.SphereGeometry(0.2,8,4), indicatorblobmaterial );
+			indicatorblobs[i].position.set(100,100,100);
+		}
 	}
 	
 	CK_deduce_surface(capsidopenness, surface_vertices);

@@ -38,7 +38,7 @@ var FLATNET = 0;
 var SURFACE = 1;
 var POLYHEDRON = 2;
 
-var showdebugstuff = 0;
+var showdebugstuff = 1;
 var net_warnings = 0;
 
 var surfperimeter_default_radius = 0.02;
@@ -74,6 +74,8 @@ var delta_t = 0;
 
 var textures_loaded = 0;
 
+var indicatorblobs = Array(10);
+
 //--------------Varying
 var vertex_tobechanged = 666;
 
@@ -96,9 +98,9 @@ var quasilattice_pairs = Array(29*5*2);
 var _vector0; //these lie on the lattice
 var cutout_vector1;
 var quasi_shear_matrix = Array(4);
-var quasicutout_intermediate_vertices = Array(36);
-var quasicutouts_vertices_components = Array(36);
-var quasicutout_line_pairs = new Uint16Array(36*2);
+var quasicutout_intermediate_vertices = Array(quasilattice_default_vertices.length * 2);
+var quasicutouts_vertices_components = Array(quasilattice_default_vertices.length * 2 );
+var quasicutout_line_pairs = new Uint16Array(quasilattice_default_vertices.length * 2 * 2);
 var quasicutouts = Array(60);
 
 var golden_rhombohedra = Array(20);

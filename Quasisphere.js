@@ -4,6 +4,14 @@
 //If it's smaller than the radius of the blue, you start to fade in the third layer.
 //If it's smaller than the radius of the red, the third layer is in and second is out.
 
+/*
+ * So we could have the square (triangle, and hexagon) lattice be interactive too
+ * You could have something clever happen with color wherein two squares side by side will have their colors get closer as they get smaller
+ * Argument for is that it justifies the quasisphere coming on, it gets you ready for the controls, and it lets you talk about things in a better order
+ * Argument against is that it'd be extremely simple. What would it tell you? Might be a nice demonstration of infinity
+ * So: PLAYTEST, ONCE YOU'VE SUBMITTED EGW
+ */
+
 function UpdateQuasiSurface(){
 	var atanphi = Math.atan(PHI);
 	
@@ -144,6 +152,13 @@ function MoveQuasiLattice(){
 			//console.log(veclength); TODO whatever this is!
 		}
 	}
+	else {
+		//snap. Probably just to pre-defined points
+		
+		//to do it generatively it is a question of either... 
+		//find every possible two-fold symmetry on the lattice that gets any kind of rhomb...
+		//or make things attract each other? Yeah, right.
+	}
 	
 		
 	//re disappearance, since we're talking about a sphere it's kinda complex.
@@ -174,90 +189,144 @@ function Map_To_Quasisphere() {
 	var adjacent_triangle_cutout_vector = new THREE.Vector3(cutout_vector1.x, cutout_vector1.y, 0);
 	adjacent_triangle_cutout_vector.applyAxisAngle(axis, TAU/5);
 	
+	var inflated_triangle_vertices = Array(3);
+	inflated_triangle_vertices[0] = new THREE.Vector3();
+	inflated_triangle_vertices[0].addVectors(cutout_vector0,cutout_vector1);
+	var cutout_triangle_height = inflated_triangle_vertices[0].length() / 2;
+	inflated_triangle_vertices[0].setLength(1/Math.sin(TAU/10));
+	inflated_triangle_vertices[0].negate();
+	
+	inflated_triangle_vertices[1] = cutout_vector0.clone();
+	inflated_triangle_vertices[1].setLength(cutout_vector0.length() * ( 1 + ( 1 + 1 / Math.sin(TAU/10) )  / cutout_triangle_height ) );
+	inflated_triangle_vertices[1].add(inflated_triangle_vertices[0]);
+	inflated_triangle_vertices[2] = cutout_vector1.clone();
+	inflated_triangle_vertices[2].setLength(cutout_vector1.length() * ( 1 + ( 1 + 1 / Math.sin(TAU/10) )  / cutout_triangle_height ) );
+	inflated_triangle_vertices[2].add(inflated_triangle_vertices[0]);
+	
 	//TODO round off errors may mean things on the triangle edge are not in the triangle
+	//we should find out how this is actually working really. Surely they're mirrored?
 	for( var i = 0; i < quasilattice_default_vertices.length; i++ ) {
 		if( !point_in_triangle(	quasilattice_default_vertices[i].x, quasilattice_default_vertices[i].y,
-								0, 0, cutout_vector0.x, cutout_vector0.y, cutout_vector1.x, cutout_vector1.y, 
-								true)
-		 && !point_in_triangle(	quasilattice_default_vertices[i].x, quasilattice_default_vertices[i].y,
-								0, 0, cutout_vector1.x, cutout_vector1.y, adjacent_triangle_cutout_vector.x, adjacent_triangle_cutout_vector.y, 
+								inflated_triangle_vertices[0].x, inflated_triangle_vertices[0].y,
+								inflated_triangle_vertices[1].x, inflated_triangle_vertices[1].y,
+								inflated_triangle_vertices[2].x, inflated_triangle_vertices[2].y, 
 								true)
 		   ) continue;
 		
 		quasicutout_intermediate_vertices[lowest_unused_vertex].copy(quasilattice_default_vertices[i]);
-		quasicutouts_vertices_components[lowest_unused_vertex][0] = quasicutout_intermediate_vertices[lowest_unused_vertex].x * quasi_shear_matrix[0] + quasicutout_intermediate_vertices[lowest_unused_vertex].y * quasi_shear_matrix[1];
-		quasicutouts_vertices_components[lowest_unused_vertex][1] = quasicutout_intermediate_vertices[lowest_unused_vertex].x * quasi_shear_matrix[2] + quasicutout_intermediate_vertices[lowest_unused_vertex].y * quasi_shear_matrix[3];
-		quasicutouts_vertices_components[lowest_unused_vertex][2] = 0;
 		lowest_unused_vertex++;
-		
-		//we may make an extra point, if you're to the left of the middle and close to the bottom
-		var c0_to_point = quasilattice_default_vertices[i].clone();
-		c0_to_point.sub(cutout_vector0);
-		var c1_to_point = quasilattice_default_vertices[i].clone();
-		c1_to_point.sub(cutout_vector1);
-		if( c0_to_point.lengthSq() > c1_to_point.lengthSq() ) {
-			var dist_from_bottom = quasilattice_default_vertices[i].distanceTo(cutout_vector0) * get_sin_Vector2(c0_to_point, c0_to_1);
-			
-			if(dist_from_bottom < 1) {
-				var horizontal_dist_from_c0 = Math.sqrt(c0_to_point.lengthSq() - dist_from_bottom * dist_from_bottom );
-				var closest_point_on_bottom = c0_to_1.clone();
-				closest_point_on_bottom.setLength(c0_to_1.length() - horizontal_dist_from_c0 ); //mirrored
-				closest_point_on_bottom.add(cutout_vector0);
-				
-				quasicutout_intermediate_vertices[lowest_unused_vertex].copy(c0_c1_summed_unit);
-				quasicutout_intermediate_vertices[lowest_unused_vertex].multiplyScalar(dist_from_bottom);
-				quasicutout_intermediate_vertices[lowest_unused_vertex].add(closest_point_on_bottom);
-				
-				quasicutouts_vertices_components[lowest_unused_vertex][0] = closest_point_on_bottom.x * quasi_shear_matrix[0] + closest_point_on_bottom.y * quasi_shear_matrix[1];
-				quasicutouts_vertices_components[lowest_unused_vertex][1] = closest_point_on_bottom.x * quasi_shear_matrix[2] + closest_point_on_bottom.y * quasi_shear_matrix[3];
-				quasicutouts_vertices_components[lowest_unused_vertex][2] = dist_from_bottom; //there may be problems with the third vector, deal with that once we're done with this stuff
-				lowest_unused_vertex++;
-			}
-		}
 	}
 	
 	var lowest_unused_edgepair = 0;
 	
-	var interior_wiggleroom = 0.0000000000000009; //tweakable; quite a lot of work has gone into it!
-	var exterior_wiggleroom = 0.1; //Just tries to make it workable. 0.003 let us avoid very skinny rhombs.
+	var interior_wiggleroom = 0.0000000000000009; //tweakable; quite a lot of work has gone into it, but we have changed shit
 	for( var i = 0; i < lowest_unused_vertex; i++) {
-		if( !point_in_triangle(	quasicutout_intermediate_vertices[i].x, quasicutout_intermediate_vertices[i].y,
-			0, 0, cutout_vector0.x, cutout_vector0.y, cutout_vector1.x, cutout_vector1.y, 
-			1)
-		   ) continue;
 		for( var j = 0; j < lowest_unused_vertex; j++) {
 			var proximity_to_1 = Math.abs(quasicutout_intermediate_vertices[i].distanceTo(quasicutout_intermediate_vertices[j]) - 1);
 			
-			if( proximity_to_1 < exterior_wiggleroom ) {
-				if( !point_in_triangle(	quasicutout_intermediate_vertices[j].x, quasicutout_intermediate_vertices[j].y,
-					0, 0, cutout_vector0.x, cutout_vector0.y, cutout_vector1.x, cutout_vector1.y, 
-					1) )
-				{
-					quasicutout_line_pairs[ lowest_unused_edgepair*2 ] = i;
-					quasicutout_line_pairs[lowest_unused_edgepair*2+1] = j;
-					lowest_unused_edgepair++;
-					
-					//here we would put a "cutter". But first we want to decide what vertices we'll really have.
-					
-					//also here we might have stuff that "snaps". There is a mathematical rule, to be deduced, that would let you do this.
-					//This would probably be necessary to fill in the faces.
-					//you could just enumerate all possible connected positions and then put points there for the cutout vectors to gravitate to
-				}
-				else {
-					//both are inside so we can be harsher
-					if( proximity_to_1 < interior_wiggleroom ) { //also definitely tweakable
-						quasicutout_line_pairs[ lowest_unused_edgepair*2 ] = i;
-						quasicutout_line_pairs[lowest_unused_edgepair*2+1] = j;
-						lowest_unused_edgepair++;
-					}
-				}
+			if( proximity_to_1 < interior_wiggleroom ) {
+				quasicutout_line_pairs[ lowest_unused_edgepair*2 ] = i;
+				quasicutout_line_pairs[lowest_unused_edgepair*2+1] = j;
+				lowest_unused_edgepair++;
 			}
 		}
 	}
 	for(var i = lowest_unused_edgepair*2; i < quasicutout_line_pairs.length; i++)
 		quasicutout_line_pairs[i] = 0;
 	
-	//Now there are redundant vertices, which are not connected to any edge. Getting rid of those is a bit of a pain, however, so only do it if you have to. Then you could move the component calculation down
+	var lowest_unused_indicatorblob = 0;
+	for(var i = 0; i < lowest_unused_edgepair; i++){
+		var vertex1index = quasicutout_line_pairs[ i*2 ];
+		var vertex2index = quasicutout_line_pairs[i*2+1];
+		
+		var vertex1_in = 0;
+		var vertex2_in = 0;
+		
+		if( point_in_triangle(	quasicutout_intermediate_vertices[vertex1index].x, quasicutout_intermediate_vertices[vertex1index].y,
+			0, 0, cutout_vector0.x, cutout_vector0.y, cutout_vector1.x, cutout_vector1.y, 
+			1)
+		   ) vertex1_in = 1;
+		if( point_in_triangle(	quasicutout_intermediate_vertices[vertex2index].x, quasicutout_intermediate_vertices[vertex2index].y,
+			0, 0, cutout_vector0.x, cutout_vector0.y, cutout_vector1.x, cutout_vector1.y, 
+			1)
+		   ) vertex2_in = 1;
+		
+		if(vertex1_in && vertex2_in)
+			continue;
+		
+		var c0intersection = line_line_intersection(quasicutout_intermediate_vertices[vertex1index],	new THREE.Vector3(0,0,0),	quasicutout_intermediate_vertices[vertex2index],	cutout_vector0);
+		var c1intersection = line_line_intersection(quasicutout_intermediate_vertices[vertex1index],	new THREE.Vector3(0,0,0),	quasicutout_intermediate_vertices[vertex2index],	cutout_vector1);
+		var baseintersection = line_line_intersection(quasicutout_intermediate_vertices[vertex1index],	cutout_vector0,				quasicutout_intermediate_vertices[vertex2index],	cutout_vector1);
+		
+		if(vertex1_in + vertex2_in == 1){
+			if(c0intersection === 0 && c1intersection === 0 && baseintersection === 0)
+			{
+				console.log("apparently there was a line half-in that didn't intersect the sides");
+				//we remove, because if it's sticking out the corner then we don't want it, and if it's inside the corner, then it's sort of out anyway
+				quasicutout_line_pairs[ i*2 ] = 0;
+				quasicutout_line_pairs[i*2+1] = 0;
+				continue;
+			}
+			
+			var intersection;
+			if(c0intersection === 0 && c1intersection === 0)
+				intersection = baseintersection;
+			else if(c0intersection === 0 && baseintersection === 0)
+				intersection = c1intersection;
+			else if(baseintersection === 0 && c1intersection === 0)
+				intersection = c0intersection;
+			
+			quasicutout_intermediate_vertices[lowest_unused_vertex].copy(intersection);
+			if(!vertex1_in)
+				quasicutout_line_pairs[ i*2 ] = lowest_unused_vertex;
+			if(!vertex2_in)
+				quasicutout_line_pairs[i*2+1] = lowest_unused_vertex;
+			lowest_unused_vertex++;
+		}
+		
+		if(!vertex1_in && !vertex2_in ) {
+			if( c0intersection == 0 && c1intersection == 0 && baseintersection == 0 )
+			{
+				//this line isn't in the triangle
+				quasicutout_line_pairs[ i*2 ] = 0;
+				quasicutout_line_pairs[i*2+1] = 0;
+				
+				continue;
+			}
+			
+			var intersection1;
+			var intersection2;
+
+			if( c0intersection == 0){
+				intersection1 = c1intersection;
+				intersection2 = baseintersection;
+			}
+			if( c1intersection == 0){
+				intersection1 = c0intersection;
+				intersection2 = baseintersection;
+			}
+			if( baseintersection == 0){
+				intersection1 = c1intersection;
+				intersection2 = c0intersection;
+			}
+			
+			quasicutout_intermediate_vertices[lowest_unused_vertex].copy(intersection1);
+			quasicutout_line_pairs[i*2+1] = lowest_unused_vertex;
+			lowest_unused_vertex++;
+			
+			quasicutout_intermediate_vertices[lowest_unused_vertex].copy(intersection2);
+			quasicutout_line_pairs[ i*2 ] = lowest_unused_vertex;
+			lowest_unused_vertex++;
+		}
+	}
+	
+	for( var i = 0; i < lowest_unused_vertex; i++){
+		//something more sophisticated to go here if you wish to bring back cross-edge connections
+		quasicutouts_vertices_components[i][0] = quasicutout_intermediate_vertices[i].x * quasi_shear_matrix[0] + quasicutout_intermediate_vertices[i].y * quasi_shear_matrix[1];
+		quasicutouts_vertices_components[i][1] = quasicutout_intermediate_vertices[i].x * quasi_shear_matrix[2] + quasicutout_intermediate_vertices[i].y * quasi_shear_matrix[3];
+		quasicutouts_vertices_components[i][2] = 0;
+	}
+	
 	//you could argue that you also don't want interior ones with only one edge attached
 	
 	var dihedral_angle = 2 * Math.atan(PHI);
@@ -337,8 +406,6 @@ function Map_To_Quasisphere() {
 		}
 		
 		quasicutouts[i].geometry.attributes.position.needsUpdate = true;
-		if(!logged)console.log(quasicutouts[i].geometry);
-		logged = 1;
 		quasicutouts[i].geometry.index.needsUpdate = true;
 	}
 }
@@ -436,7 +503,7 @@ function initialize_QS_stuff() {
 	
  	for( var i = 0; i < quasicutouts.length; i++) { 
  		quasicutouts[i] = new THREE.Line( new THREE.BufferGeometry(), materialx, THREE.LinePieces );
- 		quasicutouts[i].geometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array(18 * 3), 3 ) );
+ 		quasicutouts[i].geometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array(quasilattice_default_vertices.length * 3), 3 ) );
  		quasicutouts[i].geometry.setIndex( new THREE.BufferAttribute( quasicutout_line_pairs, 1 ) );
  		for( var j = 0; j < 3; j++){
  			quasicutouts[i].geometry.attributes.position.array[j*3] = (j % 2) * 0.05; 

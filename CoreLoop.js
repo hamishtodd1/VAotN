@@ -149,6 +149,11 @@ function ChangeScene(new_mode) {
 	scene.add(backwardbutton);
 	scene.add( circle );
 	
+//	if(showdebugstuff){
+//		for(var i = 0; i<indicatorblobs.length; i++)
+//			scene.add(indicatorblobs[i]);
+//	}
+	
 	//this is the one variable that seems to be conserved; at least if it isn't, then make it so.
 	capsidopenness = 0;
 	
@@ -180,7 +185,6 @@ function ChangeScene(new_mode) {
 			break;
 			
 		case QC_SPHERE_MODE:
-			//scene.add(dodeca);
 			for( var i = 0; i < quasicutouts.length; i++)
 				scene.add(quasicutouts[i]);
 			scene.add(dodeca);
