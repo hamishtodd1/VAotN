@@ -100,7 +100,7 @@ var cutout_vector1;
 var quasi_shear_matrix = Array(4);
 var quasicutout_intermediate_vertices = Array(quasilattice_default_vertices.length*2 * 2);
 var quasicutouts_vertices_components = Array(quasilattice_default_vertices.length*2 * 2 );
-var quasicutout_line_pairs = new Uint16Array(quasilattice_default_vertices.length*2 * 2 * 2);
+var quasicutout_line_pairs = new Uint16Array(quasilattice_default_vertices.length*2 * 2 * 2); //TODO work out how many there should be in here really.
 var quasicutouts = Array(60);
 
 var golden_rhombohedra = Array(20);

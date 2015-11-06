@@ -183,7 +183,7 @@ function MoveQuasiLattice(){
 }
 
 function Map_To_Quasisphere() {
-	var lowest_unused_vertex = 0;
+var lowest_unused_vertex = 0;
 	
 	var c0_to_1 = cutout_vector1.clone();
 	c0_to_1.sub(cutout_vector0);
@@ -192,34 +192,34 @@ function Map_To_Quasisphere() {
 	c0_c1_summed_unit.normalize();
 	
 	var axis = new THREE.Vector3(0,0,-1);
-	var adjacent_triangle_cutout_vector = new THREE.Vector3(cutout_vector1.x, cutout_vector1.y, 0);
-	adjacent_triangle_cutout_vector.applyAxisAngle(axis, TAU/5);
+	var left_triangle_cutout_vector = new THREE.Vector3(cutout_vector1.x, cutout_vector1.y, 0);
+	left_triangle_cutout_vector.applyAxisAngle(axis, TAU/5);
 	
-	var inflated_triangle_vertices = Array(3);
-	inflated_triangle_vertices[0] = new THREE.Vector3();
-	inflated_triangle_vertices[0].addVectors(cutout_vector0,cutout_vector1);
-	var cutout_triangle_height = inflated_triangle_vertices[0].length() / 2;
-	inflated_triangle_vertices[0].setLength(1/Math.sin(TAU/10));
-	inflated_triangle_vertices[0].negate();
-	
-	inflated_triangle_vertices[1] = cutout_vector0.clone();
-	inflated_triangle_vertices[1].setLength(cutout_vector0.length() * ( 1 + ( 1 + 1 / Math.sin(TAU/10) )  / cutout_triangle_height ) );
-	inflated_triangle_vertices[1].add(inflated_triangle_vertices[0]);
-	inflated_triangle_vertices[2] = cutout_vector1.clone();
-	inflated_triangle_vertices[2].setLength(cutout_vector1.length() * ( 1 + ( 1 + 1 / Math.sin(TAU/10) )  / cutout_triangle_height ) );
-	inflated_triangle_vertices[2].add(inflated_triangle_vertices[0]);
+	var right_triangle_cutout_vector = new THREE.Vector3(cutout_vector0.x, cutout_vector0.y, 0);
+	right_triangle_cutout_vector.applyAxisAngle(axis, -TAU/5);
 	
 	//TODO round off errors may mean things on the triangle edge are not in the triangle
 	for( var i = 0; i < quasilattice_default_vertices.length; i++ ) {
 		if( !point_in_triangle(	quasilattice_default_vertices[i].x, quasilattice_default_vertices[i].y,
-								inflated_triangle_vertices[0].x, inflated_triangle_vertices[0].y,
-								inflated_triangle_vertices[1].x, inflated_triangle_vertices[1].y,
-								inflated_triangle_vertices[2].x, inflated_triangle_vertices[2].y, 
-								true)
+				0, 0, cutout_vector0.x, cutout_vector0.y, cutout_vector1.x, cutout_vector1.y, 
+				true)
+		 && !point_in_triangle(	quasilattice_default_vertices[i].x, quasilattice_default_vertices[i].y,
+				0, 0, cutout_vector1.x, cutout_vector1.y, left_triangle_cutout_vector.x, left_triangle_cutout_vector.y, 
+				true)
+		 && !point_in_triangle(	quasilattice_default_vertices[i].x, quasilattice_default_vertices[i].y,
+				0, 0, right_triangle_cutout_vector.x, right_triangle_cutout_vector.y, cutout_vector0.x, cutout_vector0.y, 
+				true)
 		   ) continue;
 		
 		quasicutout_intermediate_vertices[lowest_unused_vertex].copy(quasilattice_default_vertices[i]);
 		lowest_unused_vertex++;
+		
+		if(!isMouseDown){
+			//what we might like to do would be to have the connections be made as soon as you let go, which would require... changing the angle and scale temporarily
+			//you could do it purely by messing with the shear matrix. So the cutout vectors are changed to the snapped state as soon as you let go, but the shear matrix takes a little while to adjust
+			
+			//do you have to do the mirroring for points below the other two faces as well?
+		}
 	}
 	
 	var lowest_unused_edgepair = 0;
@@ -264,10 +264,10 @@ function Map_To_Quasisphere() {
 		var baseintersection = line_line_intersection(quasicutout_intermediate_vertices[vertex1index],	cutout_vector0,				quasicutout_intermediate_vertices[vertex2index],	cutout_vector1);
 		
 		if(  (c0intersection == 0 && c1intersection == 0 && baseintersection == 0)
-		  || (c0intersection == 0 && c1intersection == 0 && baseintersection != 0) 
-		  || baseintersection != 0 //problem: you might have been intersecting the base of another triangle. Solution: don't expand the bottom of the triangle!!
+//		  || (c0intersection == 0 && c1intersection == 0 && baseintersection != 0) 
+//		  || baseintersection != 0 //problem: you might have been intersecting the base of another triangle. Solution: don't expand the bottom of the triangle!!
 		  ) {
-			//this line isn't in the triangle
+			//the only situation in which we might care about an outside line that doesn't have intersection with sides is, maybe, lines poking in from corners. They're rare?
 			quasicutout_line_pairs[ i*2 ] = 0;
 			quasicutout_line_pairs[i*2+1] = 0;			
 			continue;
@@ -324,7 +324,7 @@ function Map_To_Quasisphere() {
 		quasicutouts_vertices_components[i][2] = 0;
 	}
 	
-	//you could argue that you also don't want interior ones with only one edge attached
+	//We could do a pass of "check there aren't duplicate pairs, or unconnected points. And maybe not interior ones with only one edge attached either"
 	
 	var dihedral_angle = 2 * Math.atan(PHI);
 	dihedral_angle = dihedral_angle + dodeca_openness * (TAU/2 - dihedral_angle);
@@ -392,7 +392,8 @@ function Map_To_Quasisphere() {
 				radius_ratio *= dodeca_faceflatness;
 				radius_ratio += max_lengthening;
 				
-				//Hah, could there be a way of lining things up sweetly whether or not the thing is opening?
+				//To project a point below the pentagon edge, work out the projection of its double within it
+				//the problem now is to flatten the points that are on the edges of the cutouts
 				
 				ourvertex.multiplyScalar(radius_ratio);
 				ourvertex.add(ourcenter);
