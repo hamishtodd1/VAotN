@@ -13,7 +13,7 @@ var IRREGULAR_MODE = 3;
 var QC_SPHERE_MODE = 4;
 var CUBIC_LATTICE_MODE = 5;
 	
-var MODE = 4;
+var MODE = 2;
 
 //--------------Technologically fundamental
 var playing_field_width = 7*HS3;
@@ -40,6 +40,8 @@ var POLYHEDRON = 2;
 
 var showdebugstuff = 1;
 var net_warnings = 0;
+
+var z_central_axis = new THREE.Vector3(0,0,1);
 
 var surfperimeter_default_radius = 0.02;
 var varyingsurface_edges_default_radius = 0.012;
@@ -95,13 +97,16 @@ var dodeca_triangle_vertex_indices;
 var back_hider;
 var quasilattice_default_vertices = Array(18*5);
 var quasilattice_pairs = Array(29*5*2);
-var _vector0; //these lie on the lattice
+var cutout_vector0; //these lie on the lattice
 var cutout_vector1;
+var cutout_vector0_player;
+var cutout_vector1_player;
 var quasi_shear_matrix = Array(4);
 var quasicutout_intermediate_vertices = Array(quasilattice_default_vertices.length*2 * 2);
 var quasicutouts_vertices_components = Array(quasilattice_default_vertices.length*2 * 2 );
 var quasicutout_line_pairs = new Uint16Array(quasilattice_default_vertices.length*2 * 2 * 2); //TODO work out how many there should be in here really.
 var quasicutouts = Array(60);
+var stable_points = Array(1); //soon
 
 var golden_rhombohedra = Array(20);
 var goldenicos = Array(12);
@@ -114,7 +119,7 @@ var progress_bar;
 var slider;
 var slider_grabbed = false;
 var quasiatoms = Array(4);
-var QC_atoms = Array(8 * 20);
+var QC_atoms = Array(2000);
 
 var flatnet;
 var flatnet_vertices_numbers;

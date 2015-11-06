@@ -1,7 +1,8 @@
 /*	EGW todo
+ * -film, edit
  * -protein capsid at beginning
  * -DNA at beginning
- * -penrose tiling breakup demo? Urgh
+ * -penrose tiling breakup demo? Urgh. Can be done with just images
  * -integration into webpage... http://stackoverflow.com/questions/29401407/return-embed-youtube-current-time   https://developers.google.com/youtube/v3/code_samples/javascript
  * -If you can't integrate with video, could have links to each chapter
  * -random walking atom?
@@ -10,7 +11,6 @@
  * 
  * So what can you do before the 12th
  * proper atoms
- * everything sequential
  * 
  * 
  * Long term To Do

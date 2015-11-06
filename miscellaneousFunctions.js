@@ -8,6 +8,10 @@ function point_to_the_right_of_line_vecs(ourpoint, line_top, line_bottom) {
 		return true;
 }
 
+function difference_between_angles(angle1, angle2){
+	//this would be worthwhile
+}
+
 function vec2_crossprod(a,b){
 	return a.x*b.y-a.y*b.x;
 }

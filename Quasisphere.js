@@ -120,21 +120,21 @@ function MoveQuasiLattice(){
 		var Mousedist = MousePosition.length();
 		var OldMousedist = OldMousePosition.length(); //unless the center is going to change?
 		if( Mousedist < HS3 * 10/3) { //we don't do anything if you're too far from the actual demo TODO replace with demo_radius
-			cutout_vector0.multiplyScalar(OldMousedist / Mousedist);
-			cutout_vector1.multiplyScalar(OldMousedist / Mousedist);
-			var veclength = cutout_vector0.length();
+			cutout_vector0_player.multiplyScalar(OldMousedist / Mousedist);
+			cutout_vector1_player.multiplyScalar(OldMousedist / Mousedist);
+			var veclength = cutout_vector0_player.length();
 			
-			var maxlength = 3.55; //found through inspection. We'd like to make this bigger
+			var maxlength = 3.55; //3.48 to make it exact
 			if(veclength > maxlength) {
-				cutout_vector0.setLength(maxlength);
-				cutout_vector1.setLength(maxlength);
+				cutout_vector0_player.setLength(maxlength);
+				cutout_vector1_player.setLength(maxlength);
 				
 				veclength = maxlength;
 			}
-			var minlength = 1.06;
+			var minlength = 1.052;
 			if(veclength < minlength) {
-				cutout_vector0.setLength(minlength);
-				cutout_vector1.setLength(minlength);
+				cutout_vector0_player.setLength(minlength);
+				cutout_vector1_player.setLength(minlength);
 				
 				veclength = minlength;
 			}
@@ -149,22 +149,72 @@ function MoveQuasiLattice(){
 			
 			var LatticeAngleChange = OldMouseAngle - MouseAngle;
 			
-			var QuasiLatticeAngle = Math.atan2(cutout_vector0.y, cutout_vector0.x);
+			var QuasiLatticeAngle = Math.atan2(cutout_vector0_player.y, cutout_vector0_player.x);
 			var newQuasiLatticeAngle = QuasiLatticeAngle + LatticeAngleChange;
-			cutout_vector0.x = veclength * Math.cos(newQuasiLatticeAngle);
-			cutout_vector0.y = veclength * Math.sin(newQuasiLatticeAngle);
-			cutout_vector1.x = veclength * Math.cos(newQuasiLatticeAngle - TAU / 5);
-			cutout_vector1.y = veclength * Math.sin(newQuasiLatticeAngle - TAU / 5);
-			//console.log(veclength); TODO whatever this is!
+			cutout_vector0_player.x = veclength * Math.cos(newQuasiLatticeAngle);
+			cutout_vector0_player.y = veclength * Math.sin(newQuasiLatticeAngle);
+			cutout_vector1_player.x = veclength * Math.cos(newQuasiLatticeAngle - TAU / 5);
+			cutout_vector1_player.y = veclength * Math.sin(newQuasiLatticeAngle - TAU / 5);
+			
+			var factor = cutout_vector1.y * cutout_vector0.x - cutout_vector1.x * cutout_vector0.y;
+			quasi_shear_matrix[0] = cutout_vector1.y / factor;
+			quasi_shear_matrix[1] = cutout_vector1.x /-factor;
+			quasi_shear_matrix[2] = cutout_vector0.y /-factor;
+			quasi_shear_matrix[3] = cutout_vector0.x / factor;
 		}
 	}
 	else {
-		//snap. Probably just to pre-defined points
-		
+		//Quite a few speedup opportunities here
 		//to do it generatively it is a question of either... 
 		//find every possible two-fold symmetry on the lattice that gets any kind of rhomb...
 		//or make things attract each other? Yeah, right.
+		
+		//more jarring to change angle than scale, probably. Therefore, just find the stable point with the closest angle.
+		var our_snappable_vector = new THREE.Vector3();
+		our_snappable_vector.addVectors(cutout_vector0, cutout_vector1);
+		our_snappable_vector.multiplyScalar(0.5);
+		var our_snappable_vector_angle = Math.atan2(our_snappable_vector.y,our_snappable_vector.x);
+		var our_snappable_vector_length = our_snappable_vector.length();
+		var closest_stable_point_angleto = 666;
+		var closest_stable_point_index = 666;
+		for( var i = 0; i < stable_points.length; i++){
+			var stable_point_angle = Math.atan2(stable_points[i].y,stable_points[i].x);
+			for( var j = 1; j <= 5; j++){
+				if(	Math.abs(our_snappable_vector_angle - j * stable_point_angle) < Math.abs(closest_stable_point_angleto) ) //so you sort of need to make sure that the one in the array is as low as possible
+				{
+					closest_stable_point_index = i;
+					closest_stable_point_angleto = our_snappable_vector_angle - stable_point_angle;
+				}
+			}
+		}
+		//TODO the fucking tau = 0 thing
+		
+		cutout_vector0.applyAxisAngle(z_central_axis, -closest_stable_point_angleto); //maybe minus, you know
+		cutout_vector1.applyAxisAngle(z_central_axis, -closest_stable_point_angleto);
+		var scale_change = stable_points[closest_stable_point_index].length() / our_snappable_vector_length;
+		cutout_vector0.multiplyScalar(scale_change);
+		cutout_vector1.multiplyScalar(scale_change);
 	}
+	
+	var interpolation_factor = (1-dodeca_openness);
+	if(interpolation_factor == 1){ //point of no return
+		cutout_vector0_player.copy(cutout_vector0);
+		cutout_vector1_player.copy(cutout_vector1);
+	}
+	if(interpolation_factor == 0){
+		cutout_vector0 = cutout_vector0_player.clone();
+		cutout_vector1 = cutout_vector1_player.clone();
+	}
+	var cutout_vector0_displayed = new THREE.Vector3();
+	var cutout_vector1_displayed = new THREE.Vector3();
+//	console.log(inter)
+	cutout_vector0_displayed.lerpVectors(cutout_vector0_player, cutout_vector0, interpolation_factor);
+	cutout_vector1_displayed.lerpVectors(cutout_vector1_player, cutout_vector1, interpolation_factor);
+	var factor = cutout_vector1_displayed.y * cutout_vector0_displayed.x - cutout_vector1_displayed.x * cutout_vector0_displayed.y;
+	quasi_shear_matrix[0] = cutout_vector1_displayed.y / factor;
+	quasi_shear_matrix[1] = cutout_vector1_displayed.x /-factor;
+	quasi_shear_matrix[2] = cutout_vector0_displayed.y /-factor;
+	quasi_shear_matrix[3] = cutout_vector0_displayed.x / factor;
 	
 		
 	//re disappearance, since we're talking about a sphere it's kinda complex.
@@ -174,12 +224,6 @@ function MoveQuasiLattice(){
 	//could try having a flatshaded dodecahedron in there
 	//or could have an extra thing for all the pentagons
 	//it would be best to detect what kind of shape you have there, as you may want to colour shapes differently
-	
-	var factor = cutout_vector1.y * cutout_vector0.x - cutout_vector1.x * cutout_vector0.y;
-	quasi_shear_matrix[0] = cutout_vector1.y / factor;
-	quasi_shear_matrix[1] = cutout_vector1.x /-factor;
-	quasi_shear_matrix[2] = cutout_vector0.y /-factor;
-	quasi_shear_matrix[3] = cutout_vector0.x / factor;
 }
 
 function Map_To_Quasisphere() {
@@ -212,13 +256,41 @@ var lowest_unused_vertex = 0;
 		   ) continue;
 		
 		quasicutout_intermediate_vertices[lowest_unused_vertex].copy(quasilattice_default_vertices[i]);
+		quasicutouts_vertices_components[lowest_unused_vertex][0] = quasicutout_intermediate_vertices[lowest_unused_vertex].x * quasi_shear_matrix[0] + quasicutout_intermediate_vertices[lowest_unused_vertex].y * quasi_shear_matrix[1];
+		quasicutouts_vertices_components[lowest_unused_vertex][1] = quasicutout_intermediate_vertices[lowest_unused_vertex].x * quasi_shear_matrix[2] + quasicutout_intermediate_vertices[lowest_unused_vertex].y * quasi_shear_matrix[3];
+		quasicutouts_vertices_components[lowest_unused_vertex][2] = 0;
 		lowest_unused_vertex++;
 		
-		if(!isMouseDown){
+		if(!(dodeca_openness == 1 && dodeca_faceflatness == 1 && isMouseDown == 1)){
 			//what we might like to do would be to have the connections be made as soon as you let go, which would require... changing the angle and scale temporarily
 			//you could do it purely by messing with the shear matrix. So the cutout vectors are changed to the snapped state as soon as you let go, but the shear matrix takes a little while to adjust
 			
-			//do you have to do the mirroring for points below the other two faces as well?
+			//TODO mirroring for points below the other two faces as well? Look into that at first sign of corner silliness
+			
+			//we may make an extra point, if you're to the left of the middle and close to the bottom
+			var c0_to_point = quasilattice_default_vertices[i].clone();
+			c0_to_point.sub(cutout_vector0);
+			var c1_to_point = quasilattice_default_vertices[i].clone();
+			c1_to_point.sub(cutout_vector1);
+			if( c0_to_point.lengthSq() > c1_to_point.lengthSq() ) {
+				var dist_from_bottom = quasilattice_default_vertices[i].distanceTo(cutout_vector0) * get_sin_Vector2(c0_to_point, c0_to_1);
+				
+				if(dist_from_bottom < 1) {
+					var horizontal_dist_from_c0 = Math.sqrt(c0_to_point.lengthSq() - dist_from_bottom * dist_from_bottom );
+					var closest_point_on_bottom = c0_to_1.clone();
+					closest_point_on_bottom.setLength(c0_to_1.length() - horizontal_dist_from_c0 ); //mirrored
+					closest_point_on_bottom.add(cutout_vector0);
+					
+					quasicutout_intermediate_vertices[lowest_unused_vertex].copy(c0_c1_summed_unit);
+					quasicutout_intermediate_vertices[lowest_unused_vertex].multiplyScalar(dist_from_bottom);
+					quasicutout_intermediate_vertices[lowest_unused_vertex].add(closest_point_on_bottom);
+					
+					quasicutouts_vertices_components[lowest_unused_vertex][0] = closest_point_on_bottom.x * quasi_shear_matrix[0] + closest_point_on_bottom.y * quasi_shear_matrix[1];
+					quasicutouts_vertices_components[lowest_unused_vertex][1] = closest_point_on_bottom.x * quasi_shear_matrix[2] + closest_point_on_bottom.y * quasi_shear_matrix[3];
+					quasicutouts_vertices_components[lowest_unused_vertex][2] = dist_from_bottom; //there may be problems with the third vector, deal with that once we're done with this stuff
+					lowest_unused_vertex++;
+				}
+			}
 		}
 	}
 	
@@ -227,6 +299,10 @@ var lowest_unused_vertex = 0;
 	var interior_wiggleroom = 0.0000000000000016; //this is the minimum for the full lattice
 	for( var i = 0; i < lowest_unused_vertex; i++) {
 		for( var j = 0; j < lowest_unused_vertex; j++) {
+			if( !point_in_triangle(	quasicutout_intermediate_vertices[i].x, quasicutout_intermediate_vertices[i].y,
+					0, 0, cutout_vector0.x, cutout_vector0.y, cutout_vector1.x, cutout_vector1.y, 
+					1)
+				   ) continue;
 			var proximity_to_1 = Math.abs(quasicutout_intermediate_vertices[i].distanceTo(quasicutout_intermediate_vertices[j]) - 1);
 			
 			if( proximity_to_1 < interior_wiggleroom ) {
@@ -234,95 +310,12 @@ var lowest_unused_vertex = 0;
 				quasicutout_line_pairs[lowest_unused_edgepair*2+1] = j;
 				lowest_unused_edgepair++;
 			}
+			
+			//TODO it might be nice if the edges from outside the pentagon faded in
 		}
 	}
 	for(var i = lowest_unused_edgepair*2; i < quasicutout_line_pairs.length; i++)
 		quasicutout_line_pairs[i] = 0;
-	
-	var lowest_unused_indicatorblob = 0;
-	for(var i = 0; i < lowest_unused_edgepair; i++){
-		var vertex1index = quasicutout_line_pairs[ i*2 ];
-		var vertex2index = quasicutout_line_pairs[i*2+1];
-		
-		var vertex1_in = 0;
-		var vertex2_in = 0;
-		
-		if( point_in_triangle(	quasicutout_intermediate_vertices[vertex1index].x, quasicutout_intermediate_vertices[vertex1index].y,
-			0, 0, cutout_vector0.x, cutout_vector0.y, cutout_vector1.x, cutout_vector1.y, 
-			1)
-		   ) vertex1_in = 1;
-		if( point_in_triangle(	quasicutout_intermediate_vertices[vertex2index].x, quasicutout_intermediate_vertices[vertex2index].y,
-			0, 0, cutout_vector0.x, cutout_vector0.y, cutout_vector1.x, cutout_vector1.y, 
-			1)
-		   ) vertex2_in = 1;
-		
-		if(vertex1_in && vertex2_in)
-			continue;
-		
-		var c0intersection = line_line_intersection(quasicutout_intermediate_vertices[vertex1index],	new THREE.Vector3(0,0,0),	quasicutout_intermediate_vertices[vertex2index],	cutout_vector0);
-		var c1intersection = line_line_intersection(quasicutout_intermediate_vertices[vertex1index],	new THREE.Vector3(0,0,0),	quasicutout_intermediate_vertices[vertex2index],	cutout_vector1);
-		var baseintersection = line_line_intersection(quasicutout_intermediate_vertices[vertex1index],	cutout_vector0,				quasicutout_intermediate_vertices[vertex2index],	cutout_vector1);
-		
-		if(  (c0intersection == 0 && c1intersection == 0 && baseintersection == 0)
-//		  || (c0intersection == 0 && c1intersection == 0 && baseintersection != 0) 
-//		  || baseintersection != 0 //problem: you might have been intersecting the base of another triangle. Solution: don't expand the bottom of the triangle!!
-		  ) {
-			//the only situation in which we might care about an outside line that doesn't have intersection with sides is, maybe, lines poking in from corners. They're rare?
-			quasicutout_line_pairs[ i*2 ] = 0;
-			quasicutout_line_pairs[i*2+1] = 0;			
-			continue;
-		}
-		
-		if(vertex1_in + vertex2_in == 1){			
-			var intersection;
-			if(c0intersection === 0 && c1intersection === 0)
-				intersection = baseintersection;
-			else if(c0intersection === 0 && baseintersection === 0)
-				intersection = c1intersection;
-			else if(baseintersection === 0 && c1intersection === 0)
-				intersection = c0intersection;
-			
-			quasicutout_intermediate_vertices[lowest_unused_vertex].copy(intersection);
-			if(!vertex1_in)
-				quasicutout_line_pairs[ i*2 ] = lowest_unused_vertex;
-			if(!vertex2_in)
-				quasicutout_line_pairs[i*2+1] = lowest_unused_vertex;
-			lowest_unused_vertex++;
-		}
-		
-		if(!vertex1_in && !vertex2_in ) {
-			var intersection1;
-			var intersection2;
-
-			if( c0intersection == 0){
-				intersection1 = c1intersection;
-				intersection2 = baseintersection;
-			}
-			if( c1intersection == 0){
-				intersection1 = c0intersection;
-				intersection2 = baseintersection;
-			}
-			if( baseintersection == 0){
-				intersection1 = c1intersection;
-				intersection2 = c0intersection;
-			}
-			
-			quasicutout_intermediate_vertices[lowest_unused_vertex].copy(intersection1);
-			quasicutout_line_pairs[i*2+1] = lowest_unused_vertex;
-			lowest_unused_vertex++;
-			
-			quasicutout_intermediate_vertices[lowest_unused_vertex].copy(intersection2);
-			quasicutout_line_pairs[ i*2 ] = lowest_unused_vertex;
-			lowest_unused_vertex++;
-		}
-	}
-	
-	for( var i = 0; i < lowest_unused_vertex; i++){
-		//something more sophisticated to go here if you wish to bring back cross-edge connections
-		quasicutouts_vertices_components[i][0] = quasicutout_intermediate_vertices[i].x * quasi_shear_matrix[0] + quasicutout_intermediate_vertices[i].y * quasi_shear_matrix[1];
-		quasicutouts_vertices_components[i][1] = quasicutout_intermediate_vertices[i].x * quasi_shear_matrix[2] + quasicutout_intermediate_vertices[i].y * quasi_shear_matrix[3];
-		quasicutouts_vertices_components[i][2] = 0;
-	}
 	
 	//We could do a pass of "check there aren't duplicate pairs, or unconnected points. And maybe not interior ones with only one edge attached either"
 	
@@ -337,45 +330,46 @@ var lowest_unused_vertex = 0;
 		var leftindex = dodeca_triangle_vertex_indices[i][1]; 
 		var topindex = dodeca_triangle_vertex_indices[i][2];
 		
-		var vectors = Array(4);
-		vectors[0] = new THREE.Vector3(
+		var basis_vectors = Array(4);
+		basis_vectors[0] = new THREE.Vector3(
 			dodeca_vertices_numbers[rightindex*3+0] - dodeca_vertices_numbers[topindex*3+0],
 			dodeca_vertices_numbers[rightindex*3+1] - dodeca_vertices_numbers[topindex*3+1],
 			dodeca_vertices_numbers[rightindex*3+2] - dodeca_vertices_numbers[topindex*3+2] );
-		vectors[1] = new THREE.Vector3(
+		basis_vectors[1] = new THREE.Vector3(
 			dodeca_vertices_numbers[leftindex*3+0] - dodeca_vertices_numbers[topindex*3+0],
 			dodeca_vertices_numbers[leftindex*3+1] - dodeca_vertices_numbers[topindex*3+1],
 			dodeca_vertices_numbers[leftindex*3+2] - dodeca_vertices_numbers[topindex*3+2] );
 		
-		var downward_vector = vectors[0].clone();
-		downward_vector.cross(vectors[1]);
+		var downward_vector = basis_vectors[0].clone();
+		downward_vector.cross(basis_vectors[1]);
 		downward_vector.normalize();
 		
-		var forward_component = vectors[0].clone();
-		forward_component.add(vectors[1]);
+		var forward_component = basis_vectors[0].clone();
+		forward_component.add(basis_vectors[1]);
 		forward_component.setLength(forward_component_length);
-		vectors[2] = downward_vector.clone();
-		vectors[2].add(forward_component);
-		vectors[2].setLength(vectors[1].length()/cutout_vector0.length());
+		basis_vectors[2] = downward_vector.clone();
+		basis_vectors[2].add(forward_component);
+		basis_vectors[2].setLength(basis_vectors[1].length()/cutout_vector0.length());
 	
-		vectors[3] = new THREE.Vector3(
+		basis_vectors[3] = new THREE.Vector3(
 			dodeca_vertices_numbers[topindex*3+0],
 			dodeca_vertices_numbers[topindex*3+1],
 			dodeca_vertices_numbers[topindex*3+2]);
 		
 		var ourcenter = downward_vector.clone();		
 		ourcenter.multiplyScalar(ourcenter_veclength);
-		ourcenter.add(vectors[3]);
-		var radius = Math.sqrt(vectors[0].length() * vectors[0].length() + ourcenter_veclength * ourcenter_veclength );
+		ourcenter.add(basis_vectors[3]);
+		var radius = Math.sqrt(basis_vectors[0].length() * basis_vectors[0].length() + ourcenter_veclength * ourcenter_veclength );
 		
 		for( var j = 0; j < quasicutouts[i].geometry.attributes.position.array.length; j++)
 			quasicutouts[i].geometry.attributes.position.array[j] = 0;
 		
+		var next_radius_ratio = 666;
 		for( var vertex_index = 0; vertex_index < lowest_unused_vertex; vertex_index++) {
 			for( var component = 0; component < 4; component++) {
-				quasicutouts[i].geometry.attributes.position.array[vertex_index*3+0] += quasicutouts_vertices_components[vertex_index][component] * vectors[component].x;
-				quasicutouts[i].geometry.attributes.position.array[vertex_index*3+1] += quasicutouts_vertices_components[vertex_index][component] * vectors[component].y;
-				quasicutouts[i].geometry.attributes.position.array[vertex_index*3+2] += quasicutouts_vertices_components[vertex_index][component] * vectors[component].z;
+				quasicutouts[i].geometry.attributes.position.array[vertex_index*3+0] += quasicutouts_vertices_components[vertex_index][component] * basis_vectors[component].x;
+				quasicutouts[i].geometry.attributes.position.array[vertex_index*3+1] += quasicutouts_vertices_components[vertex_index][component] * basis_vectors[component].y;
+				quasicutouts[i].geometry.attributes.position.array[vertex_index*3+2] += quasicutouts_vertices_components[vertex_index][component] * basis_vectors[component].z;
 			}
 			
 			//spherically project. TODO ~30-fold opportunity, store lengths or something?
@@ -387,13 +381,23 @@ var lowest_unused_vertex = 0;
 								quasicutouts[i].geometry.attributes.position.array[vertex_index*3+2]);
 				ourvertex.sub(ourcenter);
 				
-				var max_lengthening = radius / ourvertex.length(); //this is how much you would lengthen it by if surface was closed
-				var radius_ratio = 1 - max_lengthening;
-				radius_ratio *= dodeca_faceflatness;
-				radius_ratio += max_lengthening;
-				
-				//To project a point below the pentagon edge, work out the projection of its double within it
-				//the problem now is to flatten the points that are on the edges of the cutouts
+				var radius_ratio;
+				if(next_radius_ratio == 666){
+					var max_lengthening = radius / ourvertex.length(); //this is how much you would lengthen it by if surface was closed
+					radius_ratio = 1 - max_lengthening;
+					radius_ratio *= dodeca_faceflatness;
+					radius_ratio += max_lengthening;
+					
+					if(quasicutouts_vertices_components[vertex_index+1][2] != 0){
+						next_radius_ratio = radius_ratio;
+					}
+					else
+						next_radius_ratio = 666;
+				}
+				else {
+					radius_ratio = next_radius_ratio;
+					next_radius_ratio = 666;
+				}
 				
 				ourvertex.multiplyScalar(radius_ratio);
 				ourvertex.add(ourcenter);
@@ -489,6 +493,8 @@ function deduce_dodecahedron(openness) {
 function initialize_QS_stuff() {
 	cutout_vector0 = new THREE.Vector3(0,0.5/Math.sin(TAU/10),0);
 	cutout_vector1 = new THREE.Vector3(PHI/2,0.5/Math.sin(TAU/10)-Math.cos(3/20*TAU),0);
+	cutout_vector0_player = cutout_vector0.clone();
+	cutout_vector1_player = cutout_vector1.clone();
 	
 	for(var i = 0; i < quasicutout_intermediate_vertices.length; i++ )
 		quasicutout_intermediate_vertices[i] = new THREE.Vector3(0,0,0);	
@@ -591,6 +597,13 @@ function initialize_QS_stuff() {
 	cutout_vector0.copy(midpoint);
 	midpoint.applyAxisAngle(axis, TAU/5);
 	cutout_vector1.copy(midpoint);
+	
+	cutout_vector0_player = cutout_vector0.clone();
+	cutout_vector1_player = cutout_vector1.clone();
+	
+	stable_points[0] = new THREE.Vector3();
+	stable_points[0].addVectors(cutout_vector0,cutout_vector1);
+	stable_points[0].multiplyScalar(0.5);
 	
 	//first one is right corner, second is left corner, last is top
 	dodeca_triangle_vertex_indices = new Array(
