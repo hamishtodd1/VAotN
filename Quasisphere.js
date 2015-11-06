@@ -5,6 +5,12 @@
 //If it's smaller than the radius of the red, the third layer is in and second is out.
 
 /*
+ * One option: nothing appears on the bottom until you let go.
+ * It eventually stabilizes the lattice at the right place, when the cross-edge edges come in
+ *  
+ */
+
+/*
  * So we could have the square (triangle, and hexagon) lattice be interactive too
  * You could have something clever happen with color wherein two squares side by side will have their colors get closer as they get smaller
  * Argument for is that it justifies the quasisphere coming on, it gets you ready for the controls, and it lets you talk about things in a better order
@@ -204,7 +210,6 @@ function Map_To_Quasisphere() {
 	inflated_triangle_vertices[2].add(inflated_triangle_vertices[0]);
 	
 	//TODO round off errors may mean things on the triangle edge are not in the triangle
-	//we should find out how this is actually working really. Surely they're mirrored?
 	for( var i = 0; i < quasilattice_default_vertices.length; i++ ) {
 		if( !point_in_triangle(	quasilattice_default_vertices[i].x, quasilattice_default_vertices[i].y,
 								inflated_triangle_vertices[0].x, inflated_triangle_vertices[0].y,
@@ -219,7 +224,7 @@ function Map_To_Quasisphere() {
 	
 	var lowest_unused_edgepair = 0;
 	
-	var interior_wiggleroom = 0.0000000000000009; //tweakable; quite a lot of work has gone into it, but we have changed shit
+	var interior_wiggleroom = 0.0000000000000016; //this is the minimum for the full lattice
 	for( var i = 0; i < lowest_unused_vertex; i++) {
 		for( var j = 0; j < lowest_unused_vertex; j++) {
 			var proximity_to_1 = Math.abs(quasicutout_intermediate_vertices[i].distanceTo(quasicutout_intermediate_vertices[j]) - 1);
@@ -258,16 +263,17 @@ function Map_To_Quasisphere() {
 		var c1intersection = line_line_intersection(quasicutout_intermediate_vertices[vertex1index],	new THREE.Vector3(0,0,0),	quasicutout_intermediate_vertices[vertex2index],	cutout_vector1);
 		var baseintersection = line_line_intersection(quasicutout_intermediate_vertices[vertex1index],	cutout_vector0,				quasicutout_intermediate_vertices[vertex2index],	cutout_vector1);
 		
-		if(vertex1_in + vertex2_in == 1){
-			if(c0intersection === 0 && c1intersection === 0 && baseintersection === 0)
-			{
-				console.log("apparently there was a line half-in that didn't intersect the sides");
-				//we remove, because if it's sticking out the corner then we don't want it, and if it's inside the corner, then it's sort of out anyway
-				quasicutout_line_pairs[ i*2 ] = 0;
-				quasicutout_line_pairs[i*2+1] = 0;
-				continue;
-			}
-			
+		if(  (c0intersection == 0 && c1intersection == 0 && baseintersection == 0)
+		  || (c0intersection == 0 && c1intersection == 0 && baseintersection != 0) 
+		  || baseintersection != 0 //problem: you might have been intersecting the base of another triangle. Solution: don't expand the bottom of the triangle!!
+		  ) {
+			//this line isn't in the triangle
+			quasicutout_line_pairs[ i*2 ] = 0;
+			quasicutout_line_pairs[i*2+1] = 0;			
+			continue;
+		}
+		
+		if(vertex1_in + vertex2_in == 1){			
 			var intersection;
 			if(c0intersection === 0 && c1intersection === 0)
 				intersection = baseintersection;
@@ -285,15 +291,6 @@ function Map_To_Quasisphere() {
 		}
 		
 		if(!vertex1_in && !vertex2_in ) {
-			if( c0intersection == 0 && c1intersection == 0 && baseintersection == 0 )
-			{
-				//this line isn't in the triangle
-				quasicutout_line_pairs[ i*2 ] = 0;
-				quasicutout_line_pairs[i*2+1] = 0;
-				
-				continue;
-			}
-			
 			var intersection1;
 			var intersection2;
 
