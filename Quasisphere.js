@@ -587,6 +587,13 @@ function initialize_QS_stuff() {
 		}
 	}
 	
+	//we're just going to try all the blue points.
+	//Next thing to try would be gravitating you to the circle around each point 
+	stable_points[0] = quasilattice_default_vertices[2].clone(); stable_points[0].add(quasilattice_default_vertices[num_points]); stable_points[0].multiplyScalar(0.5);
+//	stable_points[0] = quasilattice_default_vertices[2].clone(); stable_points[0].add(quasilattice_default_vertices[num_points]); stable_points[0].multiplyScalar(0.5);
+//	stable_points[0] = quasilattice_default_vertices[2].clone(); stable_points[0].add(quasilattice_default_vertices[num_points]); stable_points[0].multiplyScalar(0.5);
+//	stable_points[0] = quasilattice_default_vertices[2].clone(); stable_points[0].add(quasilattice_default_vertices[num_points]); stable_points[0].multiplyScalar(0.5);
+	
 	var midpoint = quasilattice_default_vertices[0].clone();
 	midpoint.lerp(quasilattice_default_vertices[2], 0.5);
 	var midpoint2 = midpoint.clone();
@@ -600,10 +607,6 @@ function initialize_QS_stuff() {
 	
 	cutout_vector0_player = cutout_vector0.clone();
 	cutout_vector1_player = cutout_vector1.clone();
-	
-	stable_points[0] = new THREE.Vector3();
-	stable_points[0].addVectors(cutout_vector0,cutout_vector1);
-	stable_points[0].multiplyScalar(0.5);
 	
 	//first one is right corner, second is left corner, last is top
 	dodeca_triangle_vertex_indices = new Array(
