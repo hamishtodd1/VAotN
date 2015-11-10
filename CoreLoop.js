@@ -185,10 +185,12 @@ function ChangeScene(new_mode) {
 			break;
 			
 		case QC_SPHERE_MODE:
-			for( var i = 0; i < quasicutouts.length; i++)
-				scene.add(quasicutouts[i]);
-			scene.add(dodeca);
-			scene.add(back_hider);
+//			for( var i = 0; i < quasicutouts.length; i++)
+//				scene.add(quasicutouts[i]);
+//			scene.add(dodeca);
+//			scene.add(back_hider);
+			scene.add(quasiquasilattice);
+			scene.add(stablepointslattice);
 			break;
 		
 		case CUBIC_LATTICE_MODE:

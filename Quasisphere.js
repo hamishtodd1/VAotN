@@ -40,16 +40,16 @@ function UpdateQuasiSurface(){
 	if(dodeca_faceflatness < 0)
 		dodeca_faceflatness = 0;
 	
-	if(dodeca_openness !== 0 ){
-		for(var i = 0; i < quasicutouts.length; i++)
-			if((i + 5)%11 < 5 || i > 54) scene.remove(quasicutouts[i]); //hopefully this is fine to happen if it's already in there
-		back_hider.position.z = -3;
-	}
-	if(dodeca_openness === 0){
-		for(var i = 0; i < quasicutouts.length; i++)
-			if((i + 5)%11 < 5 || i > 54) scene.add(quasicutouts[i]);
-		back_hider.position.z = -0.01;
-	}
+//	if(dodeca_openness !== 0 ){
+//		for(var i = 0; i < quasicutouts.length; i++)
+//			if((i + 5)%11 < 5 || i > 54) scene.remove(quasicutouts[i]); //hopefully this is fine to happen if it's already in there
+//		back_hider.position.z = -3;
+//	}
+//	if(dodeca_openness === 0){
+//		for(var i = 0; i < quasicutouts.length; i++)
+//			if((i + 5)%11 < 5 || i > 54) scene.add(quasicutouts[i]);
+//		back_hider.position.z = -0.01;
+//	}
 	
 	dodeca.material.opacity = (dodeca_faceflatness + dodeca_openness) / 2;	
 	deduce_dodecahedron(dodeca_openness);
@@ -489,6 +489,8 @@ function deduce_dodecahedron(openness) {
 	dodeca_vertices_numbers[46*3+2] = -dodeca_vertices_numbers[2];
 }
 
+
+
 function initialize_QS_stuff() {
 	cutout_vector0 = new THREE.Vector3(0,0.5/Math.sin(TAU/10),0);
 	cutout_vector1 = new THREE.Vector3(PHI/2,0.5/Math.sin(TAU/10)-Math.cos(3/20*TAU),0);
@@ -577,7 +579,7 @@ function initialize_QS_stuff() {
 //	quasilattice_default_vertices[17] = quasilattice_default_vertices[16].clone(); 	quasilattice_default_vertices[17].add(quasilattice_generator[0]);
 	
 	//the number found in one-fifth of the lattice
-	var num_points = 9;
+	var num_points = 7;
 	
 	for( var i = 1; i < 5; i++){
 		for(var j = 0; j < num_points; j++) {
@@ -586,38 +588,71 @@ function initialize_QS_stuff() {
 		}
 	}
 	
-	var funny_radius = Math.sqrt(4-PHI*PHI)/Math.sqrt(3);
+	var spoke_to_side_angle = 3 * TAU / 20;
 	
-	for(var i = 0; i<num_points; i++){
-		var twelveoclock_point;
-		for(var j = 0; j <quasilattice_default_vertices.length; j++){
-			if(Math.abs(quasilattice_default_vertice[i].distanceTo(quasilattice_default_vertices[j]) - 1 < 0.05) ) {
-				twelveoclock_point = quasilattice_default_vertice[j].clone();
-				break;
-			}
+	var second_hand = new THREE.Vector3(1,0,0);
+	
+	var hour_hand = second_hand.clone();
+	hour_hand.setLength(1/Math.sqrt(3));
+	
+	var minute_hand = second_hand.clone();
+	minute_hand.setLength(Math.sqrt(4-PHI*PHI)/Math.sqrt(3));
+	minute_hand.applyAxisAngle(z_central_axis, TAU / 20);
+	
+	for(var i = 0; i < stable_points.length; i++)
+		stable_points[i] = new THREE.Vector3();
+	
+	for(var ourvertex = 0; ourvertex < 7; ourvertex++){
+								//quasilattice_default_vertices.length; i++){
+		var stablepoint_first_recording = lowest_unused_stablepoint;
+		
+		deduce_stable_points_from_fanning_vertex(hour_hand, ourvertex, spoke_to_side_angle);
+		deduce_stable_points_from_fanning_vertex(minute_hand, ourvertex, spoke_to_side_angle);
+		deduce_stable_points_from_fanning_vertex(second_hand, ourvertex, spoke_to_side_angle);
+		
+		var desired_segment_addition = lowest_unused_stablepoint - stablepoint_first_recording;
+		
+		for(var turn = 0; turn < 5; turn++){
+			var stablepoint_recording = lowest_unused_stablepoint;
+			
+			var segmentvertex = ourvertex+turn*7;
+			
+			deduce_stable_points_from_fanning_vertex(hour_hand, segmentvertex, spoke_to_side_angle);
+			deduce_stable_points_from_fanning_vertex(minute_hand, segmentvertex, spoke_to_side_angle);
+			deduce_stable_points_from_fanning_vertex(second_hand, segmentvertex, spoke_to_side_angle);
+			
+			var stablepoint_addition = lowest_unused_stablepoint - stablepoint_recording;
+			
+			if(stablepoint_addition != desired_segment_addition)
+				console.log(ourvertex, turn);
 		}
-	
-		var hour_hand = twelveoclock_point.clone();
-		hour_hand.sub(quasilattice_default_vertice[i]);
-		hour_hand.setLength(1/Math.sqrt(3));
-		
-		var minute_hand = minute_hand.clone();
-		minute_hand.applyAxisAngle(z_central_axis, TAU / 20);
-		minute_hand.setLength(funny_radius);
-		
-		//insert stable points half way between 3/10 TAU angles, and half way between 2/10 TAU angles. Urgh and more (infinitely more?)
-		//radiuses of 1/sqrt(3), and alpha/sqrt(3)(for e and f), and zero?
-		//you know we only hope that this covers all our medium priority points
-		//for every stable point you consider putting down, check its skew angle. If it's more than 3*TAU/20, we don't have this stable point
-		//also check those points that would be in if it was put there.
-		//can we kill 2 birds with one stone and add color here?
 	}
+//	for(var i = 0; i<stable_points.length; i++){
+//		for(var j = i+1; j<stable_points.length; j++){
+//			if(stable_points[i].distanceTo(stable_points[j]) < 0.01)
+//				stable_points.splice(j,1);
+//		}
+//		//maybe also shorten the array
+//	}
+	
+	
+	var quasiquasilattice_geometry = new THREE.Geometry();
+	quasiquasilattice = new THREE.Points( quasiquasilattice_geometry,new THREE.PointsMaterial({size: 0.2, color: 0x000000}));
+	quasiquasilattice.scale.set(0.3,0.3,0.3);
+	for(var i = 0; i < quasilattice_default_vertices.length; i++)
+		quasiquasilattice.geometry.vertices.push(quasilattice_default_vertices[i]);
+	var stablepointslattice_geometry = new THREE.Geometry();
+	stablepointslattice = new THREE.Points( stablepointslattice_geometry,new THREE.PointsMaterial({size: 0.1, color: 0xf00f00}));
+	stablepointslattice.scale.set(0.3,0.3,0.3);
+	stablepointslattice.position.z += 0.01;
+	for(var i = 0; i < stable_points.length; i++)
+		stablepointslattice.geometry.vertices.push(stable_points[i]);
 	
 	
 	//we're just going to try all the blue points.
 	//Next thing to try would be gravitating you to the circle around each point 
-	stable_points[0] = quasilattice_default_vertices[2].clone(); stable_points[0].add(quasilattice_default_vertices[0]); stable_points[0].multiplyScalar(0.5);
-	stable_points[1] = quasilattice_default_vertices[5].clone(); stable_points[1].add(quasilattice_default_vertices[6]); stable_points[1].multiplyScalar(0.5);
+//	stable_points[0] = quasilattice_default_vertices[2].clone(); stable_points[0].add(quasilattice_default_vertices[0]); stable_points[0].multiplyScalar(0.5);
+//	stable_points[1] = quasilattice_default_vertices[5].clone(); stable_points[1].add(quasilattice_default_vertices[6]); stable_points[1].multiplyScalar(0.5);
 //	stable_points[0] = quasilattice_default_vertices[2].clone(); stable_points[0].add(quasilattice_default_vertices[num_points]); stable_points[0].multiplyScalar(0.5);
 //	stable_points[0] = quasilattice_default_vertices[2].clone(); stable_points[0].add(quasilattice_default_vertices[num_points]); stable_points[0].multiplyScalar(0.5);
 //	stable_points[0] = quasilattice_default_vertices[2].clone(); stable_points[0].add(quasilattice_default_vertices[num_points]); stable_points[0].multiplyScalar(0.5);
