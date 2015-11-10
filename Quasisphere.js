@@ -5,8 +5,7 @@
 //If it's smaller than the radius of the red, the third layer is in and second is out.
 
 /*
- * One option: nothing appears on the bottom until you let go.
- * It eventually stabilizes the lattice at the right place, when the cross-edge edges come in
+ * We really need the cross-edge edges to connect counterparts
  *  
  */
 
@@ -564,21 +563,21 @@ function initialize_QS_stuff() {
 	quasilattice_default_vertices[4] = quasilattice_default_vertices[2].clone(); 	quasilattice_default_vertices[4].add(quasilattice_generator[4]);
 	quasilattice_default_vertices[3] = quasilattice_default_vertices[4].clone(); 	quasilattice_default_vertices[3].sub(quasilattice_generator[3]);
 	quasilattice_default_vertices[5] = quasilattice_default_vertices[4].clone(); 	quasilattice_default_vertices[5].sub(quasilattice_generator[2]);
-	quasilattice_default_vertices[7] = quasilattice_default_vertices[4].clone(); 	quasilattice_default_vertices[7].add(quasilattice_generator[3]);
-	quasilattice_default_vertices[9] = quasilattice_default_vertices[7].clone(); 	quasilattice_default_vertices[9].add(quasilattice_generator[4]);
-	quasilattice_default_vertices[10] =quasilattice_default_vertices[9].clone();	quasilattice_default_vertices[10].add(quasilattice_generator[0]);
-	quasilattice_default_vertices[6] = quasilattice_default_vertices[10].clone();	quasilattice_default_vertices[6].sub(quasilattice_generator[3]);
-	quasilattice_default_vertices[8] = quasilattice_default_vertices[9].clone(); 	quasilattice_default_vertices[8].add(quasilattice_generator[2]);
-	quasilattice_default_vertices[11] = quasilattice_default_vertices[6].clone();	quasilattice_default_vertices[11].sub(quasilattice_generator[2]);
-	quasilattice_default_vertices[12] = quasilattice_default_vertices[8].clone(); 	quasilattice_default_vertices[12].add(quasilattice_generator[3]);
-	quasilattice_default_vertices[13] = quasilattice_default_vertices[12].clone();	quasilattice_default_vertices[13].add(quasilattice_generator[4]);
-	quasilattice_default_vertices[14] = quasilattice_default_vertices[9].clone(); 	quasilattice_default_vertices[14].sub(quasilattice_generator[1]);
-	quasilattice_default_vertices[15] = quasilattice_default_vertices[14].clone(); 	quasilattice_default_vertices[15].sub(quasilattice_generator[2]);
-	quasilattice_default_vertices[16] = quasilattice_default_vertices[15].clone(); 	quasilattice_default_vertices[16].sub(quasilattice_generator[3]);
-	quasilattice_default_vertices[17] = quasilattice_default_vertices[16].clone(); 	quasilattice_default_vertices[17].add(quasilattice_generator[0]);
+	quasilattice_default_vertices[6] = quasilattice_default_vertices[4].clone(); 	quasilattice_default_vertices[6].add(quasilattice_generator[3]);
+//	quasilattice_default_vertices[9] = quasilattice_default_vertices[7].clone(); 	quasilattice_default_vertices[9].add(quasilattice_generator[4]);
+//	quasilattice_default_vertices[10] =quasilattice_default_vertices[9].clone();	quasilattice_default_vertices[10].add(quasilattice_generator[0]);
+//	quasilattice_default_vertices[7] = quasilattice_default_vertices[3].clone();	quasilattice_default_vertices[7].sub(quasilattice_generator[2]); quasilattice_default_vertices[7].sub(quasilattice_generator[1]);
+//	quasilattice_default_vertices[8] = quasilattice_default_vertices[1].clone(); 	quasilattice_default_vertices[8].add(quasilattice_generator[4]);
+//	quasilattice_default_vertices[11] = quasilattice_default_vertices[6].clone();	quasilattice_default_vertices[11].sub(quasilattice_generator[2]);
+//	quasilattice_default_vertices[12] = quasilattice_default_vertices[8].clone(); 	quasilattice_default_vertices[12].add(quasilattice_generator[3]);
+//	quasilattice_default_vertices[13] = quasilattice_default_vertices[12].clone();	quasilattice_default_vertices[13].add(quasilattice_generator[4]);
+//	quasilattice_default_vertices[14] = quasilattice_default_vertices[9].clone(); 	quasilattice_default_vertices[14].sub(quasilattice_generator[1]);
+//	quasilattice_default_vertices[15] = quasilattice_default_vertices[14].clone(); 	quasilattice_default_vertices[15].sub(quasilattice_generator[2]);
+//	quasilattice_default_vertices[16] = quasilattice_default_vertices[15].clone(); 	quasilattice_default_vertices[16].sub(quasilattice_generator[3]);
+//	quasilattice_default_vertices[17] = quasilattice_default_vertices[16].clone(); 	quasilattice_default_vertices[17].add(quasilattice_generator[0]);
 	
 	//the number found in one-fifth of the lattice
-	var num_points = 18;
+	var num_points = 9;
 	
 	for( var i = 1; i < 5; i++){
 		for(var j = 0; j < num_points; j++) {
@@ -587,9 +586,38 @@ function initialize_QS_stuff() {
 		}
 	}
 	
+	var funny_radius = Math.sqrt(4-PHI*PHI)/Math.sqrt(3);
+	
+	for(var i = 0; i<num_points; i++){
+		var twelveoclock_point;
+		for(var j = 0; j <quasilattice_default_vertices.length; j++){
+			if(Math.abs(quasilattice_default_vertice[i].distanceTo(quasilattice_default_vertices[j]) - 1 < 0.05) ) {
+				twelveoclock_point = quasilattice_default_vertice[j].clone();
+				break;
+			}
+		}
+	
+		var hour_hand = twelveoclock_point.clone();
+		hour_hand.sub(quasilattice_default_vertice[i]);
+		hour_hand.setLength(1/Math.sqrt(3));
+		
+		var minute_hand = minute_hand.clone();
+		minute_hand.applyAxisAngle(z_central_axis, TAU / 20);
+		minute_hand.setLength(funny_radius);
+		
+		//insert stable points half way between 3/10 TAU angles, and half way between 2/10 TAU angles. Urgh and more (infinitely more?)
+		//radiuses of 1/sqrt(3), and alpha/sqrt(3)(for e and f), and zero?
+		//you know we only hope that this covers all our medium priority points
+		//for every stable point you consider putting down, check its skew angle. If it's more than 3*TAU/20, we don't have this stable point
+		//also check those points that would be in if it was put there.
+		//can we kill 2 birds with one stone and add color here?
+	}
+	
+	
 	//we're just going to try all the blue points.
 	//Next thing to try would be gravitating you to the circle around each point 
-	stable_points[0] = quasilattice_default_vertices[2].clone(); stable_points[0].add(quasilattice_default_vertices[num_points]); stable_points[0].multiplyScalar(0.5);
+	stable_points[0] = quasilattice_default_vertices[2].clone(); stable_points[0].add(quasilattice_default_vertices[0]); stable_points[0].multiplyScalar(0.5);
+	stable_points[1] = quasilattice_default_vertices[5].clone(); stable_points[1].add(quasilattice_default_vertices[6]); stable_points[1].multiplyScalar(0.5);
 //	stable_points[0] = quasilattice_default_vertices[2].clone(); stable_points[0].add(quasilattice_default_vertices[num_points]); stable_points[0].multiplyScalar(0.5);
 //	stable_points[0] = quasilattice_default_vertices[2].clone(); stable_points[0].add(quasilattice_default_vertices[num_points]); stable_points[0].multiplyScalar(0.5);
 //	stable_points[0] = quasilattice_default_vertices[2].clone(); stable_points[0].add(quasilattice_default_vertices[num_points]); stable_points[0].multiplyScalar(0.5);
