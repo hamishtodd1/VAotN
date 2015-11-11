@@ -19,6 +19,7 @@ function deduce_stable_points_from_fanning_vertex(fanning_vertex_start, lattice_
 		hand = 0;
 	if(fanning_vertex_length > 0.7)
 		hand = 2;
+	
 	for(var j = 0; j < 10; j++){
 		var fanning_vertex = fanning_vertex_start.clone();
 		fanning_vertex.applyAxisAngle(z_central_axis, j * TAU / 10);
@@ -26,16 +27,15 @@ function deduce_stable_points_from_fanning_vertex(fanning_vertex_start, lattice_
 		var potential_stable_point = fanning_vertex.clone();
 		potential_stable_point.add(quasilattice_default_vertices[lattice_vertex_index]);
 		
-		//we could check their angle with atan2 to get rid of any outside our one-fifth slice.
-		
 		potential_stable_point_spoke = potential_stable_point.clone();
 		potential_stable_point_spoke.negate();
 		
 		var latticevertex_for_stablepoint = fanning_vertex.clone();
 		latticevertex_for_stablepoint.negate();
-		var ourangle = potential_stable_point_spoke.angleTo(latticevertex_for_stablepoint);
 		var in_ness_angle = potential_stable_point_spoke.angleTo(latticevertex_for_stablepoint);
-		if( in_ness_angle > spoke_to_side_angle - 0.00001 )
+		if(lattice_vertex_index == 0 && hand == 0 && j == 0 )
+			console.log(in_ness_angle,spoke_to_side_angle - 0.00001, potential_stable_point_spoke, latticevertex_for_stablepoint );
+		if( in_ness_angle > spoke_to_side_angle + 0.00001 )
 			continue; //the point we originate from wouldn't be in the face
 		
 		var confirmed_stablepoint = 1;

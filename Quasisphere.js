@@ -7,6 +7,13 @@
 /*
  * We really need the cross-edge edges to connect counterparts
  *  
+ * Some edges are being unrecognized. We are not getting, for example, an edge dividing the two pentagons precisely on either side of the middle of an edge, even when increasing error bar
+ *  
+ * Ok so what would be better during player movement would be snapping to the nearest setup 
+ * 
+ * Shouldn't there be one allowing for the fat rhomb and pentagon to rest on the top? Or that simple one allowing bowties? 
+ * 
+ * points on the corners should be in.
  */
 
 /*
@@ -40,16 +47,16 @@ function UpdateQuasiSurface(){
 	if(dodeca_faceflatness < 0)
 		dodeca_faceflatness = 0;
 	
-//	if(dodeca_openness !== 0 ){
-//		for(var i = 0; i < quasicutouts.length; i++)
-//			if((i + 5)%11 < 5 || i > 54) scene.remove(quasicutouts[i]); //hopefully this is fine to happen if it's already in there
-//		back_hider.position.z = -3;
-//	}
-//	if(dodeca_openness === 0){
-//		for(var i = 0; i < quasicutouts.length; i++)
-//			if((i + 5)%11 < 5 || i > 54) scene.add(quasicutouts[i]);
-//		back_hider.position.z = -0.01;
-//	}
+	if(dodeca_openness !== 0 ){
+		for(var i = 0; i < quasicutouts.length; i++)
+			if((i + 5)%11 < 5 || i > 54) scene.remove(quasicutouts[i]); //hopefully this is fine to happen if it's already in there
+		back_hider.position.z = -3;
+	}
+	if(dodeca_openness === 0){
+		for(var i = 0; i < quasicutouts.length; i++)
+			if((i + 5)%11 < 5 || i > 54) scene.add(quasicutouts[i]);
+		back_hider.position.z = -0.01;
+	}
 	
 	dodeca.material.opacity = (dodeca_faceflatness + dodeca_openness) / 2;	
 	deduce_dodecahedron(dodeca_openness);
@@ -169,30 +176,23 @@ function MoveQuasiLattice(){
 		//or make things attract each other? Yeah, right.
 		
 		//more jarring to change angle than scale, probably. Therefore, just find the stable point with the closest angle.
-		var our_snappable_vector = new THREE.Vector3();
-		our_snappable_vector.addVectors(cutout_vector0, cutout_vector1);
-		our_snappable_vector.multiplyScalar(0.5);
+		var our_snappable_vector = cutout_vector0.clone();
 		var our_snappable_vector_angle = Math.atan2(our_snappable_vector.y,our_snappable_vector.x);
 		var our_snappable_vector_length = our_snappable_vector.length();
-		var closest_stable_point_angleto = 666;
+		var closest_stable_point_dist = 666;
 		var closest_stable_point_index = 666;
 		for( var i = 0; i < stable_points.length; i++){
-			var stable_point_angle = Math.atan2(stable_points[i].y,stable_points[i].x);
-			for( var j = 1; j <= 5; j++){
-				if(	Math.abs(our_snappable_vector_angle - j * stable_point_angle) < Math.abs(closest_stable_point_angleto) ) //so you sort of need to make sure that the one in the array is as low as possible
-				{
-					closest_stable_point_index = i;
-					closest_stable_point_angleto = our_snappable_vector_angle - stable_point_angle;
-				}
+			if(	stable_points[i].distanceTo(our_snappable_vector) < closest_stable_point_dist ) //so you sort of need to make sure that the one in the array is as low as possible
+			{
+				closest_stable_point_index = i;
+				closest_stable_point_dist = stable_points[i].distanceTo(our_snappable_vector);
 			}
 		}
 		//TODO the fucking tau = 0 thing
 		
-		cutout_vector0.applyAxisAngle(z_central_axis, -closest_stable_point_angleto); //maybe minus, you know
-		cutout_vector1.applyAxisAngle(z_central_axis, -closest_stable_point_angleto);
-		var scale_change = stable_points[closest_stable_point_index].length() / our_snappable_vector_length;
-		cutout_vector0.multiplyScalar(scale_change);
-		cutout_vector1.multiplyScalar(scale_change);
+		cutout_vector0.copy(stable_points[closest_stable_point_index]); //maybe minus, you know
+		cutout_vector1.copy(stable_points[closest_stable_point_index]);
+		cutout_vector1.applyAxisAngle(z_central_axis, -TAU/5);
 	}
 	
 	var interpolation_factor = (1-dodeca_openness);
@@ -590,60 +590,71 @@ function initialize_QS_stuff() {
 	
 	var spoke_to_side_angle = 3 * TAU / 20;
 	
-	var second_hand = new THREE.Vector3(1,0,0);
+	var second_hand = new THREE.Vector3(1,0,0); //d
 	
-	var hour_hand = second_hand.clone();
-	hour_hand.setLength(1/Math.sqrt(3));
+	var hour_hand = second_hand.clone(); //a,b,c
+	hour_hand.setLength(PHI-1);
 	
-	var minute_hand = second_hand.clone();
-	minute_hand.setLength(Math.sqrt(4-PHI*PHI)/Math.sqrt(3));
+	var minute_hand = second_hand.clone(); //e,f
+	minute_hand.setLength(Math.tan(TAU/10));
 	minute_hand.applyAxisAngle(z_central_axis, TAU / 20);
 	
 	for(var i = 0; i < stable_points.length; i++)
 		stable_points[i] = new THREE.Vector3();
 	
-	for(var ourvertex = 0; ourvertex < 7; ourvertex++){
-								//quasilattice_default_vertices.length; i++){
-		var stablepoint_first_recording = lowest_unused_stablepoint;
-		
-		deduce_stable_points_from_fanning_vertex(hour_hand, ourvertex, spoke_to_side_angle);
-		deduce_stable_points_from_fanning_vertex(minute_hand, ourvertex, spoke_to_side_angle);
-		deduce_stable_points_from_fanning_vertex(second_hand, ourvertex, spoke_to_side_angle);
-		
-		var desired_segment_addition = lowest_unused_stablepoint - stablepoint_first_recording;
-		
-		for(var turn = 0; turn < 5; turn++){
-			var stablepoint_recording = lowest_unused_stablepoint;
-			
-			var segmentvertex = ourvertex+turn*7;
-			
-			deduce_stable_points_from_fanning_vertex(hour_hand, segmentvertex, spoke_to_side_angle);
-			deduce_stable_points_from_fanning_vertex(minute_hand, segmentvertex, spoke_to_side_angle);
-			deduce_stable_points_from_fanning_vertex(second_hand, segmentvertex, spoke_to_side_angle);
-			
-			var stablepoint_addition = lowest_unused_stablepoint - stablepoint_recording;
-			
-			if(stablepoint_addition != desired_segment_addition)
-				console.log(ourvertex, turn);
+//	console.log(lowest_unused_stablepoint)
+//	for(var ourvertex = 0; ourvertex < 7; ourvertex++){
+//		//quasilattice_default_vertices.length; i++){
+//		var stablepoint_first_recording = lowest_unused_stablepoint;
+//		
+//		deduce_stable_points_from_fanning_vertex(hour_hand, ourvertex, spoke_to_side_angle);
+//		deduce_stable_points_from_fanning_vertex(minute_hand, ourvertex, spoke_to_side_angle);
+//		deduce_stable_points_from_fanning_vertex(second_hand, ourvertex, spoke_to_side_angle);
+//		
+//		var desired_segment_addition = lowest_unused_stablepoint - stablepoint_first_recording;
+////		console.log(desired_segment_addition);
+//		console.log(lowest_unused_stablepoint)
+//		for(var turn = 1; turn < 5; turn++){
+//			var stablepoint_recording = lowest_unused_stablepoint;
+//			
+//			var segmentvertex = ourvertex+turn*7;
+//			
+//			deduce_stable_points_from_fanning_vertex(hour_hand, segmentvertex, spoke_to_side_angle);
+//			deduce_stable_points_from_fanning_vertex(minute_hand, segmentvertex, spoke_to_side_angle);
+//			deduce_stable_points_from_fanning_vertex(second_hand, segmentvertex, spoke_to_side_angle);
+//			
+//			var stablepoint_addition = lowest_unused_stablepoint - stablepoint_recording;
+//			
+////			console.log(stablepoint_addition);
+////			if(stablepoint_addition != desired_segment_addition)
+////				console.log(ourvertex, turn);
+//			
+//		}
+//		console.log(lowest_unused_stablepoint)
+//	}
+	for(var i = 0; i < quasilattice_default_vertices.length; i++){
+		deduce_stable_points_from_fanning_vertex(hour_hand, i, spoke_to_side_angle);
+		deduce_stable_points_from_fanning_vertex(minute_hand, i, spoke_to_side_angle);
+		deduce_stable_points_from_fanning_vertex(second_hand, i, spoke_to_side_angle);
+	}
+	for(var i = 0; i<stable_points.length; i++){
+		for(var j = i+1; j<stable_points.length; j++){
+			if(stable_points[i].distanceTo(stable_points[j]) < 0.0001){
+				console.log("culled some stable points: ", i,j,stable_points[j],stable_points[i])
+				stable_points.splice(j,1);
+				j--;
+			}
 		}
 	}
-//	for(var i = 0; i<stable_points.length; i++){
-//		for(var j = i+1; j<stable_points.length; j++){
-//			if(stable_points[i].distanceTo(stable_points[j]) < 0.01)
-//				stable_points.splice(j,1);
-//		}
-//		//maybe also shorten the array
-//	}
-	
 	
 	var quasiquasilattice_geometry = new THREE.Geometry();
 	quasiquasilattice = new THREE.Points( quasiquasilattice_geometry,new THREE.PointsMaterial({size: 0.2, color: 0x000000}));
-	quasiquasilattice.scale.set(0.3,0.3,0.3);
+	quasiquasilattice.scale.set(0.6,0.6,0.6);
 	for(var i = 0; i < quasilattice_default_vertices.length; i++)
 		quasiquasilattice.geometry.vertices.push(quasilattice_default_vertices[i]);
 	var stablepointslattice_geometry = new THREE.Geometry();
 	stablepointslattice = new THREE.Points( stablepointslattice_geometry,new THREE.PointsMaterial({size: 0.1, color: 0xf00f00}));
-	stablepointslattice.scale.set(0.3,0.3,0.3);
+	stablepointslattice.scale.copy(quasiquasilattice.scale);
 	stablepointslattice.position.z += 0.01;
 	for(var i = 0; i < stable_points.length; i++)
 		stablepointslattice.geometry.vertices.push(stable_points[i]);

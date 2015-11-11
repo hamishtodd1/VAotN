@@ -106,7 +106,7 @@ var quasicutout_intermediate_vertices = Array(quasilattice_default_vertices.leng
 var quasicutouts_vertices_components = Array(quasilattice_default_vertices.length*2 * 2 );
 var quasicutout_line_pairs = new Uint16Array(quasilattice_default_vertices.length*2 * 2 * 2); //TODO work out how many there should be in here really.
 var quasicutouts = Array(60);
-var stable_points = Array(600);
+var stable_points = Array(345);
 var lowest_unused_stablepoint = 0;
 var quasiquasilattice;
 var stablepointslattice;
