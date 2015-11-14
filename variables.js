@@ -18,7 +18,7 @@ var MODE = 4;
 //--------------Technologically fundamental
 var playing_field_width = 7*HS3;
 var playing_field_height = 6;
-var window_height = 600; //100 pixels per unit
+var window_height = 480;
 var window_width = window_height * playing_field_width / playing_field_height;
 var min_cameradist = 10; //get any closer and the perspective is weird
 var vertical_fov = 2 * Math.atan(playing_field_height/(2*min_cameradist));
@@ -32,6 +32,7 @@ var renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize( window_width, window_height );
 renderer.setClearColor( 0xffffff, 1);
 document.body.appendChild( renderer.domElement );
+var ytplayer;
 
 //----------------Static
 var FLATNET = 0;

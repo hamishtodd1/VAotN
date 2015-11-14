@@ -68,7 +68,7 @@ function check_arrows(){
 
 function UpdateWorld() {
 	update_mouseblob();
-	check_arrows();
+//	check_arrows();
 	
 	switch(MODE){
 		case STATIC_PROTEIN_MODE:
@@ -121,9 +121,6 @@ function render() {
 	renderer.render( scene, camera );
 }
 
-init();
-render();
-
 //eventually we'll add some trigger to this that makes it reasonable to call every frame
 function ChangeScene(new_mode) {
 	if(new_mode==CUBIC_LATTICE_MODE){
@@ -145,8 +142,8 @@ function ChangeScene(new_mode) {
 		var obj = scene.children[i];
 		scene.remove(obj);
 	}
-	scene.add(forwardbutton);
-	scene.add(backwardbutton);
+//	scene.add(forwardbutton);
+//	scene.add(backwardbutton);
 	scene.add( circle );
 	
 //	if(showdebugstuff){
