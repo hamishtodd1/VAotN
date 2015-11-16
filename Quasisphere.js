@@ -289,6 +289,15 @@ function Map_To_Quasisphere() {
 	
 	var lowest_unused_edgepair = 0;
 	
+	var num_stitchup_vertices_in_one_quasicutout = 0;
+	
+	var paired_point_index = new Uint16Array(lowest_unused_vertex);
+	for(var i = 0; i < lowest_unused_vertex; i++)
+		paired_point_index[i] = 6666;
+	var relative_triangle_index = new Uint16Array(lowest_unused_vertex);
+	for(var i = 0; i < lowest_unused_vertex; i++)
+		relative_triangle_index[i] = 6666;
+	
 	var interior_wiggleroom = 0.0000000000000016; //this is the minimum for the full lattice
 	for( var i = 0; i < lowest_unused_vertex; i++) {
 		if( !point_in_triangle(	quasicutout_intermediate_vertices[i].x, quasicutout_intermediate_vertices[i].y,
@@ -316,7 +325,8 @@ function Map_To_Quasisphere() {
 					lowest_unused_edgepair++;
 				}
 				else {
-					//partly outside. So we need to do something that will flag this point, when projected, for inclusion in the stitchup
+					relative_triangle_index[i];//dunno how to get this, use point_to_the_right_of_line maybe? 1, 2, or 3. You could work out centers of their other two pentagons
+					paired_point_index[i] = j;
 				}
 			}
 		}
@@ -325,7 +335,7 @@ function Map_To_Quasisphere() {
 		quasicutout_line_pairs[i] = 0;
 	
 	//Speedup opportunity: we could do a pass of "check there aren't duplicate pairs, or unconnected points. And maybe not interior ones with only one edge attached either"
-	 
+	
 	var ourcenter_veclength = 0.5 * Math.tan(Math.atan(PHI) + dodeca_faceflatness*(TAU/4 - Math.atan(PHI))) / Math.tan(TAU/10);
 
 	for( var i = 0; i < dodeca_triangle_vertex_indices.length; i++) { 
@@ -388,14 +398,12 @@ function Map_To_Quasisphere() {
 				quasicutouts[i].geometry.attributes.position.array[vertex_index*3+2] = ourvertex.z;
 			}
 			
+			stitchup.geometry.attributes.position.array[lowest_unused_vertex * i + vertex_index*3+0] = quasicutouts[i].geometry.attributes.position.array[vertex_index*3+0];
+			stitchup.geometry.attributes.position.array[lowest_unused_vertex * i + vertex_index*3+1] = quasicutouts[i].geometry.attributes.position.array[vertex_index*3+1];
+			stitchup.geometry.attributes.position.array[lowest_unused_vertex * i + vertex_index*3+2] = quasicutouts[i].geometry.attributes.position.array[vertex_index*3+2];
+			
 			//array of bools, whether or not this one should be in the stitchup.
 			//then how do you do the edge pairs?
-			if(in_stitchup[vertex_index]){
-				stitchup.geometry.attributes.position.array[lowest_unused_stitchup_vertex_index*3+0] = quasicutouts[i].geometry.attributes.position.array[vertex_index*3+0];
-				stitchup.geometry.attributes.position.array[lowest_unused_stitchup_vertex_index*3+1] = quasicutouts[i].geometry.attributes.position.array[vertex_index*3+1];
-				stitchup.geometry.attributes.position.array[lowest_unused_stitchup_vertex_index*3+2] = quasicutouts[i].geometry.attributes.position.array[vertex_index*3+2];
-				
-				lowest_unused_stitchup_vertex_index++;
 				
 				//ok so one of them is in quasicutout i, one in some other quasicutout, there are a bunch of possibilities
 				//just using the above we will get a series of the same points in the same sequence from each quasicutout successively. 
@@ -404,22 +412,28 @@ function Map_To_Quasisphere() {
 				//go through every pair of quasicutouts... check what their "relationship" is... pairs are listed with some "relationship"... connect up?
 				
 				//so we will generate a bunch of pairs, when the above is done
-			}
 		}
 		
 		quasicutouts[i].geometry.attributes.position.needsUpdate = true;
 		quasicutouts[i].geometry.index.needsUpdate = true;
 	}
 	
-	for(var i = 0; i < adjacent_dodeca_triangles.length; i++){
-		//go through every point in the thingy
-		//we will have an array created during edgepair creation that tells you which triangle (1,2 or 3) the OUTSIDE vertex is in
-//		for(var j = 0; j < some number of points; j++){
-//			var triangle_mini_index = paired_point_triangle[j]
-//			var index_in_stitchup2 = num_stitchup_vertices_in_one_quasicutout * adjacent_dodeca_triangles[i][triangle_mini_index]
-//		}
-		
+	var lowest_unused_stitchup_edgepair = 0;
+	for(var i = 0; i < adjacent_dodeca_triangles.length; i++){ //one quasicutout at a time
+		//for every point in there we will have the index of the point it is connected to, and which of the three nearby quasicutouts that point is in
+		for(var j = 0; j < lowest_unused_vertex; j++){
+			var index1 = j + i * lowest_unused_vertex;
+			var quasicutout_containing_index2 = nearby_quasicutouts[i][relative_triangle_index[j]]; //relative_triangle_index[j] is 1, 2 or 3 
+			var index2 = paired_point_index[j] + lowest_unused_vertex * quasicutout_containing_index2;
+			
+			stitchup_line_pairs[ lowest_unused_stitchup_edgepair*2 ] = index1;
+			stitchup_line_pairs[lowest_unused_stitchup_edgepair*2+1] = index2;
+			lowest_unused_stitchup_edgepair++; //work on skipping some of them later
+		}
 	}
+	for(var i = lowest_unused_stitchup_edgepair*2; i < stitchup_line_pairs.length; i++)
+		stitchup_line_pairs[i] = 0;
+	console.log(lowest_unused_stitchup_edgepair);
 }
 
 function deduce_dodecahedron(openness) {	
@@ -550,6 +564,7 @@ function initialize_QS_stuff() {
 // 	    31,35,	35,36,	36,37,	37,32,
 // 	    39,43,	43,44,	44,45,	45,40
  		]);
+ 	var nearby_quasicutouts[i][];
  	
  	dodeca_geometry = new THREE.BufferGeometry();
  	dodeca_geometry.addAttribute( 'position', new THREE.BufferAttribute( dodeca_vertices_numbers, 3 ) );
