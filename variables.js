@@ -6,19 +6,22 @@ var PHI = (Math.sqrt(5) + 1) / 2;
 var TAU = Math.PI * 2;
 
 //--------------Structurally fundamental
-var STATIC_PROTEIN_MODE = 0;
-var STATIC_DNA_MODE = 1; 
-var CK_MODE = 2;
-var IRREGULAR_MODE = 3;
-var QC_SPHERE_MODE = 4;
-var CUBIC_LATTICE_MODE = 5;
+var NOTHING_MODE = 0;
+var STATIC_PROTEIN_MODE = 1;
+var STATIC_DNA_MODE = 2; 
+var CK_MODE = 3;
+var IRREGULAR_MODE = 4;
+var QC_SPHERE_MODE = 5;
+var CUBIC_LATTICE_MODE = 6;
 	
-var MODE = 4;
+var MODE = QC_SPHERE_MODE;
+
+var section_finishing_time = new Uint16Array([3,7,14,18,22,25,32]);
 
 //--------------Technologically fundamental
 var playing_field_width = 7*HS3;
 var playing_field_height = 6;
-var window_height = 480;
+var window_height = 540;
 var window_width = window_height * playing_field_width / playing_field_height;
 var min_cameradist = 10; //get any closer and the perspective is weird
 var vertical_fov = 2 * Math.atan(playing_field_height/(2*min_cameradist));
