@@ -417,6 +417,8 @@ function Map_To_Quasisphere() {
 			console.log(index_index_triangle_triplets[j][2]);
 			console.log(nearby_quasicutouts[i]);
 			var quasicutout_containing_index2 = nearby_quasicutouts[i][ index_index_triangle_triplets[j][2] ];
+			if(quasicutout_containing_index2 === 666)
+				continue; //not in the picture
 			stitchup_line_pairs[ lowest_unused_stitchup_edgepair*2 ] = index_index_triangle_triplets[j][0] + i * lowest_unused_vertex;
 			stitchup_line_pairs[lowest_unused_stitchup_edgepair*2+1] = index_index_triangle_triplets[j][1] + quasicutout_containing_index2 * lowest_unused_vertex;
 			lowest_unused_stitchup_edgepair++;
@@ -569,12 +571,24 @@ function initialize_QS_stuff() {
  		[4,6,18,14],
  		[5,18,13,0],
  		
+ 		[6,19,3,48],
+ 		[7,3,48,54],
+ 		[8,48,54,666],
+ 		[9,54,666,19],
+ 		[10,666,19,3],
+ 		
  		[11,1,12,23],
  		[12,24,11,5],
  		[13,11,5,17],
  		[14,5,17,29],
  		[15,17,29,24],
  		[16,29,24,11],
+ 		
+ 		[17,30,14,4],
+ 		[18,14,4,10],
+ 		[19,4,10,666],
+ 		[20,10,666,30],
+ 		[21,666,30,14],
  		
  		[22,12,23,34],
  		[23,35,22,16],
@@ -583,6 +597,12 @@ function initialize_QS_stuff() {
  		[26,28,40,35],
  		[27,40,35,22],
  		
+ 		[28,41,25,15],
+ 		[29,25,15,21],
+ 		[30,15,21,666],
+ 		[31,21,666,41],
+ 		[32,666,41,25],
+ 		
  		[33,23,34,45],
  		[34,46,33,27],
  		[35,33,27,39],
@@ -590,12 +610,25 @@ function initialize_QS_stuff() {
  		[37,39,51,46],
  		[38,51,46,33],
  		
+ 		[39,52,36,26],
+ 		[40,36,26,32],
+ 		[41,26,32,666],
+ 		[42,32,666,52],
+ 		[43,666,52,36],
+ 		
  		[44,34,45,1],
  		[45,2,44,38],
  		[46,44,38,50],
  		[47,38,50,7],
  		[48,50,7,2],
- 		[49,7,2,49] ); //need to fill out all of these
+ 		[49,7,2,49],
+ 		
+ 		[50,8,47,37],
+ 		[51,47,37,43],
+ 		[52,37,43,666],
+ 		[53,43,666,8],
+ 		[54,666,8,47]
+ 	); //need to fill out all of these
  	
  	dodeca_geometry = new THREE.BufferGeometry();
  	dodeca_geometry.addAttribute( 'position', new THREE.BufferAttribute( dodeca_vertices_numbers, 3 ) );
