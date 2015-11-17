@@ -2,6 +2,7 @@
  * -film, edit
  * -protein capsid at beginning
  * -DNA at beginning
+ * -Withhold progress until they do something?
  * -penrose tiling breakup demo? Urgh. Can be done with just images
  * -random walking atom?
  * -protein models in CK?

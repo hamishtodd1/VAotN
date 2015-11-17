@@ -236,11 +236,8 @@ function mirror_point_along_base_and_return_nextvertexindex(ourpoint_index, c0,c
 		quasicutout_intermediate_vertices[lowest_unused_vertex].multiplyScalar(dist_from_bottom);
 		quasicutout_intermediate_vertices[lowest_unused_vertex].add(closest_point_on_bottom);
 		
-		var location_orthprojected_onto_face = closest_point_on_bottom.clone();
-		location_orthprojected_onto_face.addScaledVector(c0_c1_summed_unit, dist_from_bottom * Math.sin(dihedral_angle - TAU/4));
-		
-		quasicutouts_vertices_components[lowest_unused_vertex][0] = location_orthprojected_onto_face.x * quasi_shear_matrix[0] + location_orthprojected_onto_face.y * quasi_shear_matrix[1];
-		quasicutouts_vertices_components[lowest_unused_vertex][1] = location_orthprojected_onto_face.x * quasi_shear_matrix[2] + location_orthprojected_onto_face.y * quasi_shear_matrix[3];
+		quasicutouts_vertices_components[lowest_unused_vertex][0] = 0;
+		quasicutouts_vertices_components[lowest_unused_vertex][1] = 0;
 		
 		return lowest_unused_vertex+1;
 	}
@@ -256,9 +253,6 @@ function Map_To_Quasisphere() {
 	
 	var right_triangle_cutout_vector = new THREE.Vector3(cutout_vector0.x, cutout_vector0.y, 0);
 	right_triangle_cutout_vector.applyAxisAngle(axis, -TAU/5);
-	
-	var dihedral_angle = 2 * Math.atan(PHI);
-	dihedral_angle = dihedral_angle + dodeca_openness * (TAU/2 - dihedral_angle);
 	
 	//TODO round off errors may mean things on the triangle edge are not in the triangle
 	//TODO seriously, at least the top right might be that
@@ -282,23 +276,23 @@ function Map_To_Quasisphere() {
 		lowest_unused_vertex++;
 		
 		//yes, you have to do all three for all of them
-		lowest_unused_vertex = mirror_on_base(i, cutout_vector0, cutout_vector1,lowest_unused_vertex);
-		lowest_unused_vertex = mirror_on_base(i, cutout_vector1, left_triangle_cutout_vector1,lowest_unused_vertex);
-		lowest_unused_vertex = mirror_on_base(i, right_triangle_cutout_vector, cutout_vector0,lowest_unused_vertex);
+		lowest_unused_vertex = mirror_point_along_base_and_return_nextvertexindex(i, cutout_vector0, cutout_vector1,lowest_unused_vertex);
+		lowest_unused_vertex = mirror_point_along_base_and_return_nextvertexindex(i, cutout_vector1, left_triangle_cutout_vector,lowest_unused_vertex);
+		lowest_unused_vertex = mirror_point_along_base_and_return_nextvertexindex(i, right_triangle_cutout_vector, cutout_vector0,lowest_unused_vertex);
 	}
 	
 	var lowest_unused_edgepair = 0;
 	
-	var num_stitchup_vertices_in_one_quasicutout = 0;
+	var index_index_triangle_triplets = Array();
 	
-	var paired_point_index = new Uint16Array(lowest_unused_vertex);
-	for(var i = 0; i < lowest_unused_vertex; i++)
-		paired_point_index[i] = 6666;
-	var relative_triangle_index = new Uint16Array(lowest_unused_vertex);
-	for(var i = 0; i < lowest_unused_vertex; i++)
-		relative_triangle_index[i] = 6666;
+	var left_triangle_mirrored_top = new THREE.Vector3();
+	left_triangle_mirrored_top.addVectors(cutout_vector1, left_triangle_cutout_vector);
+	var right_triangle_mirrored_top = new THREE.Vector3();
+	right_triangle_mirrored_top.addVectors(right_triangle_cutout_vector, cutout_vector0);
+	var center_triangle_mirrored_top = new THREE.Vector3();
+	center_triangle_mirrored_top.addVectors(cutout_vector1, cutout_vector0);
 	
-	var interior_wiggleroom = 0.0000000000000016; //this is the minimum for the full lattice
+	var interior_wiggleroom = 0.0000000000000016; //this is the minimum for the full lattice. Maybe still worth experimenting with
 	for( var i = 0; i < lowest_unused_vertex; i++) {
 		if( !point_in_triangle(	quasicutout_intermediate_vertices[i].x, quasicutout_intermediate_vertices[i].y,
 				0, 0, cutout_vector0.x, cutout_vector0.y, cutout_vector1.x, cutout_vector1.y, 
@@ -306,9 +300,9 @@ function Map_To_Quasisphere() {
 			continue;
 		
 		for( var j = 0; j < lowest_unused_vertex; j++) {
-			var proximity_to_1 = Math.abs(quasicutout_intermediate_vertices[i].distanceTo(quasicutout_intermediate_vertices[j]) - 1);
+			var edgelength_minus_1 = quasicutout_intermediate_vertices[i].distanceTo(quasicutout_intermediate_vertices[j]) - 1;
 			
-			if( proximity_to_1 < interior_wiggleroom ) {
+			if( Math.abs( edgelength_minus_1 ) < interior_wiggleroom ) {
 				var inactualtriangle = point_in_triangle(	quasilattice_default_vertices[j].x, quasilattice_default_vertices[j].y,
 										0, 0, cutout_vector0.x, cutout_vector0.y, cutout_vector1.x, cutout_vector1.y, 
 										true)
@@ -325,8 +319,18 @@ function Map_To_Quasisphere() {
 					lowest_unused_edgepair++;
 				}
 				else {
-					relative_triangle_index[i];//dunno how to get this, use point_to_the_right_of_line maybe? 1, 2, or 3. You could work out centers of their other two pentagons
-					paired_point_index[i] = j;
+					if(point_in_triangle(	quasilattice_default_vertices[j].x, quasilattice_default_vertices[j].y,
+						cutout_vector1.x, cutout_vector1.y, left_triangle_mirrored_top.x, left_triangle_mirrored_top.y, left_triangle_cutout_vector.x, left_triangle_cutout_vector.y, 
+						true) )
+						index_index_triangle_triplets.push(Array(i,j,1));
+					else if(point_in_triangle(	quasilattice_default_vertices[j].x, quasilattice_default_vertices[j].y,
+						cutout_vector0.x, cutout_vector0.y, center_triangle_mirrored_top.x, center_triangle_mirrored_top.y, cutout_vector1.x, cutout_vector1.y, 
+						true) )
+						index_index_triangle_triplets.push(Array(i,j,2));
+					else if(point_in_triangle(	quasilattice_default_vertices[j].x, quasilattice_default_vertices[j].y,
+						right_triangle_cutout_vector.x, right_triangle_cutout_vector.y, right_triangle_mirrored_top.x, right_triangle_mirrored_top.y, cutout_vector0.x, cutout_vector0.y, 
+						true) )
+						index_index_triangle_triplets.push(Array(i,j,3));
 				}
 			}
 		}
@@ -338,7 +342,7 @@ function Map_To_Quasisphere() {
 	
 	var ourcenter_veclength = 0.5 * Math.tan(Math.atan(PHI) + dodeca_faceflatness*(TAU/4 - Math.atan(PHI))) / Math.tan(TAU/10);
 
-	for( var i = 0; i < dodeca_triangle_vertex_indices.length; i++) { 
+	for( var i = 0; i < dodeca_triangle_vertex_indices.length; i++) {
 		var rightindex = dodeca_triangle_vertex_indices[i][0];
 		var leftindex = dodeca_triangle_vertex_indices[i][1]; 
 		var topindex = dodeca_triangle_vertex_indices[i][2];
@@ -360,16 +364,14 @@ function Map_To_Quasisphere() {
 		var downward_vector = basis_vectors[0].clone();
 		downward_vector.cross(basis_vectors[1]);
 		downward_vector.normalize();
-		
 		var ourcenter = downward_vector.clone();		
 		ourcenter.multiplyScalar(ourcenter_veclength);
 		ourcenter.add(basis_vectors[2]);
-		var radius = Math.sqrt(basis_vectors[0].length() * basis_vectors[0].length() + ourcenter_veclength * ourcenter_veclength );
+		var radius = Math.sqrt(basis_vectors[0].lengthSq() + ourcenter_veclength * ourcenter_veclength );
 		
 		for( var j = 0; j < quasicutouts[i].geometry.attributes.position.array.length; j++)
 			quasicutouts[i].geometry.attributes.position.array[j] = 0;
 		
-		var next_radius_ratio = 666;
 		for( var vertex_index = 0; vertex_index < lowest_unused_vertex; vertex_index++) {
 			for( var component = 0; component < basis_vectors.length; component++) {
 				quasicutouts[i].geometry.attributes.position.array[vertex_index*3+0] += quasicutouts_vertices_components[vertex_index][component] * basis_vectors[component].x;
@@ -401,35 +403,25 @@ function Map_To_Quasisphere() {
 			stitchup.geometry.attributes.position.array[lowest_unused_vertex * i + vertex_index*3+0] = quasicutouts[i].geometry.attributes.position.array[vertex_index*3+0];
 			stitchup.geometry.attributes.position.array[lowest_unused_vertex * i + vertex_index*3+1] = quasicutouts[i].geometry.attributes.position.array[vertex_index*3+1];
 			stitchup.geometry.attributes.position.array[lowest_unused_vertex * i + vertex_index*3+2] = quasicutouts[i].geometry.attributes.position.array[vertex_index*3+2];
-			
-			//array of bools, whether or not this one should be in the stitchup.
-			//then how do you do the edge pairs?
-				
-				//ok so one of them is in quasicutout i, one in some other quasicutout, there are a bunch of possibilities
-				//just using the above we will get a series of the same points in the same sequence from each quasicutout successively. 
-				//The indices in stitchup of vertex i are i+num_stitchup_vertices_in_one_quasicutout*x for x = 0,1... 
-				//so work out 
-				//go through every pair of quasicutouts... check what their "relationship" is... pairs are listed with some "relationship"... connect up?
-				
-				//so we will generate a bunch of pairs, when the above is done
 		}
 		
 		quasicutouts[i].geometry.attributes.position.needsUpdate = true;
 		quasicutouts[i].geometry.index.needsUpdate = true;
 	}
 	
+	//The indices in stitchup of vertex i are i+num_stitchup_vertices_in_one_quasicutout*x for x = 0,1...
 	var lowest_unused_stitchup_edgepair = 0;
-	for(var i = 0; i < adjacent_dodeca_triangles.length; i++){ //one quasicutout at a time
-		//for every point in there we will have the index of the point it is connected to, and which of the three nearby quasicutouts that point is in
-		for(var j = 0; j < lowest_unused_vertex; j++){
-			var index1 = j + i * lowest_unused_vertex;
-			var quasicutout_containing_index2 = nearby_quasicutouts[i][relative_triangle_index[j]]; //relative_triangle_index[j] is 1, 2 or 3 
-			var index2 = paired_point_index[j] + lowest_unused_vertex * quasicutout_containing_index2;
-			
-			stitchup_line_pairs[ lowest_unused_stitchup_edgepair*2 ] = index1;
-			stitchup_line_pairs[lowest_unused_stitchup_edgepair*2+1] = index2;
-			lowest_unused_stitchup_edgepair++; //work on skipping some of them later
+	for(var i = 0; i < 60; i++){ //one quasicutout at a time
+		for(var j = 0; j < index_index_triangle_triplets.length; j++){
+			console.log(i);
+			console.log(index_index_triangle_triplets[j][2]);
+			console.log(nearby_quasicutouts[i]);
+			var quasicutout_containing_index2 = nearby_quasicutouts[i][ index_index_triangle_triplets[j][2] ];
+			stitchup_line_pairs[ lowest_unused_stitchup_edgepair*2 ] = index_index_triangle_triplets[j][0] + i * lowest_unused_vertex;
+			stitchup_line_pairs[lowest_unused_stitchup_edgepair*2+1] = index_index_triangle_triplets[j][1] + quasicutout_containing_index2 * lowest_unused_vertex;
+			lowest_unused_stitchup_edgepair++;
 		}
+		//then we get rid of some of them if mouse is down
 	}
 	for(var i = lowest_unused_stitchup_edgepair*2; i < stitchup_line_pairs.length; i++)
 		stitchup_line_pairs[i] = 0;
@@ -525,7 +517,7 @@ function initialize_QS_stuff() {
 	for(var i = 0; i < quasicutout_intermediate_vertices.length; i++ )
 		quasicutout_intermediate_vertices[i] = new THREE.Vector3(0,0,0);	
 	for(var i = 0; i < quasicutouts_vertices_components.length; i++)
-		quasicutouts_vertices_components[i] = new Array(0,0,0,1);
+		quasicutouts_vertices_components[i] = new Array(0,0,1);
 
 	var materialx = new THREE.LineBasicMaterial({
  		color: 0x0000ff
@@ -540,6 +532,10 @@ function initialize_QS_stuff() {
  			quasicutouts[i].geometry.attributes.position.array[j*3+1] = (Math.floor(j/2)+i) * 0.05;
  	 	}
 	}
+ 	
+ 	stitchup = new THREE.Line( new THREE.BufferGeometry(), materialx, THREE.LinePieces );
+ 	stitchup.geometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array(quasilattice_default_vertices.length / 2 * 3 * 60), 3 ) );
+ 	stitchup.geometry.setIndex( new THREE.BufferAttribute( stitchup_line_pairs, 1 ) );
  	
  	var materialf = new THREE.MeshBasicMaterial({color: 0xffff00});
 	back_hider = new THREE.Mesh( new THREE.PlaneBufferGeometry( playing_field_width * 2,playing_field_width * 2 ), materialf );
@@ -564,7 +560,42 @@ function initialize_QS_stuff() {
 // 	    31,35,	35,36,	36,37,	37,32,
 // 	    39,43,	43,44,	44,45,	45,40
  		]);
- 	var nearby_quasicutouts[i][];
+ 	
+ 	nearby_quasicutouts = new Array(
+ 		[0,45,1,12],
+ 		[1,13,0,49],
+ 		[2,0,49,6],
+ 		[3,49,6,18],
+ 		[4,6,18,14],
+ 		[5,18,13,0],
+ 		
+ 		[11,1,12,23],
+ 		[12,24,11,5],
+ 		[13,11,5,17],
+ 		[14,5,17,29],
+ 		[15,17,29,24],
+ 		[16,29,24,11],
+ 		
+ 		[22,12,23,34],
+ 		[23,35,22,16],
+ 		[24,22,16,28],
+ 		[25,16,28,40],
+ 		[26,28,40,35],
+ 		[27,40,35,22],
+ 		
+ 		[33,23,34,45],
+ 		[34,46,33,27],
+ 		[35,33,27,39],
+ 		[36,27,39,51],
+ 		[37,39,51,46],
+ 		[38,51,46,33],
+ 		
+ 		[44,34,45,1],
+ 		[45,2,44,38],
+ 		[46,44,38,50],
+ 		[47,38,50,7],
+ 		[48,50,7,2],
+ 		[49,7,2,49] ); //need to fill out all of these
  	
  	dodeca_geometry = new THREE.BufferGeometry();
  	dodeca_geometry.addAttribute( 'position', new THREE.BufferAttribute( dodeca_vertices_numbers, 3 ) );
