@@ -143,6 +143,7 @@ function ChangeScene(new_mode) {
 				scene.add(quasicutouts[i]);
 			scene.add(dodeca);
 			scene.add(back_hider);
+			scene.add(stitchup);
 //			scene.add(quasiquasilattice);
 //			scene.add(stablepointslattice);
 			break;

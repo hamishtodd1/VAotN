@@ -123,7 +123,8 @@ function MoveQuasiLattice(){
 	if( isMouseDown) {
 		var Mousedist = MousePosition.length();
 		var OldMousedist = OldMousePosition.length(); //unless the center is going to change?
-		if( Mousedist < HS3 * 10/3) { //we don't do anything if you're too far from the actual demo TODO replace
+//		if( Mousedist < HS3 * 10/3) //we don't do anything if you're too far from the actual demo TODO replace
+		{ 
 			cutout_vector0_player.multiplyScalar(OldMousedist / Mousedist);
 			cutout_vector1_player.multiplyScalar(OldMousedist / Mousedist);
 			var veclength = cutout_vector0_player.length();
@@ -201,6 +202,7 @@ function MoveQuasiLattice(){
 	quasi_shear_matrix[2] = cutout_vector0_displayed.y /-factor;
 	quasi_shear_matrix[3] = cutout_vector0_displayed.x / factor;
 	
+//	console.log(cutout_vector0_displayed,cutout_vector1_displayed);
 		
 	//re disappearance, since we're talking about a sphere it's kinda complex.
 	//you could find and fill in every trinity of points with a triangle.
@@ -236,8 +238,8 @@ function mirror_point_along_base_and_return_nextvertexindex(ourpoint_index, c0,c
 		quasicutout_intermediate_vertices[lowest_unused_vertex].multiplyScalar(dist_from_bottom);
 		quasicutout_intermediate_vertices[lowest_unused_vertex].add(closest_point_on_bottom);
 		
-		quasicutouts_vertices_components[lowest_unused_vertex][0] = 0;
-		quasicutouts_vertices_components[lowest_unused_vertex][1] = 0;
+		quasicutouts_vertices_components[lowest_unused_vertex][0] = quasicutout_intermediate_vertices[lowest_unused_vertex].x * quasi_shear_matrix[0] + quasicutout_intermediate_vertices[lowest_unused_vertex].y * quasi_shear_matrix[1];
+		quasicutouts_vertices_components[lowest_unused_vertex][1] = quasicutout_intermediate_vertices[lowest_unused_vertex].x * quasi_shear_matrix[2] + quasicutout_intermediate_vertices[lowest_unused_vertex].y * quasi_shear_matrix[3];
 		
 		return lowest_unused_vertex+1;
 	}
@@ -257,16 +259,16 @@ function Map_To_Quasisphere() {
 	//TODO round off errors may mean things on the triangle edge are not in the triangle
 	//TODO seriously, at least the top right might be that
 	for( var i = 0; i < quasilattice_default_vertices.length; i++ ) {
-		var inactualtriangle = point_in_triangle(	quasilattice_default_vertices[i].x, quasilattice_default_vertices[i].y,
-													0, 0, cutout_vector0.x, cutout_vector0.y, cutout_vector1.x, cutout_vector1.y, 
-													true)
-		var inlefttriangle =  point_in_triangle(	quasilattice_default_vertices[i].x, quasilattice_default_vertices[i].y,
-													0, 0, cutout_vector1.x, cutout_vector1.y, left_triangle_cutout_vector.x, left_triangle_cutout_vector.y, 
-													true)
 		var inrighttriangle = point_in_triangle(	quasilattice_default_vertices[i].x, quasilattice_default_vertices[i].y,
-													0, 0, right_triangle_cutout_vector.x, right_triangle_cutout_vector.y, cutout_vector0.x, cutout_vector0.y, 
-													true);
-				
+				0, 0, right_triangle_cutout_vector.x, right_triangle_cutout_vector.y, cutout_vector0.x, cutout_vector0.y, 
+				true);
+		var inactualtriangle = point_in_triangle(	quasilattice_default_vertices[i].x, quasilattice_default_vertices[i].y,
+				0, 0, cutout_vector0.x, cutout_vector0.y, cutout_vector1.x, cutout_vector1.y, 
+				true);
+		var inlefttriangle =  point_in_triangle(	quasilattice_default_vertices[i].x, quasilattice_default_vertices[i].y,
+				0, 0, cutout_vector1.x, cutout_vector1.y, left_triangle_cutout_vector.x, left_triangle_cutout_vector.y, 
+				true);
+		
 		if( !inactualtriangle && !inlefttriangle && !inrighttriangle )
 			continue;
 		
@@ -294,40 +296,41 @@ function Map_To_Quasisphere() {
 	
 	var interior_wiggleroom = 0.0000000000000016; //this is the minimum for the full lattice. Maybe still worth experimenting with
 	for( var i = 0; i < lowest_unused_vertex; i++) {
-		if( !point_in_triangle(	quasicutout_intermediate_vertices[i].x, quasicutout_intermediate_vertices[i].y,
+		//TODO so should we have inflation everywhere?
+		if( !point_in_inflated_triangle( quasicutout_intermediate_vertices[i].x, quasicutout_intermediate_vertices[i].y,
 				0, 0, cutout_vector0.x, cutout_vector0.y, cutout_vector1.x, cutout_vector1.y, 
 				true) )
 			continue;
 		
 		for( var j = 0; j < lowest_unused_vertex; j++) {
 			var edgelength_minus_1 = quasicutout_intermediate_vertices[i].distanceTo(quasicutout_intermediate_vertices[j]) - 1;
-			
 			if( Math.abs( edgelength_minus_1 ) < interior_wiggleroom ) {
-				var inactualtriangle = point_in_triangle(	quasilattice_default_vertices[j].x, quasilattice_default_vertices[j].y,
-										0, 0, cutout_vector0.x, cutout_vector0.y, cutout_vector1.x, cutout_vector1.y, 
-										true)
-				var inlefttriangle =  point_in_triangle(	quasilattice_default_vertices[j].x, quasilattice_default_vertices[j].y,
-										0, 0, cutout_vector1.x, cutout_vector1.y, left_triangle_cutout_vector.x, left_triangle_cutout_vector.y, 
-										true)
-				var inrighttriangle = point_in_triangle(	quasilattice_default_vertices[j].x, quasilattice_default_vertices[j].y,
-										0, 0, right_triangle_cutout_vector.x, right_triangle_cutout_vector.y, cutout_vector0.x, cutout_vector0.y, 
-										true);
+				var inrighttriangle = point_in_triangle(	quasicutout_intermediate_vertices[j].x, quasicutout_intermediate_vertices[j].y,
+						0, 0, right_triangle_cutout_vector.x, right_triangle_cutout_vector.y, cutout_vector0.x, cutout_vector0.y, 
+						true);
+				var inactualtriangle = point_in_triangle(	quasicutout_intermediate_vertices[j].x, quasicutout_intermediate_vertices[j].y,
+						0, 0, cutout_vector0.x, cutout_vector0.y, cutout_vector1.x, cutout_vector1.y, 
+						true);
+				var inlefttriangle =  point_in_triangle(	quasicutout_intermediate_vertices[j].x, quasicutout_intermediate_vertices[j].y,
+						0, 0, cutout_vector1.x, cutout_vector1.y, left_triangle_cutout_vector.x, left_triangle_cutout_vector.y, 
+						true);
 				
-				if( inactualtriangle || inlefttriangle || inrighttriangle ) {
+				if( inactualtriangle || inlefttriangle || inrighttriangle )
+				{
 					quasicutout_line_pairs[ lowest_unused_edgepair*2 ] = i;
 					quasicutout_line_pairs[lowest_unused_edgepair*2+1] = j;
 					lowest_unused_edgepair++;
 				}
 				else {
-					if(point_in_triangle(	quasilattice_default_vertices[j].x, quasilattice_default_vertices[j].y,
+					if(point_in_triangle(	quasicutout_intermediate_vertices[j].x, quasicutout_intermediate_vertices[j].y,
 						cutout_vector1.x, cutout_vector1.y, left_triangle_mirrored_top.x, left_triangle_mirrored_top.y, left_triangle_cutout_vector.x, left_triangle_cutout_vector.y, 
 						true) )
 						index_index_triangle_triplets.push(Array(i,j,1));
-					else if(point_in_triangle(	quasilattice_default_vertices[j].x, quasilattice_default_vertices[j].y,
+					else if(point_in_triangle(	quasicutout_intermediate_vertices[j].x, quasicutout_intermediate_vertices[j].y,
 						cutout_vector0.x, cutout_vector0.y, center_triangle_mirrored_top.x, center_triangle_mirrored_top.y, cutout_vector1.x, cutout_vector1.y, 
 						true) )
 						index_index_triangle_triplets.push(Array(i,j,2));
-					else if(point_in_triangle(	quasilattice_default_vertices[j].x, quasilattice_default_vertices[j].y,
+					else if(point_in_triangle(	quasicutout_intermediate_vertices[j].x, quasicutout_intermediate_vertices[j].y,
 						right_triangle_cutout_vector.x, right_triangle_cutout_vector.y, right_triangle_mirrored_top.x, right_triangle_mirrored_top.y, cutout_vector0.x, cutout_vector0.y, 
 						true) )
 						index_index_triangle_triplets.push(Array(i,j,3));
@@ -411,11 +414,8 @@ function Map_To_Quasisphere() {
 	
 	//The indices in stitchup of vertex i are i+num_stitchup_vertices_in_one_quasicutout*x for x = 0,1...
 	var lowest_unused_stitchup_edgepair = 0;
-	for(var i = 0; i < 60; i++){ //one quasicutout at a time
+	for(var i = 0; i < 55; i++){ //one quasicutout at a time
 		for(var j = 0; j < index_index_triangle_triplets.length; j++){
-			console.log(i);
-			console.log(index_index_triangle_triplets[j][2]);
-			console.log(nearby_quasicutouts[i]);
 			var quasicutout_containing_index2 = nearby_quasicutouts[i][ index_index_triangle_triplets[j][2] ];
 			if(quasicutout_containing_index2 === 666)
 				continue; //not in the picture
@@ -427,7 +427,7 @@ function Map_To_Quasisphere() {
 	}
 	for(var i = lowest_unused_stitchup_edgepair*2; i < stitchup_line_pairs.length; i++)
 		stitchup_line_pairs[i] = 0;
-	console.log(lowest_unused_stitchup_edgepair);
+//	console.log(lowest_unused_stitchup_edgepair);
 }
 
 function deduce_dodecahedron(openness) {	
@@ -555,6 +555,8 @@ function initialize_QS_stuff() {
  	    11,22,	22,23,	23,24,	24,20,
  	    20,31,	31,32,	32,33,	33,29,
  	    29,39,	39,40,	40,41,	41,2,
+ 	    
+ 	    0,1,0,2
  	    
 // 	    4,8,	8,9,	9,10,	10,5,
 // 	    13,17,	17,18,	18,19,	19,14,
@@ -769,6 +771,8 @@ function initialize_QS_stuff() {
 	midpoint.applyAxisAngle(axis, TAU/5);
 	cutout_vector1.copy(midpoint);
 	
+//	cutout_vector0.set(-1.31,0.626,0); 
+//	cutout_vector1.set(0.19,0.144,0);
 	cutout_vector0_player = cutout_vector0.clone();
 	cutout_vector1_player = cutout_vector1.clone();
 	

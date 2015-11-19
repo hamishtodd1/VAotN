@@ -267,6 +267,31 @@ function point_in_triangle( ourpointx,ourpointy,
 	return false;
 }
 
+function point_in_inflated_triangle( 
+		ourpointx,ourpointy,
+		cornerAx, cornerAy,cornerBx, cornerBy, cornerCx,cornerCy, 
+		clockwise,
+		inflation){
+	if(inflation === undefined)
+		inflation = 0.00001;
+	
+	var center = new THREE.Vector2();
+	center.x = ( cornerAx + cornerBx + cornerCx ) / 3;
+	center.y = ( cornerAy + cornerBy + cornerCy ) / 3;
+	
+	var IcornerAx = (cornerAx - center.x) * (1+inflation) + center.x;
+	var IcornerAy = (cornerAy - center.y) * (1+inflation) + center.y;
+	var IcornerBx = (cornerBx - center.x) * (1+inflation) + center.x;
+	var IcornerBy = (cornerBy - center.y) * (1+inflation) + center.y;
+	var IcornerCx = (cornerCx - center.x) * (1+inflation) + center.x;
+	var IcornerCy = (cornerCy - center.y) * (1+inflation) + center.y;
+	
+	return point_in_triangle(
+			ourpointx,ourpointy,
+			IcornerAx, IcornerAy,IcornerBx, IcornerBy, IcornerCx,IcornerCy, 
+			clockwise);
+}
+
 //put them in in cross-product order and your fingers, going from the first vector to the second, will be going along the angle this returns the sin of
 function get_sin_Vector2(side1, side2)
 {
