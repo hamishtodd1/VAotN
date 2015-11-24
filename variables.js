@@ -14,7 +14,7 @@ var IRREGULAR_MODE = 4;
 var QC_SPHERE_MODE = 5;
 var CUBIC_LATTICE_MODE = 6;
 	
-var MODE = CK_MODE;
+var MODE = QC_SPHERE_MODE;
 
 var section_finishing_time = new Uint16Array([3,7,14,18,22,25,32]);
 
@@ -116,7 +116,8 @@ var quasiquasilattice;
 var stablepointslattice;
 var nearby_quasicutouts;
 var stitchup;
-var stitchup_line_pairs = new Uint16Array(quasilattice_default_vertices.length * 2 * 2 * 2); //should be ok
+var stitchup_line_pairs = new Uint16Array(quasilattice_default_vertices.length * 2 * 2 * 2*2); //should be ok
+var set_stable_point = 0;
 
 var golden_rhombohedra = Array(20);
 var goldenicos = Array(12);

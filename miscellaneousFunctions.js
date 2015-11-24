@@ -278,7 +278,7 @@ function point_in_inflated_triangle(
 		clockwise,
 		inflation){
 	if(inflation === undefined)
-		inflation = 0.00001;
+		inflation = 0.00000000000000057; //tuned so that we get the central pentagon near HPV, but no bands near STMV.
 	
 	var center = new THREE.Vector2();
 	center.x = ( cornerAx + cornerBx + cornerCx ) / 3;
