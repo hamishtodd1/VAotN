@@ -116,8 +116,8 @@ var quasiquasilattice;
 var stablepointslattice;
 var nearby_quasicutouts;
 var stitchup;
-var stitchup_line_pairs = new Uint16Array(quasilattice_default_vertices.length * 2 * 2 * 2*2); //should be ok
-var set_stable_point = 0;
+var stitchup_line_pairs = new Uint16Array(1000);
+var set_stable_point = 32;
 
 var golden_rhombohedra = Array(20);
 var goldenicos = Array(12);

@@ -4,11 +4,14 @@
 //If it's smaller than the radius of the blue, you start to fade in the third layer.
 //If it's smaller than the radius of the red, the third layer is in and second is out.
 
+//you could find and fill in every trinity of points with a triangle.
+//problem: leaves a hold in the pentagons
+//Maybe quadrilaterals. This may screw up on a curved surface and would cover everything 4 times
+//could try having a flatshaded dodecahedron in there
+//or could have an extra thing for all the pentagons
+//it would be best to detect what kind of shape you have there, as you may want to colour shapes differently
+
 /*
- * We really need the cross-edge edges to connect counterparts
- *  
- * Some edges are being unrecognized. We are not getting, for example, an edge dividing the two pentagons precisely on either side of the middle of an edge, even when increasing error bar
- *  
  * Shouldn't there be one allowing for the fat rhomb and pentagon to rest on the top? Or that simple one allowing bowties? 
  * 
  * Points on the corners should be in.
@@ -129,7 +132,7 @@ function MoveQuasiLattice(){
 			cutout_vector1_player.multiplyScalar(OldMousedist / Mousedist);
 			var veclength = cutout_vector0_player.length();
 			
-			var maxlength = 3.55; //3.48 to make it exact
+			var maxlength = 3.48; //3.48 to make it exact
 			if(veclength > maxlength) {
 				cutout_vector0_player.setLength(maxlength);
 				cutout_vector1_player.setLength(maxlength);
@@ -176,30 +179,26 @@ function MoveQuasiLattice(){
 			closest_stable_point_dist = stable_points[i].distanceTo(cutout_vector0_player);
 		}
 	}
-//	console.log(closest_stable_point_index % (stable_points.length / 5));
-	
-	if(isMouseDown&&!isMouseDown_previously)
-		set_stable_point++;
-	
-//	cutout_vector0.copy(stable_points[set_stable_point]);
-//	cutout_vector1.copy(stable_points[set_stable_point]);
+//	console.log(closest_stable_point_index);
 	
 	cutout_vector0.copy(stable_points[closest_stable_point_index]);
 	cutout_vector1.copy(stable_points[closest_stable_point_index]);
+	if(!isMouseDown&&isMouseDown_previously)
+		set_stable_point++;
+//	cutout_vector0.copy(stable_points[set_stable_point]);
+//	cutout_vector1.copy(stable_points[set_stable_point]);	
 	cutout_vector1.applyAxisAngle(z_central_axis, -TAU/5);
 	
+//	console.log("current stable point: " + set_stable_point);
+	
 	var interpolation_factor = (1-dodeca_openness);
-	if(interpolation_factor == 1){ //point of no return
+	if(interpolation_factor == 1){ //if they've allowed it to close up, it's now officially snapped
 		cutout_vector0_player.copy(cutout_vector0);
 		cutout_vector1_player.copy(cutout_vector1);
 	}
-//	if(interpolation_factor == 0){
-//		cutout_vector0 = cutout_vector0_player.clone();
-//		cutout_vector1 = cutout_vector1_player.clone();
-//	}
+	
 	var cutout_vector0_displayed = new THREE.Vector3();
 	var cutout_vector1_displayed = new THREE.Vector3();
-
 	cutout_vector0_displayed.lerpVectors(cutout_vector0_player, cutout_vector0, interpolation_factor);
 	cutout_vector1_displayed.lerpVectors(cutout_vector1_player, cutout_vector1, interpolation_factor);
 	var factor = cutout_vector1_displayed.y * cutout_vector0_displayed.x - cutout_vector1_displayed.x * cutout_vector0_displayed.y;
@@ -208,17 +207,9 @@ function MoveQuasiLattice(){
 	quasi_shear_matrix[2] = cutout_vector0_displayed.y /-factor;
 	quasi_shear_matrix[3] = cutout_vector0_displayed.x / factor;
 	
-	if(dodeca_openness != 0 && dodeca_openness < 0.018)
-		console.log(cutout_vector0_displayed,cutout_vector1_displayed);
+//	if(dodeca_faceflatness != 0 && dodeca_faceflatness < 0.018) 
+//		console.log(cutout_vector0_displayed,cutout_vector1_displayed);
 //	console.log(cutout_vector0.length(), Math.acos(cutout_vector0.x / cutout_vector0.length()) / TAU);
-		
-	//re disappearance, since we're talking about a sphere it's kinda complex.
-	//you could find and fill in every trinity of points with a triangle.
-	//problem: leaves a hold in the pentagons
-	//Maybe quadrilaterals. This may screw up on a curved surface and would cover everything 4 times
-	//could try having a flatshaded dodecahedron in there
-	//or could have an extra thing for all the pentagons
-	//it would be best to detect what kind of shape you have there, as you may want to colour shapes differently
 }
 
 //base goes from c0 to c1
@@ -355,7 +346,7 @@ function initialize_QS_stuff() {
  	 	}
 	}
  	
- 	stitchup = new THREE.Line( new THREE.BufferGeometry(), new THREE.LineBasicMaterial({color: 0x00AA00}), THREE.LinePieces );
+ 	stitchup = new THREE.Line( new THREE.BufferGeometry(), materialx, THREE.LinePieces );
  	stitchup.geometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array(3000*3), 3 ) );
  	stitchup.geometry.setIndex( new THREE.BufferAttribute( stitchup_line_pairs, 1 ) );
  	
@@ -376,7 +367,7 @@ function initialize_QS_stuff() {
  	    20,31,	31,32,	32,33,	33,29,
  	    29,39,	39,40,	40,41,	41,2,
  	    
- 	    0,1,0,2
+// 	    0,1,0,2 //useful for seeing a triangle
  	    
 // 	    4,8,	8,9,	9,10,	10,5,
 // 	    13,17,	17,18,	18,19,	19,14,
@@ -390,7 +381,7 @@ function initialize_QS_stuff() {
  		[13,0,49],
  		[0,49,6],
  		[49,6,18],
- 		[6,18,14],
+ 		[6,18,13],
  		[18,13,0],
  		
  		[19,3,48],
@@ -450,7 +441,7 @@ function initialize_QS_stuff() {
  		[37,43,666],
  		[43,666,8],
  		[666,8,47]
- 	); //need to fill out all of these
+ 	);
  	
  	dodeca_geometry = new THREE.BufferGeometry();
  	dodeca_geometry.addAttribute( 'position', new THREE.BufferAttribute( dodeca_vertices_numbers, 3 ) );
@@ -558,6 +549,30 @@ function initialize_QS_stuff() {
 			}
 		}
 	}
+	for(var i = 0; i<stable_points.length; i++){
+		if(stable_points[i].length() > 3.48 ){ //the length of HPV's cutouts
+			stable_points.splice(i,1);
+			i--
+		}	
+	}
+	remove_stable_point_and_its_rotations(4);
+	remove_stable_point_and_its_rotations(5);
+	remove_stable_point_and_its_rotations(9);
+	remove_stable_point_and_its_rotations(10);
+	remove_stable_point_and_its_rotations(14); //Crossovers - Konevtsova's fault!
+	remove_stable_point_and_its_rotations(15); 
+	remove_stable_point_and_its_rotations(15); 
+	remove_stable_point_and_its_rotations(15);
+	remove_stable_point_and_its_rotations(21); 
+	remove_stable_point_and_its_rotations(21);
+	remove_stable_point_and_its_rotations(21);
+	remove_stable_point_and_its_rotations(30);
+	remove_stable_point_and_its_rotations(30);
+	remove_stable_point_and_its_rotations(31);
+	remove_stable_point_and_its_rotations(31);
+	remove_stable_point_and_its_rotations(35);
+	remove_stable_point_and_its_rotations(38);
+	remove_stable_point_and_its_rotations(41); //Sort of our fault for wanting points on dodeca vertices. Which is arguably bad because are there really rotationally symmetric proteins?
 	
 	var quasiquasilattice_geometry = new THREE.Geometry();
 	quasiquasilattice = new THREE.Points( quasiquasilattice_geometry,new THREE.PointsMaterial({size: 0.2, color: 0x000000}));
@@ -591,16 +606,10 @@ function initialize_QS_stuff() {
 	midpoint.applyAxisAngle(axis, TAU/5);
 	cutout_vector1.copy(midpoint);
 	
-	cutout_vector0.set(-1.0000000000000004,0.85065080835204);
-	cutout_vector1.set(0.49999999999999983, 1.2139220723547206);
-	/*
-	 * -2.0452945788220975, y: -2.8155383920278036, z: 0} T…E.Vector3 {x: -3.3097669179762, y: 1.075141525480203
-	 * 
-	 * 0.9270509831248428, y: -1.2759762125280598, z: 0} T…E.Vector3 {x: -0.927050983124842, y: -1.2759762125280603
-	 * 
-	 * -1.0000000000000007, y: 2.752763840942347, z: 0} T…E.Vector3 {x: 2.3090169943749475, y: 1.8017073246471944
-	 * 
-	 * -2.2343123284148594, y: -2.2256532586181885, z: 0} T…E.Vector3 {x: -2.8071625148440216, y: 1.4371926188785489
+	cutout_vector0.set(1.1172738319468614, -0.6887854926593675);
+	cutout_vector1.set(-0.30981732968125997, -1.275436981069784);
+	/* 
+	 * 1.3090169943749475, -0.10040570794311371, 0.30901699437494745, -1.27597621252806 //so this one is bad. More thinking needed. For some rotations it fails, probably just round off errors
 	 */
 	cutout_vector0_player = cutout_vector0.clone();
 	cutout_vector1_player = cutout_vector1.clone();
@@ -746,4 +755,25 @@ function initialize_QS_stuff() {
 			[42,44,43]);
 	
 	deduce_dodecahedron(0);
+}
+
+function remove_stable_point_and_its_rotations(unwanted_index){
+	var rotations = Array(5);
+	rotations[0] = stable_points[unwanted_index].clone();
+	for(var i = 1; i < 5; i++){
+		rotations[i] = rotations[0].clone();
+		rotations[i].applyAxisAngle(z_central_axis,TAU/5 * i);
+	}
+	var number_removed = 0;
+	for(var j = 0; j < 5; j++){
+		for(var i = stable_points.length-1; i >= 0; i--){
+			if(	Math.abs(rotations[j].x - stable_points[i].x) < 0.00001 &&
+				Math.abs(rotations[j].y - stable_points[i].y) < 0.00001 ) {
+				stable_points.splice(i,1);
+				number_removed++;
+			}
+		}
+	}
+	if(number_removed != 5)
+		console.log("stable point had a number of copies not equal to 5? Number removed: " + number_removed);
 }
