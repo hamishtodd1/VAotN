@@ -139,7 +139,7 @@ function MoveQuasiLattice(){
 				
 				veclength = maxlength;
 			}
-			var minlength = 1.052;
+			var minlength = 1.313;
 			if(veclength < minlength) {
 				cutout_vector0_player.setLength(minlength);
 				cutout_vector1_player.setLength(minlength);
