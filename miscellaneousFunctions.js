@@ -93,7 +93,8 @@ function line_line_intersection_vecs(p,q,r,s) {
 	var u = vec2_crossprod(p_to_q,r_over_r_cross_s);
 	var t = vec2_crossprod(p_to_q,s_over_r_cross_s);
 	
-	if( 0 < u && u < 1 && 0 < t && t < 1 ){
+	if( 0 < u && u < 1 
+	 && 0 < t && t < 1 ){
 		var answer = p.clone();
 		answer.addScaledVector(r, t);
 		return answer;

@@ -94,6 +94,7 @@ function map_from_lattice_to_surface(x,y, net_triangle_index) {
 	return mappedpoint;
 }
 
+//obviously, much speedup opportunities
 function locate_in_net(x,y) {
 	//potential optimization: put these in a tree so you only need to make like 5 checks, not 20.
 	//Would need reconciliation with irregularity. Though in that situation you'd probably have a smaller lattice
@@ -110,12 +111,14 @@ function locate_in_net(x,y) {
 	return 666;
 }
 
-//a nasty problem causes the 
-function locate_in_squarelattice_net(x,y) {
+function locate_in_squarelattice_net(squarelattice_vertex_index) {
+	var x = squarelattice_vertices[squarelattice_vertex_index*2+0];
+	var y = squarelattice_vertices[squarelattice_vertex_index*2+1];
+	
 	//so this merits use when net vertices are close to lattice vertices
 	//when the capsid isn't closed, it doesn't really matter what lattice vertices are considered to be within it
 	//may as well continue using it for the whole lattice at all times, so it's easier.
-	for(var i = 0; i < 20; i++ ) {			
+	for(var i = 0; i < 20; i++ ) {
 		if( point_in_triangle(
 				x,y, //yeah, the below is pretty crazy. Think it through and you get it though.
 				squarelattice_vertices[  net_vertices_closest_lattice_vertex[  net_triangle_vertex_indices[i*3+0]  ]  *2+0], squarelattice_vertices[net_vertices_closest_lattice_vertex[net_triangle_vertex_indices[i*3+0]] * 2 + 1],
@@ -127,3 +130,5 @@ function locate_in_squarelattice_net(x,y) {
 	
 	return 666;
 }
+
+//idea to prevent overlapping proteins is to, for every pair of identified edges, chose an edge to not allow points on
