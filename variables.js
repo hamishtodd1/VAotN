@@ -14,7 +14,7 @@ var IRREGULAR_MODE = 4;
 var QC_SPHERE_MODE = 5;
 var CUBIC_LATTICE_MODE = 6;
 	
-var MODE = 1;
+var MODE = 6;
 
 //--------------Technologically fundamental
 var playing_field_width = 7*HS3;
@@ -224,9 +224,10 @@ var OldMousePosition = new THREE.Vector2(0,0);
 var Mouse_delta = new THREE.Vector2(0,0);
 
 //----bocavirus stuff
-var master_protein = new THREE.Mesh( new THREE.BufferGeometry(), new THREE.MeshLambertMaterial({color:0xf0f00f}) );
+var master_protein = new THREE.Mesh( new THREE.BufferGeometry(), new THREE.MeshLambertMaterial({color:0xf0f00f, transparent:true}) );
 var atom_vertices_components;
-var bocavirus_surface;
+var bocavirus_vertices = Array(20*3);
+var initial_bocavirus_vertices = Array(20*3);
 var bocavirus_proteins = Array(20);
 var lights = [];
 

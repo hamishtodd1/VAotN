@@ -17,7 +17,10 @@
  * 
  * changing transparency doesn't seem to help, so no tricks to be done with the final fadeout
  * 
- * the random walk: forces are ionic and hydrogen bonds vs electrostatics
+ * 
+ * So each layer is one object, necessarily, because alpha.
+ * We're not changing the positions of the meshes, modify everything directly, so will be using "icosahedron_geometry_in_buffer" a lot.
+ * Probably a separate mesh for the outlines, so no need to worry about colors.
  */
 
 function rotate_every_shape_in_array(shape_array, MovementAxis,movementangle,quaternion){
