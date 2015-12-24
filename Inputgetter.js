@@ -59,9 +59,5 @@ function ReadInput() {
 	isMouseDown_previously = isMouseDown;
 	isMouseDown = InputObject.isMouseDown;
 	
-	var secondsthroughvid = get_time();
-	for(var i = 0; i < section_finishing_time.length; i++) {//or whichever mode is last
-		if(secondsthroughvid < section_finishing_time[i] && MODE != i)
-			ChangeScene(i);
-	}
+	react_to_video();
 }

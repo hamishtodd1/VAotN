@@ -1,4 +1,12 @@
 /*
+ * Random walk:
+ * -starting with the atom in the final position, generate a trajectory of it, just an array of vector positions
+ * -little vibration at first, then it pops out
+ * -confine it to a sphere. Make it move in random directions with a 
+ * 
+ * How to manage it state-wise? Could have it be triggered if the time is precisely equal to a certain number.
+ * Might want to ensure that it is seen from the right angle? Could rotate lattice in a way that leaves it unchanged.
+ * 
  * Then 5x12=60 icosahedra, then (sigh, violation) 20 triacontahedra AND 12 icosahedra. Then perhaps 20*30 = 360 rhombohedra
  * 
  * So maybe things should scale a little, or indeed indefinitely

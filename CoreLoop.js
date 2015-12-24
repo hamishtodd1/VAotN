@@ -1,37 +1,26 @@
-/*	EGW todo. 10th of Jan deadline
- * -film, edit
- * -protein capsid at beginning
- * -DNA at beginning
- * -Withhold progress until they do something?
- * -penrose tiling breakup demo? Urgh. Can be done with just images
- * -random walking atom?
- * -protein models in CK?
- * 
- * 
- * 
+/*	
  * Long term To Do
- * 
- *  -working on atoms doing random walks will make the one here easy
- *  -same for reading atomic data
- * 
  *  -implement protein models
- *  -implement look-inside
+ *  -faces on quasisphere
+ *  -implement database
+ *  -wobbly DNA (?)
+ *  -overhaul irreg
+ *  
  *  -make it feel good
- *  -make video
- *  -integrate video; it must read only one variable, the time you are into the video.
  *  -test
- *  -iterate (maybe add puzzles)
+ *  -iterate
  */
 
 function UpdateWorld() {
 	update_mouseblob();
-//	check_arrows();
 	
 	switch(MODE){
 		case STATIC_PROTEIN_MODE:
+			update_bocavirus();
 			break;
 		
 		case STATIC_DNA_MODE:
+			update_bocavirus();
 			break;
 			
 		case CK_MODE:
@@ -79,28 +68,13 @@ function render() {
 }
 
 //eventually we'll add some trigger to this that makes it reasonable to call every frame
-function ChangeScene(new_mode) {
-	if(new_mode==CUBIC_LATTICE_MODE){
-		forwardbutton.position.multiplyScalar(4.5);
-		backwardbutton.position.multiplyScalar(4.5);
-		forwardbutton.scale.set(4.5,4.5,4.5);
-		backwardbutton.scale.set(4.5,4.5,4.5);
-	}
-	else if(MODE==CUBIC_LATTICE_MODE){
-		forwardbutton.position.multiplyScalar(1/4.5);
-		backwardbutton.position.multiplyScalar(1/4.5);
-		forwardbutton.scale.set(1,1,1);
-		backwardbutton.scale.set(1,1,1);
-	}
-	
+function ChangeScene(new_mode) {	
 	MODE = new_mode;
 	
 	for( var i = scene.children.length - 1; i >= 0; i--){
 		var obj = scene.children[i];
 		scene.remove(obj);
 	}
-//	scene.add(forwardbutton);
-//	scene.add(backwardbutton);
 	scene.add( circle );
 	
 //	if(showdebugstuff){
@@ -113,12 +87,21 @@ function ChangeScene(new_mode) {
 	
 	switch(MODE){
 		case STATIC_PROTEIN_MODE:
+			camera.toOrthographic();
+			for(var i = 0; i<bocavirus_proteins.length; i++)
+				scene.add(bocavirus_proteins[i]);
+			for(var i = 0; i< lights.length; i++)
+				scene.add( lights[i] );
+			scene.add(DNA_cage);
 			break;
 		
 		case STATIC_DNA_MODE:
+			camera.toOrthographic();
+			scene.add(DNA_cage);
 			break;
 			
 		case CK_MODE:
+			camera.toPerspective();
 			scene.add(surface);
 			scene.add(surflattice);
 			for( var i = 0; i < surfperimeter_cylinders.length; i++) {
@@ -130,6 +113,7 @@ function ChangeScene(new_mode) {
 			break;
 			
 		case IRREGULAR_MODE:
+			camera.toPerspective();
 			scene.add(varyingsurface);
 			scene.add(Button);
 			for( var i = 0; i < varyingsurface_cylinders.length; i++)
@@ -139,6 +123,7 @@ function ChangeScene(new_mode) {
 			break;
 			
 		case QC_SPHERE_MODE:
+			camera.toPerspective();
 			for( var i = 0; i < quasicutouts.length; i++)
 				scene.add(quasicutouts[i]);
 			scene.add(dodeca);
@@ -149,6 +134,7 @@ function ChangeScene(new_mode) {
 			break;
 		
 		case CUBIC_LATTICE_MODE:
+			camera.toPerspective(); //TODO maybe not. Perspective may help you.
 			scene.add(slider);
 			scene.add(progress_bar);
 			break;
