@@ -13,8 +13,9 @@ var CK_MODE = 3;
 var IRREGULAR_MODE = 4;
 var QC_SPHERE_MODE = 5;
 var CUBIC_LATTICE_MODE = 6;
+var FINAL_FORMATION_MODE = 7;
 	
-var MODE = 6;
+var MODE = CK_MODE;
 
 //--------------Technologically fundamental
 var playing_field_width = 7*HS3;
@@ -117,6 +118,18 @@ var stitchup;
 var stitchup_line_pairs = new Uint16Array(1000);
 var set_stable_point = 32;
 
+//------------3D penrose stuff
+var Quasi_meshes = Array(5);
+var meshes_original_numbers = Array(5);
+var outlines_original_numbers = Array(5);
+var Quasi_outlines = Array(5);
+var prism_triangle_indices = new Uint16Array([0, 2, 1, 2, 3, 1, 2, 4, 3, 4, 5, 3]);
+var normalized_virtualdodeca_vertices = Array(20);
+var normalized_virtualico_vertices = Array(20);
+
+var icosahedra_directions = Array(12);
+
+
 var golden_rhombohedra = Array(20);
 var goldenicos = Array(12);
 var golden_triacontahedra = Array(20);
@@ -127,8 +140,14 @@ var previous_animation_progress = animation_progress;
 var progress_bar;
 var slider;
 var slider_grabbed = false;
-var quasiatoms = Array(4);
+
+//-----------formationatom stuff
 var QC_atoms = Array(2000);
+var outermost_QCatom_indices = Array(0,0,0,	0,0,0,	0,0,0,	0,0,0);
+var animation_beginning_second = 17*60+3; //or whatever
+var formation_animation_numbers = new Float32Array(23 * 60 * 3);
+
+//-----------no longer formation atom stuff
 
 var flatnet;
 var flatnet_vertices_numbers;

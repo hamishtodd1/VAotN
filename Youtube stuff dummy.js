@@ -1,10 +1,7 @@
+var secondsthroughvid = animation_beginning_second;
+
 function react_to_video(){
-	//if(it's time for the moving atom
-	{
-		/*
-		 * We set off the atom, and maybe update it here too
-		 */
-	}
+	secondsthroughvid += delta_t;
 }
 
 init();

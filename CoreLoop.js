@@ -27,21 +27,10 @@ function UpdateWorld() {
 			UpdateCapsid();
 			update_surfperimeter();
 			
-			HandleLatticeMovement();
+			HandleNetMovement();
 			Update_net_variables();
 			
 			Map_lattice();
-			logged = 1;
-			break;
-			
-		case CUBIC_LATTICE_MODE:
-			update_3DLattice();
-			break;
-			
-		case QC_SPHERE_MODE:
-			UpdateQuasiSurface();
-			MoveQuasiLattice();
-			Map_To_Quasisphere();
 			break;
 			
 		case IRREGULAR_MODE:
@@ -50,6 +39,21 @@ function UpdateWorld() {
 			update_varyingsurface();
 			//correct_minimum_angles();
 			break;
+			
+		case QC_SPHERE_MODE:
+			UpdateQuasiSurface();
+			MoveQuasiLattice();
+			Map_To_Quasisphere();
+			break;
+			
+		case CUBIC_LATTICE_MODE:
+			update_animationprogress();
+			update_3DLattice();
+			break;
+			
+		case FINAL_FORMATION_MODE:
+			update_3DLattice();
+			update_formation_atom();
 	}
 }
 
@@ -62,7 +66,8 @@ function render() {
 	UpdateWorld();
 	UpdateCamera();
 	
-	//setTimeout( function() { requestAnimationFrame( render );}, 100 );
+//	if(delta_t < 1 / 60 )
+//		setTimeout( function() { requestAnimationFrame( render ); }, 100 );
 	requestAnimationFrame( render );
 	renderer.render( scene, camera );
 }
@@ -92,11 +97,14 @@ function ChangeScene(new_mode) {
 				scene.add(bocavirus_proteins[i]);
 			for(var i = 0; i< lights.length; i++)
 				scene.add( lights[i] );
-			scene.add(DNA_cage);
 			break;
 		
 		case STATIC_DNA_MODE:
 			camera.toOrthographic();
+			for(var i = 0; i<bocavirus_proteins.length; i++)
+				scene.add(bocavirus_proteins[i]);
+			for(var i = 0; i< lights.length; i++)
+				scene.add( lights[i] );
 			scene.add(DNA_cage);
 			break;
 			
@@ -134,48 +142,14 @@ function ChangeScene(new_mode) {
 			break;
 		
 		case CUBIC_LATTICE_MODE:
-			camera.toPerspective(); //TODO maybe not. Perspective may help you.
+			camera.toOrthographic();
 			scene.add(slider);
 			scene.add(progress_bar);
 			break;
-	}
-}
-
-function check_arrows(){
-	var ourscalar;
-	if(MODE==CUBIC_LATTICE_MODE)
-		ourscalar = 4.5;
-	else ourscalar = 1;
-	if(point_in_triangle(	(MousePosition.x*ourscalar-forwardbutton.position.x),(MousePosition.y*ourscalar-forwardbutton.position.y),
-			forwardbutton.geometry.vertices[0].x*ourscalar, forwardbutton.geometry.vertices[0].y*ourscalar, 
-			forwardbutton.geometry.vertices[1].x*ourscalar, forwardbutton.geometry.vertices[1].y*ourscalar, 
-			forwardbutton.geometry.vertices[2].x*ourscalar, forwardbutton.geometry.vertices[2].y*ourscalar, 
-			1) ) {
-		forwardbutton.material.color.b = 0;
-		forwardbutton.material.color.g = 1;
-		
-		if(isMouseDown && !isMouseDown_previously){
-			ChangeScene(MODE+1);
-		}
-	}
-	else{
-		forwardbutton.material.color.b = 1;
-		forwardbutton.material.color.g = 0;
-	}
-	if(point_in_triangle(	(MousePosition.x*ourscalar-backwardbutton.position.x),(MousePosition.y*ourscalar-backwardbutton.position.y),
-			backwardbutton.geometry.vertices[0].x*ourscalar, backwardbutton.geometry.vertices[0].y*ourscalar, 
-			backwardbutton.geometry.vertices[1].x*ourscalar, backwardbutton.geometry.vertices[1].y*ourscalar, 
-			backwardbutton.geometry.vertices[2].x*ourscalar, backwardbutton.geometry.vertices[2].y*ourscalar, 
-			1) ) {
-		backwardbutton.material.color.b = 0;
-		backwardbutton.material.color.g = 1;
-		
-		if(isMouseDown && !isMouseDown_previously){
-			ChangeScene(MODE-1);
-		}
-	}
-	else{
-		backwardbutton.material.color.b = 1;
-		backwardbutton.material.color.g = 0;
+			
+		case FINAL_FORMATION_MODE:
+			camera.toPerspective();
+			animation_progress = 1;
+			break;
 	}
 }

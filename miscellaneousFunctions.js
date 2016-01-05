@@ -12,6 +12,27 @@ function difference_between_angles(angle1, angle2){
 	//this would be worthwhile
 }
 
+//v and w are ends of a line segment, p is a point and we wish to know its dist from the line
+function minimum_distance(v0, w0, p0) {
+	var w = new THREE.Vector2(w0.x,w0.y);
+	var v = new THREE.Vector2(v0.x,v0.y);
+	var p = new THREE.Vector2(p0.x,p0.y);
+	
+	var l2 = v.distanceTo(w);  // i.e. |w-v|^2 -  avoid a sqrt
+	l2 = l2 * l2;
+	if (l2 == 0.0) return p.distanceTo(v);   // v == w case
+	var VtoP = v.clone();
+	VtoP.sub(p);
+	var VtoW = w.clone();
+	VtoW.sub(v);
+	var t = -VtoP.dot(VtoW) / l2;
+	if (t < 0.0) return p.distanceTo(v);       // Beyond the 'v' end of the segment
+	else if (t > 1.0) return p.distanceTo(w);  // Beyond the 'w' end of the segment
+	var projection =v.clone();
+	projection.addScaledVector(VtoW,t);  // Projection falls on the segment
+	return p.distanceTo(projection);
+}
+
 function deduce_stable_points_from_fanning_vertex(fanning_vertex_start, lattice_vertex_index, spoke_to_side_angle){
 	var fanning_vertex_length = fanning_vertex_start.length();
 	var hand = 1;
@@ -255,18 +276,21 @@ function put_tube_in_buffer(A,B, mybuffer, radius ) {
 }
 
 //we're not going to treat this like it is performance sensetive
-function put_unbased_triangularprism_in_buffer(A,B,mybuffer,peak){
+function put_unbased_triangularprism_in_buffer(A,B,mybuffer,peak, startingindex){
+	if(startingindex === undefined)
+		startingindex = 0;
+	
 	var A_to_B = new THREE.Vector3(B.x-A.x, B.y-A.y, B.z-A.z);
 	A_to_B.normalize();
 	peak.applyAxisAngle(A_to_B, -TAU/3);
 	for( var i = 0; i < 3; i++) {
-		mybuffer[ i*2 * 3 + 0] = A.x + peak.x;
-		mybuffer[ i*2 * 3 + 1] = A.y + peak.y;
-		mybuffer[ i*2 * 3 + 2] = A.z + peak.z;
+		mybuffer[ startingindex + i*2 * 3 + 0] = A.x + peak.x;
+		mybuffer[ startingindex + i*2 * 3 + 1] = A.y + peak.y;
+		mybuffer[ startingindex + i*2 * 3 + 2] = A.z + peak.z;
 		
-		mybuffer[(i*2+1) * 3 + 0] = B.x + peak.x;
-		mybuffer[(i*2+1) * 3 + 1] = B.y + peak.y;
-		mybuffer[(i*2+1) * 3 + 2] = B.z + peak.z;
+		mybuffer[ startingindex + (i*2+1) * 3 + 0] = B.x + peak.x;
+		mybuffer[ startingindex + (i*2+1) * 3 + 1] = B.y + peak.y;
+		mybuffer[ startingindex + (i*2+1) * 3 + 2] = B.z + peak.z;
 		
 		peak.applyAxisAngle(A_to_B, TAU/3);
 	}
