@@ -109,6 +109,7 @@ function ChangeScene(new_mode) {
 			break;
 			
 		case CK_MODE:
+			camera.position.x = camera_comparing_position;
 			camera.toPerspective();
 			scene.add(surface);
 			scene.add(surflattice);
