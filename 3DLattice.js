@@ -89,14 +89,30 @@ function update_animationprogress(){
 			slider_grabbed = true;
 	}
 	else slider_grabbed = false;
+	
 	if(slider_grabbed){
-		slider.position.x = circle.geometry.vertices[0].x;
-		if(slider.position.x > progress_bar.geometry.vertices[0].x)
-			slider.position.x = progress_bar.geometry.vertices[0].x;
-		if(slider.position.x < progress_bar.geometry.vertices[3].x)
-			slider.position.x = progress_bar.geometry.vertices[3].x;
+		animation_playing_automatically = false;
+		theyknowyoucanslidetheslider = 1;
 		
-		animation_progress = ( slider.position.x - progress_bar.geometry.vertices[3].x ) / (progress_bar.geometry.vertices[0].x - progress_bar.geometry.vertices[3].x);
+		slider.position.x = circle.geometry.vertices[0].x;
+	}
+	
+	if(animation_playing_automatically)
+		slider.position.x += 0.02;
+	
+	if(slider.position.x > progress_bar.geometry.vertices[0].x)
+		slider.position.x = progress_bar.geometry.vertices[0].x;
+	if(slider.position.x < progress_bar.geometry.vertices[3].x)
+		slider.position.x = progress_bar.geometry.vertices[3].x;
+	
+	animation_progress = ( slider.position.x - progress_bar.geometry.vertices[3].x ) / (progress_bar.geometry.vertices[0].x - progress_bar.geometry.vertices[3].x);
+	
+	if(animation_progress == 1 && !theyknowyoucanslidetheslider){
+		var slider_radius = 0.66 + 0.17 * Math.cos((ourclock.elapsedTime - ourclock.startTime)*4);
+		for(var i = 1; i<slider.geometry.vertices.length;i++){
+			slider.geometry.vertices[i].setLength(slider_radius);
+		}
+		slider.geometry.verticesNeedUpdate = true;
 	}
 }
 
