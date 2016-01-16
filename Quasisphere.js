@@ -123,6 +123,7 @@ function UpdateQuasiSurface(){
 
 function MoveQuasiLattice(){
 	//might do rotation whatevers here
+	//bug: by stretching it and then putting your mouse in the deadzone, you can freeze it in a crazy place
 	if( isMouseDown) {
 		var Mousedist = MousePosition.length();
 		var OldMousedist = OldMousePosition.length(); //unless the center is going to change?
