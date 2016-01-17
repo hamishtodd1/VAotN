@@ -339,12 +339,12 @@ function initialize_QS_stuff() {
 	for(var i = 0; i < quasicutouts_vertices_components.length; i++)
 		quasicutouts_vertices_components[i] = new Array(0,0,1);
 
-	var materialx = new THREE.LineBasicMaterial({
+	var materialx = new THREE.LineSegmentsBasicMaterial({
  		color: 0x0000ff
  	});
 	
  	for( var i = 0; i < quasicutouts.length; i++) { 
- 		quasicutouts[i] = new THREE.Line( new THREE.BufferGeometry(), materialx, THREE.LinePieces );
+ 		quasicutouts[i] = new THREE.LineSegments( new THREE.BufferGeometry(), materialx, THREE.LineSegmentsPieces );
  		quasicutouts[i].geometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array(quasilattice_default_vertices.length * 6), 3 ) );
  		quasicutouts[i].geometry.setIndex( new THREE.BufferAttribute( quasicutout_line_pairs, 1 ) );
  		for( var j = 0; j < 3; j++){
@@ -353,7 +353,7 @@ function initialize_QS_stuff() {
  	 	}
 	}
  	
- 	stitchup = new THREE.Line( new THREE.BufferGeometry(), materialx, THREE.LinePieces );
+ 	stitchup = new THREE.LineSegments( new THREE.BufferGeometry(), materialx, THREE.LineSegmentsPieces );
  	stitchup.geometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array(3000*3), 3 ) );
  	stitchup.geometry.setIndex( new THREE.BufferAttribute( stitchup_line_pairs, 1 ) );
  	
@@ -361,7 +361,7 @@ function initialize_QS_stuff() {
 	back_hider = new THREE.Mesh( new THREE.PlaneBufferGeometry( playing_field_width * 2,playing_field_width * 2 ), materialf );
 	back_hider.position.z = -0.01;
  	
- 	var materialy = new THREE.LineBasicMaterial({
+ 	var materialy = new THREE.LineSegmentsBasicMaterial({
  		color: 0x00ffff,
  		transparent: true,
  		opacity: 0.5
@@ -453,7 +453,7 @@ function initialize_QS_stuff() {
  	dodeca_geometry = new THREE.BufferGeometry();
  	dodeca_geometry.addAttribute( 'position', new THREE.BufferAttribute( dodeca_vertices_numbers, 3 ) );
  	dodeca_geometry.setIndex( new THREE.BufferAttribute( dodeca_line_pairs, 1 ) );
- 	dodeca = new THREE.Line( dodeca_geometry, materialy, THREE.LinePieces );
+ 	dodeca = new THREE.LineSegments( dodeca_geometry, materialy, THREE.LineSegmentsPieces );
  	
  	var axis = new THREE.Vector3(0,0,-1);
 	var pentagon = Array(5);

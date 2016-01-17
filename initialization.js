@@ -185,7 +185,7 @@ function init() {
 		surface.scale.y = 0.995;
 		surface.scale.z = 0.995;
 		
-		var material1 = new THREE.LineBasicMaterial({
+		var material1 = new THREE.LineSegmentsBasicMaterial({
 			color: 0x0000ff
 		});
 		

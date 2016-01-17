@@ -109,7 +109,7 @@ function init_static_capsid() {
 }
 
 function init_DNA_cage(){
-	DNA_cage = new THREE.Line( new THREE.BufferGeometry(), new THREE.LineBasicMaterial({color: 0xf0f00f,vertexColors: THREE.VertexColors}), THREE.LinePieces);
+	DNA_cage = new THREE.LineSegments( new THREE.BufferGeometry(), new THREE.LineSegmentsBasicMaterial({color: 0xf0f00f,vertexColors: THREE.VertexColors}), THREE.LineSegmentsPieces);
 	 
 	var avg = new THREE.Vector3();
 	for(var i = 0; i<DNA_vertices_numbers.length / 3; i++){
