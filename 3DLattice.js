@@ -353,7 +353,7 @@ function init_cubicLattice_stuff() {
 		for( var i = 0; i < golden_rhombohedra.length; i++) { 
 			golden_rhombohedra[i] = new THREE.Mesh( new THREE.BufferGeometry(), rhombohedron_material );
 			golden_rhombohedra[i].geometry.addAttribute( 'position', new THREE.BufferAttribute( rhombohedron_vertices_numbers, 3 ) );
-			golden_rhombohedra[i].geometry.addAttribute( 'index', new THREE.BufferAttribute( rhombohedron_face_triangles, 1 ) );
+			golden_rhombohedra[i].geometry.setIndex( new THREE.BufferAttribute( rhombohedron_face_triangles, 1 ) );
 			golden_rhombohedra[i].updateMatrixWorld();
 			
 			for( var j = 0; j < 12; j++) {
@@ -376,7 +376,7 @@ function init_cubicLattice_stuff() {
 						mycylinder_vertices_numbers, peak);
 				
 				var mycylinder_geometry = new THREE.BufferGeometry();
-				mycylinder_geometry.addAttribute( 'index', new THREE.BufferAttribute( prism_triangle_indices, 1 ) );
+				mycylinder_geometry.setIndex( new THREE.BufferAttribute( prism_triangle_indices, 1 ) );
 				mycylinder_geometry.addAttribute( 'position', new THREE.BufferAttribute( mycylinder_vertices_numbers, 3 ) );
 				
 				mycylinder = new THREE.Mesh( mycylinder_geometry, golden_rhombohedra_edgematerial );
@@ -456,7 +456,7 @@ function init_cubicLattice_stuff() {
 		for( var i = 0; i < golden_triacontahedra.length; i++) { 
 			golden_triacontahedra[i] = new THREE.Mesh( new THREE.BufferGeometry(), triacontahedron_material );
 			golden_triacontahedra[i].geometry.addAttribute( 'position', new THREE.BufferAttribute( triacontahedron_vertices_numbers, 3 ) );
-			golden_triacontahedra[i].geometry.addAttribute( 'index', new THREE.BufferAttribute( triacontahedron_face_indices, 1 ) );
+			golden_triacontahedra[i].geometry.setIndex( new THREE.BufferAttribute( triacontahedron_face_indices, 1 ) );
 			
 			for( var j = 0; j < 60; j++) {
 				var mycylinder_vertices_numbers = new Float32Array(16*3);
@@ -478,7 +478,7 @@ function init_cubicLattice_stuff() {
 						mycylinder_vertices_numbers, peak);
 				
 				var mycylinder_geometry = new THREE.BufferGeometry();
-				mycylinder_geometry.addAttribute( 'index', new THREE.BufferAttribute( cylinder_triangle_indices, 1 ) );
+				mycylinder_geometry.setIndex( new THREE.BufferAttribute( cylinder_triangle_indices, 1 ) );
 				mycylinder_geometry.addAttribute( 'position', new THREE.BufferAttribute( mycylinder_vertices_numbers, 3 ) );
 				
 				mycylinder = new THREE.Mesh( mycylinder_geometry, golden_triacontahedra_edgematerial );
@@ -538,7 +538,7 @@ function init_cubicLattice_stuff() {
 	   	for( var i = 0; i < goldenicos.length; i++) { 
 	   		goldenicos[i] = new THREE.Mesh( new THREE.BufferGeometry(), goldenico_material );
 	   		goldenicos[i].geometry.addAttribute( 'position', new THREE.BufferAttribute( goldenico_vertices_numbers, 3 ) );
-	   		goldenicos[i].geometry.addAttribute( 'index', new THREE.BufferAttribute( goldenico_face_indices, 1 ) );
+	   		goldenicos[i].geometry.setIndex( new THREE.BufferAttribute( goldenico_face_indices, 1 ) );
 	   		
 	   		for( var j = 0; j < 40; j++) {
 				var mycylinder_vertices_numbers = new Float32Array(16*3);
@@ -560,7 +560,7 @@ function init_cubicLattice_stuff() {
 						mycylinder_vertices_numbers, peak);
 				
 				var mycylinder_geometry = new THREE.BufferGeometry();
-				mycylinder_geometry.addAttribute( 'index', new THREE.BufferAttribute( cylinder_triangle_indices, 1 ) );
+				mycylinder_geometry.setIndex( new THREE.BufferAttribute( cylinder_triangle_indices, 1 ) );
 				mycylinder_geometry.addAttribute( 'position', new THREE.BufferAttribute( mycylinder_vertices_numbers, 3 ) );
 				
 				mycylinder = new THREE.Mesh( mycylinder_geometry, goldenicos_edgematerial );
@@ -777,12 +777,12 @@ function put_bunch_into_two_objects(index,shape_bunch_array){
 	
 	Quasi_meshes[index] = new THREE.Mesh( new THREE.BufferGeometry(), shape_bunch_array[0].children[0].material.clone() );	
 	Quasi_meshes[index].geometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array(num_shapes * num_vertices * 3), 3 ) );
-	Quasi_meshes[index].geometry.addAttribute( 'index', new THREE.BufferAttribute( new Uint16Array(num_triangle_indices*num_shapes), 1 ) );
+	Quasi_meshes[index].geometry.setIndex( new THREE.BufferAttribute( new Uint16Array(num_triangle_indices*num_shapes), 1 ) );
 	meshes_original_numbers[index] = new Float32Array(num_shapes * num_vertices * 3);
 	
 	Quasi_outlines[index] = new THREE.Mesh(new THREE.BufferGeometry(), shape_bunch_array[0].children[0].children[0].material.clone() );
 	Quasi_outlines[index].geometry.addAttribute('position',new THREE.BufferAttribute( new Float32Array(num_shapes*num_edges*6*3), 3 ));
-	Quasi_outlines[index].geometry.addAttribute('index',new THREE.BufferAttribute(new Uint16Array(num_shapes*num_edges*12), 1));
+	Quasi_outlines[index].geometry.setIndex(new THREE.BufferAttribute(new Uint16Array(num_shapes*num_edges*12), 1));
 	outlines_original_numbers[index] = new Float32Array(num_shapes * num_edges * 6 * 3);
 	
 	for(var h = 0; h < shape_bunch_array.length; h++){
@@ -839,12 +839,12 @@ function put_into_two_objects(index,shape_array){
 	
 	Quasi_meshes[index] = new THREE.Mesh( new THREE.BufferGeometry(), shape_array[0].material.clone() );	
 	Quasi_meshes[index].geometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array(shape_array.length * num_vertices * 3), 3 ) );
-	Quasi_meshes[index].geometry.addAttribute( 'index', new THREE.BufferAttribute( new Uint16Array(num_triangle_indices*shape_array.length), 1 ) );
+	Quasi_meshes[index].geometry.setIndex( new THREE.BufferAttribute( new Uint16Array(num_triangle_indices*shape_array.length), 1 ) );
 	meshes_original_numbers[index] = new Float32Array(shape_array.length * num_vertices * 3);
 	
 	Quasi_outlines[index] = new THREE.Mesh(new THREE.BufferGeometry(), shape_array[0].children[0].material.clone() );
 	Quasi_outlines[index].geometry.addAttribute('position',new THREE.BufferAttribute( new Float32Array(shape_array.length*num_edges*6*3), 3 ));
-	Quasi_outlines[index].geometry.addAttribute('index',new THREE.BufferAttribute(new Uint16Array(shape_array.length*num_edges*12), 1));
+	Quasi_outlines[index].geometry.setIndex(new THREE.BufferAttribute(new Uint16Array(shape_array.length*num_edges*12), 1));
 	outlines_original_numbers[index] = new Float32Array(shape_array.length*num_edges*6*3);
 	
 	for(var i = 0; i<shape_array.length; i++){

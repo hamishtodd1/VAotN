@@ -232,7 +232,7 @@ function init_DNA_cage(){
 		}
 	}
 	DNA_cage.geometry.addAttribute( 'color', new THREE.BufferAttribute(DNA_colors, 3) );
-	DNA_cage.geometry.addAttribute( 'index', new THREE.BufferAttribute( DNA_line_pairs, 1 ) );
+	DNA_cage.geometry.setIndex( new THREE.BufferAttribute( DNA_line_pairs, 1 ) );
 	
 	//because it ain't perfect
 	DNA_cage.quaternion.set(-0.0028151799901586245, -0.03798590756432208, -0.09772936010824641, 0.9944838448969249);
