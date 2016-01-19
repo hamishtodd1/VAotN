@@ -12,6 +12,10 @@ function difference_between_angles(angle1, angle2){
 	//this would be worthwhile
 }
 
+function Square(a){
+	return a*a;
+}
+
 //v and w are ends of a line segment, p is a point and we wish to know its dist from the line
 function minimum_distance(v0, w0, p0) {
 	var w = new THREE.Vector2(w0.x,w0.y);

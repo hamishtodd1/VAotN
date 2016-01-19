@@ -185,7 +185,7 @@ function init() {
 		surface.scale.y = 0.995;
 		surface.scale.z = 0.995;
 		
-		var material1 = new THREE.LineSegmentsBasicMaterial({
+		var material1 = new THREE.LineBasicMaterial({
 			color: 0x0000ff
 		});
 		
@@ -246,7 +246,7 @@ function init() {
 		}
 		varyingsurface = new THREE.Mesh( flatnet_geometry.clone(), surfacematerial );
 		
-		var flatlatticematerial = new THREE.PointCloudMaterial({
+		var flatlatticematerial = new THREE.PointsMaterial({
 			size: 0.09,
 			vertexColors: THREE.VertexColors
 		});
@@ -262,7 +262,7 @@ function init() {
 		flatlattice_geometry.addAttribute( 'position', flatlattice_vertices );
 		flatlattice_geometry.addAttribute( 'color', new THREE.BufferAttribute(lattice_colors, 3) );
 
-		flatlattice = new THREE.PointCloud( flatlattice_geometry, flatlatticematerial );
+		flatlattice = new THREE.Points( flatlattice_geometry, flatlatticematerial );
 		flatlattice.position.x = flatlattice_center.x;
 		//scene.add(flatlattice);
 		
@@ -272,7 +272,7 @@ function init() {
 		surflattice_geometry.addAttribute( 'position', surflattice_vertices );
 		surflattice_geometry.addAttribute( 'color', new THREE.BufferAttribute(lattice_colors, 3) );
 
-		surflattice = new THREE.PointCloud( surflattice_geometry, flatlatticematerial );
+		surflattice = new THREE.Points( surflattice_geometry, flatlatticematerial );
 		
 		
 		

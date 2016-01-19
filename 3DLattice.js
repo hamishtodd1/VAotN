@@ -158,7 +158,7 @@ function update_3DLattice() {
 	if(isMouseDown && !slider_grabbed ) {
 		var MovementAxis = new THREE.Vector3(-Mouse_delta.y, Mouse_delta.x, 0);
 		MovementAxis.normalize();
-		var MovementAngle = Mouse_delta.length() / 3;
+		var MovementAngle = Mouse_delta.length();
 		
 		rotate_3DPenrose_entirety(MovementAxis,MovementAngle);
 	}
@@ -236,7 +236,7 @@ function init_cubicLattice_stuff() {
 	var QC_atoms_geometry = new THREE.BufferGeometry();
 	QC_atoms_geometry.addAttribute( 'position', new THREE.BufferAttribute(new Float32Array(number_of_QC_atoms * 3), 3) );
 	QC_atoms_geometry.addAttribute( 'color', new THREE.BufferAttribute(new Float32Array(number_of_QC_atoms * 3), 3) );
-	QC_atoms = new THREE.Points( QC_atoms_geometry,new THREE.PointCloudMaterial({size: 0.62,vertexColors: THREE.VertexColors}));
+	QC_atoms = new THREE.Points( QC_atoms_geometry,new THREE.PointsMaterial({size: 0.62,vertexColors: THREE.VertexColors}));
 	QC_atoms.scale.set(2,2,2);
 	
 	normalized_virtualdodeca_vertices[0] = new THREE.Vector3(1,-1,1);
@@ -743,7 +743,7 @@ function init_cubicLattice_stuff() {
    	//QC_atoms
    	var lowest_unused_index = 0;
 	for(var i = 0; i < golden_rhombohedra.length; i++) {
-		for(var j = 0; j<golden_rhombohedra[i].geometry.attributes.position.length/3; j++){
+		for(var j = 0; j<golden_rhombohedra[i].geometry.attributes.position.array.length/3; j++){
 			var new_position = new THREE.Vector3(
 					golden_rhombohedra[i].geometry.attributes.position.array[j*3+0],
 					golden_rhombohedra[i].geometry.attributes.position.array[j*3+1],
@@ -754,7 +754,7 @@ function init_cubicLattice_stuff() {
 		}
 	}
 	for(var i = 0; i < goldenicos.length; i++) {
-		for(var j = 0; j<goldenicos[i].geometry.attributes.position.length/3; j++){
+		for(var j = 0; j<goldenicos[i].geometry.attributes.position.array.length/3; j++){
 			var new_position = new THREE.Vector3(
 					goldenicos[i].geometry.attributes.position.array[j*3+0],
 					goldenicos[i].geometry.attributes.position.array[j*3+1],

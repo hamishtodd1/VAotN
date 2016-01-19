@@ -339,7 +339,7 @@ function initialize_QS_stuff() {
 	for(var i = 0; i < quasicutouts_vertices_components.length; i++)
 		quasicutouts_vertices_components[i] = new Array(0,0,1);
 
-	var materialx = new THREE.LineSegmentsBasicMaterial({
+	var materialx = new THREE.LineBasicMaterial({
  		color: 0x0000ff
  	});
 	
@@ -361,7 +361,7 @@ function initialize_QS_stuff() {
 	back_hider = new THREE.Mesh( new THREE.PlaneBufferGeometry( playing_field_width * 2,playing_field_width * 2 ), materialf );
 	back_hider.position.z = -0.01;
  	
- 	var materialy = new THREE.LineSegmentsBasicMaterial({
+ 	var materialy = new THREE.LineBasicMaterial({
  		color: 0x00ffff,
  		transparent: true,
  		opacity: 0.5
