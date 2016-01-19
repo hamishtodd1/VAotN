@@ -16,7 +16,7 @@ var QC_SPHERE_MODE = 5;
 var CUBIC_LATTICE_MODE = 6;
 var FINAL_FORMATION_MODE = 7;
 	
-var MODE = 4;
+var MODE = 7;
 
 //--------------Technologically fundamental
 var playing_field_width = 7*HS3;
@@ -155,6 +155,7 @@ var slider_grabbed = false;
 
 //-----------formationatom stuff
 var QC_atoms = Array(2000);
+var QCatom_positions;
 var outermost_QCatom_indices = Array(0,0,0,	0,0,0,	0,0,0,	0,0,0);
 var animation_beginning_second = 17*60+3; //or whatever
 var formation_animation_numbers = new Float32Array(23 * 60 * 3);

@@ -741,29 +741,30 @@ function init_cubicLattice_stuff() {
    	put_bunch_into_two_objects(4,ico_stars);
    	
    	//QC_atoms
-   	var lowest_unused_index = 0;
-	for(var i = 0; i < golden_rhombohedra.length; i++) {
-		for(var j = 0; j<golden_rhombohedra[i].geometry.attributes.position.array.length/3; j++){
-			var new_position = new THREE.Vector3(
-					golden_rhombohedra[i].geometry.attributes.position.array[j*3+0],
-					golden_rhombohedra[i].geometry.attributes.position.array[j*3+1],
-					golden_rhombohedra[i].geometry.attributes.position.array[j*3+2]);
-			golden_rhombohedra[i].localToWorld(new_position);
-			
-			lowest_unused_index = attempt_quasiatom_addition_and_return_next_index(new_position, lowest_unused_index );
-		}
-	}
-	for(var i = 0; i < goldenicos.length; i++) {
-		for(var j = 0; j<goldenicos[i].geometry.attributes.position.array.length/3; j++){
-			var new_position = new THREE.Vector3(
-					goldenicos[i].geometry.attributes.position.array[j*3+0],
-					goldenicos[i].geometry.attributes.position.array[j*3+1],
-					goldenicos[i].geometry.attributes.position.array[j*3+2]);
-			goldenicos[i].localToWorld(new_position);
-			
-			lowest_unused_index = attempt_quasiatom_addition_and_return_next_index(new_position, lowest_unused_index );
-		}
-	}
+   	generate_QCatom_locations();
+//   	var lowest_unused_index = 0;
+//	for(var i = 0; i < golden_rhombohedra.length; i++) {
+//		for(var j = 0; j<golden_rhombohedra[i].geometry.attributes.position.array.length/3; j++){
+//			var new_position = new THREE.Vector3(
+//					golden_rhombohedra[i].geometry.attributes.position.array[j*3+0],
+//					golden_rhombohedra[i].geometry.attributes.position.array[j*3+1],
+//					golden_rhombohedra[i].geometry.attributes.position.array[j*3+2]);
+//			golden_rhombohedra[i].localToWorld(new_position);
+//			
+//			lowest_unused_index = attempt_quasiatom_addition_and_return_next_index(new_position, lowest_unused_index );
+//		}
+//	}
+//	for(var i = 0; i < goldenicos.length; i++) {
+//		for(var j = 0; j<goldenicos[i].geometry.attributes.position.array.length/3; j++){
+//			var new_position = new THREE.Vector3(
+//					goldenicos[i].geometry.attributes.position.array[j*3+0],
+//					goldenicos[i].geometry.attributes.position.array[j*3+1],
+//					goldenicos[i].geometry.attributes.position.array[j*3+2]);
+//			goldenicos[i].localToWorld(new_position);
+//			
+//			lowest_unused_index = attempt_quasiatom_addition_and_return_next_index(new_position, lowest_unused_index );
+//		}
+//	}
 }
 
 //shape_array -> shape_bunch_array[0]
