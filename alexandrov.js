@@ -27,23 +27,67 @@ function reset_net(){
 	}
 	
 	/* create the delaunay triangulation
-	 * our edge flips, are only on the virtual combinatorics here, what is seen is what is there originally
 	 * 
-	 * So we keep the same vertices, they're just connected differently?
+	 * It's just a question of putting 666s in the array and replacing them with the right thing
 	 */
 	
-//	S <- all edges
-//	while( S is non-empty ){
-//		pop ab from S, unmark it
-//		if(ab not locally Delaunay){
-//			Flip ab to cd;
-//			for( xy in ac, cb, bd, da ){ //these change, so 
-//				if( xy unmarked){
-//					mark xy and push on S,
-//				}
-//			}
-//		}
-//	}
+	var S = Array(0);
+	var Markings = Array(polyhedron_edge_length.length);
+	for(var i = 0; i < Markings.length; i++){
+		Markings[i] = Array(Markings.length);
+		for(var j = 0; j < Markings[i].length; j++)
+			Markings[i][j] = 1;
+	}
+	for(var i = 0; i<polyhedron_edge_length.length; i++){
+		for(var j = 0; j <polyhedron_edge_length.length; j++){
+			if(polyhedron_edge_length[i][j] !== 666)
+				S.push(Array(i,j));
+		}
+	}
+	while( S.length > 0 ){
+		var ouredge = S.pop();
+		Markings[ouredge[0]][ouredge[1]] = 0;		
+		
+		var ourindices = new Uint16Array(4);
+		ourindices[0] = ouredge[0];
+		ourindices[1] = ouredge[1];
+		
+		ourindices[2] = get_third_corner(ourindices[0],ourindices[1],0);
+		ourindices[3] = get_third_corner(ourindices[0],ourindices[1],1); //hopefully it doesn't matter which way around
+		
+		var old_edgelen = polyhedron_edge_length[ourindices[0]][ourindices[1]];
+		var l_a = polyhedron_edge_length[ourindices[0]][ourindices[2]];
+		var l_b = polyhedron_edge_length[ourindices[1]][ourindices[2]];
+		var l_c = polyhedron_edge_length[ourindices[0]][ourindices[3]];
+		var l_d = polyhedron_edge_length[ourindices[1]][ourindices[3]];
+		
+		var angle2 = Math.acos( get_cos_rule(l_a, l_b, old_edgelen) );
+		var angle3 = Math.acos( get_cos_rule(l_c, l_d, old_edgelen) );
+		if(angle2+angle3 > Math.PI){
+			console.log("edge flipping time");
+			var alpha = Math.acos( get_cos_rule(l_b,l_a,old_edgelen) ) + Math.acos( get_cos_rule(l_d,l_c,old_edgelen) );
+			var newlength = l_a*l_a + l_d*l_d - 2*l_b*l_c * Math.cos(alpha);
+			
+			polyhedron_edge_length[ourindices[0]][ourindices[1]] = 666;
+			polyhedron_edge_length[ourindices[1]][ourindices[0]] = 666;
+			
+			polyhedron_edge_length[ourindices[2]][ourindices[3]] = newlength;
+			polyhedron_edge_length[ourindices[3]][ourindices[2]] = newlength;
+			
+			for(var i = 0; i<4; i++){
+				var index1 = ourindices[i];
+				var index2;
+				if(index1 < 2)
+					index2 = index1 + 2;
+				else
+					index2 = 3 - index1;
+				if(!Markings[index1][index2]){
+					Markings[index1][index2] = 1;
+					S.push(Array(index1,index2));
+				}
+			}
+		}
+	}
 }
 
 function polyhedron_index(i) {
@@ -92,7 +136,7 @@ function correct_minimum_angles() {
 					if( polyhedron_edge_length[i][j] === 666)
 						continue;
 					
-					var angle = get_polyhedron_dihedral_angle_from_indices(i,j, radii_intended);
+					var angle = get_polyhedron_dihedral_angle_from_indices(i,j, radii_intended,0);
 					
 					if(angle >= Math.PI ) {
 						concave_edges.push(i);
@@ -132,7 +176,7 @@ function correct_minimum_angles() {
 		//we will need to make this function give us the choice of the visible or virtual combinatorics
 		minimum_angles[i] = get_polyhedron_dihedral_angle_from_indices( polyhedron_index( vertices_derivations[i][0] ),
 																		polyhedron_index( vertices_derivations[i][1] ), 
-																		radii);
+																		radii,1);
 	}
 	
 	return 1;
@@ -206,8 +250,8 @@ function get_Jacobian(input_radii){
 				continue;
 			}
 			
-			var cos_alpha_ij_or_ji = get_cos_tetrahedron_dihedral_angle_from_indices(i,j,0, input_radii);
-			var cos_alpha_ji_or_ij = get_cos_tetrahedron_dihedral_angle_from_indices(i,j,1, input_radii);
+			var cos_alpha_ij_or_ji = get_cos_tetrahedron_dihedral_angle_from_indices(i,j,0, input_radii,0);
+			var cos_alpha_ji_or_ij = get_cos_tetrahedron_dihedral_angle_from_indices(i,j,1, input_radii,0);
 			var cot_alpha_ij_or_ji = cos_alpha_ij_or_ji / Math.sqrt( 1 - cos_alpha_ij_or_ji*cos_alpha_ij_or_ji ); //speedup opportunity: one-line this.
 			var cot_alpha_ji_or_ij = cos_alpha_ji_or_ij / Math.sqrt( 1 - cos_alpha_ji_or_ij*cos_alpha_ji_or_ij );
 
@@ -258,25 +302,53 @@ function get_curvatures(input_radii) {
 	return curvature_array;
 }
 
-//refer to diagram in thesis: i->j is anticlockwise around face
-function get_cos_tetrahedron_dihedral_angle_from_indices(i,j,use_next_corner_hit,input_radii) {
-	var k = 666;
-
-	//we need that k that is clockwise of j, for some triangle
+function get_third_corner(i,j,use_next_corner_hit){
 	var hits = 0;
 	for(var a = 0; a < polyhedron_edge_length[i].length; a++){
 		if( polyhedron_edge_length[j][a] != 666 &&
 			polyhedron_edge_length[a][i] != 666 ) {
 			//there are two tetrahedra at each edge. Not sure which we get. But it happens to be that we always query them in pairs. So we get one of them, depending on a parameter.
 			if(use_next_corner_hit==1)
-				k = a;
-			use_next_corner_hit++;
+				return a;
+			use_next_corner_hit++; //should have started as either 1 or 0.
 			
 			hits++;
 			if(hits>2)
 				console.error("edge with more than two triangles?")
-		}	
-	}	
+		}
+	}
+}
+
+//we need to make this function (and the polyhedron dihedral angle) able to use either visible or virtual combinatorics.
+function get_cos_tetrahedron_dihedral_angle_from_indices(i,j,use_first_corner_hit,input_radii, visible_combinatorics) {
+	var k = 666;
+
+	//we need that k that is clockwise of j, for some triangle
+	if(!visible_combinatorics){
+		k = get_third_corner(i,j,use_first_corner_hit);
+	}
+	else{
+		if(use_first_corner_hit){ //doesn't matter which you get so long as you get both
+			for(var a = 0; a < net_triangle_vertex_indices.length; a+=3){
+				if( polyhedron_index( net_triangle_vertex_indices[ a ] ) === i && polyhedron_index( net_triangle_vertex_indices[a+1] ) === j)
+					{k = polyhedron_index( net_triangle_vertex_indices[a+2] ); break;}
+				if( polyhedron_index( net_triangle_vertex_indices[a+1] ) === i && polyhedron_index( net_triangle_vertex_indices[a+2] ) === j)
+					{k = polyhedron_index( net_triangle_vertex_indices[ a ] ); break;}
+				if( polyhedron_index( net_triangle_vertex_indices[a+2] ) === i && polyhedron_index( net_triangle_vertex_indices[ a ] ) === j)
+					{k = polyhedron_index( net_triangle_vertex_indices[a+1] ); break;}
+			}
+		}
+		else {
+			for(var a = 0; a < net_triangle_vertex_indices.length; a+=3){
+				if( polyhedron_index( net_triangle_vertex_indices[ a ] ) === j && polyhedron_index( net_triangle_vertex_indices[a+1] ) === i)
+					{k = polyhedron_index( net_triangle_vertex_indices[a+2] ); break;}
+				if( polyhedron_index( net_triangle_vertex_indices[a+1] ) === j && polyhedron_index( net_triangle_vertex_indices[a+2] ) === i)
+					{k = polyhedron_index( net_triangle_vertex_indices[ a ] ); break;}
+				if( polyhedron_index( net_triangle_vertex_indices[a+2] ) === j && polyhedron_index( net_triangle_vertex_indices[ a ] ) === i)
+					{k = polyhedron_index( net_triangle_vertex_indices[a+1] ); break;}
+			}
+		}
+	}
 	if( k === 666 ) {
 		//this should really not happen unless this function is given i,j not on an edge.
 		console.error("requested dihedral angle from nonexistant tetrahedron connecting polyhedron vertices " + i + " and " + j);
@@ -291,8 +363,9 @@ function get_cos_tetrahedron_dihedral_angle_from_indices(i,j,use_next_corner_hit
 	return (cos_rho_ik - cos_gamma_ijk * cos_rho_ij)/sin_rho_ij_TIMES_sin_gamma_ijk;
 }
 
-function get_polyhedron_dihedral_angle_from_indices(i,j, input_radii){
-	return Math.acos(get_cos_tetrahedron_dihedral_angle_from_indices(i,j,0, input_radii) ) + Math.acos(get_cos_tetrahedron_dihedral_angle_from_indices(i,j,1, input_radii) );
+function get_polyhedron_dihedral_angle_from_indices(i,j, input_radii,visible_combinatorics){
+	return Math.acos(get_cos_tetrahedron_dihedral_angle_from_indices(i,j,0, input_radii,visible_combinatorics) ) 
+		 + Math.acos(get_cos_tetrahedron_dihedral_angle_from_indices(i,j,1, input_radii,visible_combinatorics) );
 }
 
 function quadrance(vector_values) {

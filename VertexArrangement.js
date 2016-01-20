@@ -12,6 +12,11 @@
  * -what we want is the ability to make anything, easily
  * -the triangles are changed 8 at a time. 3 of which we think of as "getting fucked up".
  * -Then, probably, design the net according to that rather than the other way around
+ * 
+ * So REALLY it should open differently depending on what vertex you want to change, 
+ * Maybe choose based on whichever edge is facing you? Translational net, centered on the chosen edge
+ * Auto close and open if player tries to grab a top vertex
+ * Associations are changed based on the edge you're looking directly at. Which is highlighted.
  */
 
 function update_movementzone() {
