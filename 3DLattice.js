@@ -232,11 +232,11 @@ function init_cubicLattice_stuff() {
 	slider.position.y = progress_bar.position.y;
 	slider.position.z = 0.01;
 
-	var number_of_QC_atoms = 177;
+	var number_of_QC_atoms = 462;
 	var QC_atoms_geometry = new THREE.BufferGeometry();
 	QC_atoms_geometry.addAttribute( 'position', new THREE.BufferAttribute(new Float32Array(number_of_QC_atoms * 3), 3) );
 	QC_atoms_geometry.addAttribute( 'color', new THREE.BufferAttribute(new Float32Array(number_of_QC_atoms * 3), 3) );
-	QC_atoms = new THREE.Points( QC_atoms_geometry,new THREE.PointsMaterial({size: 0.62,vertexColors: THREE.VertexColors}));
+	QC_atoms = new THREE.Points( QC_atoms_geometry,new THREE.PointsMaterial({size: 0.79,vertexColors: THREE.VertexColors}));
 	QC_atoms.scale.set(2,2,2);
 	
 	normalized_virtualdodeca_vertices[0] = new THREE.Vector3(1,-1,1);
@@ -253,7 +253,7 @@ function init_cubicLattice_stuff() {
 	normalized_virtualdodeca_vertices[11] = new THREE.Vector3(0, 1/PHI, PHI);
 	normalized_virtualdodeca_vertices[12] = new THREE.Vector3(1,1,1);
 	normalized_virtualdodeca_vertices[13] = new THREE.Vector3( PHI,0, 1/PHI);
-	normalized_virtualdodeca_vertices[14] = new THREE.Vector3( PHI,0,-1/PHI); //problem with triacontahedra...
+	normalized_virtualdodeca_vertices[14] = new THREE.Vector3( PHI,0,-1/PHI);
 	normalized_virtualdodeca_vertices[15] = new THREE.Vector3(1,-1,-1);
 	normalized_virtualdodeca_vertices[16] = new THREE.Vector3(0,-1/PHI,-PHI);
 	normalized_virtualdodeca_vertices[17] = new THREE.Vector3(-1,-1,-1);

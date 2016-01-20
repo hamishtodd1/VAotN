@@ -23,6 +23,31 @@ function camera_changes_for_mode_switch(){
 		//need to sort out those cameraO things too
 	}
 	
+	switch(MODE){
+		case STATIC_PROTEIN_MODE:
+			camera.toOrthographic();
+			break;
+		case STATIC_DNA_MODE:
+			camera.toOrthographic();
+			break;
+		case CK_MODE:
+			camera.position.x = camera_comparing_position;
+			camera.toPerspective();
+			break;
+		case IRREGULAR_MODE:
+			camera.toPerspective();
+			break;
+		case QC_SPHERE_MODE:
+			camera.toPerspective();
+			break;
+		case CUBIC_LATTICE_MODE:
+			camera.toOrthographic();
+			break;
+		case FINAL_FORMATION_MODE:
+			camera.toOrthographic();
+			break;
+	}
+	
 	//this is for just in case we've just left CK
 	camera.position.x = 0;
 	camera.updateProjectionMatrix();

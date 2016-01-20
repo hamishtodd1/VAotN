@@ -94,7 +94,6 @@ function ChangeScene(new_mode) {
 	
 	switch(MODE){
 		case STATIC_PROTEIN_MODE:
-			camera.toOrthographic();
 			for(var i = 0; i<bocavirus_proteins.length; i++)
 				scene.add(bocavirus_proteins[i]);
 			for(var i = 0; i< lights.length; i++)
@@ -102,7 +101,6 @@ function ChangeScene(new_mode) {
 			break;
 		
 		case STATIC_DNA_MODE:
-			camera.toOrthographic();
 			for(var i = 0; i<bocavirus_proteins.length; i++)
 				scene.add(bocavirus_proteins[i]);
 			for(var i = 0; i< lights.length; i++)
@@ -111,8 +109,6 @@ function ChangeScene(new_mode) {
 			break;
 			
 		case CK_MODE:
-			camera.position.x = camera_comparing_position;
-			camera.toPerspective();
 			scene.add(surface);
 			scene.add(surflattice);
 			for( var i = 0; i < surfperimeter_cylinders.length; i++) {
@@ -125,7 +121,6 @@ function ChangeScene(new_mode) {
 			break;
 			
 		case IRREGULAR_MODE:
-			camera.toPerspective();
 			scene.add(varyingsurface);
 			scene.add(Button);
 			for( var i = 0; i < varyingsurface_cylinders.length; i++)
@@ -135,7 +130,6 @@ function ChangeScene(new_mode) {
 			break;
 			
 		case QC_SPHERE_MODE:
-			camera.toPerspective();
 			for( var i = 0; i < quasicutouts.length; i++)
 				scene.add(quasicutouts[i]);
 			scene.add(dodeca);
@@ -146,13 +140,11 @@ function ChangeScene(new_mode) {
 			break;
 		
 		case CUBIC_LATTICE_MODE:
-			camera.toOrthographic();
 			scene.add(slider);
 			scene.add(progress_bar);
 			break;
 			
 		case FINAL_FORMATION_MODE:
-			camera.toPerspective();
 			animation_progress = 1;
 			scene.add(QC_atoms);
 			break;
