@@ -87,21 +87,16 @@ function init() {
 		20,19,18,
 		19,20,21]);
 	
+	for(var i = 0; i < net_triangle_vertex_indices.length; i++)
+		alexandrov_triangle_vertex_indices[i] = polyhedron_index(net_triangle_vertex_indices[i]);
+	
 	polyhedron_edge_length = Array(12);
 	for(var i = 0; i< polyhedron_edge_length.length; i++) {
 		polyhedron_edge_length[i] = new Float32Array(12);
-		for(var j = 0; j < polyhedron_edge_length[i].length; j++)
-			polyhedron_edge_length[i][j] = 666; //not an actual edge
-	}		
-	for(var i = 0; i< net_triangle_vertex_indices.length / 3; i++) {
-		for(var j = 0; j < 3; j++){
-			var a_index = polyhedron_index(net_triangle_vertex_indices[i*3 + j]);
-			var b_index = polyhedron_index(net_triangle_vertex_indices[i*3 + (j+1)%3]);
-
-			polyhedron_edge_length[a_index][b_index] = 1;
-			polyhedron_edge_length[b_index][a_index] = 1; 
-		}
 	}
+	
+	irreg_rope = new THREE.Line(new THREE.Geometry, new THREE.LineBasicMaterial({color: 0x000000}));
+	irreg_rope.geometry.vertices.push(new THREE.Vector3(0,0,0),new THREE.Vector3(100,0,0.01));
 	
 	for( var i = 0; i < 20; i++ ) {
 		line_index_pairs[i*6 + 0] = net_triangle_vertex_indices[i*3 + 0];

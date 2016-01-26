@@ -9,7 +9,7 @@ function check_triangle_inversion(){
 				flatnet_vertices.array[ 0 + 3 * cornerBindex ],flatnet_vertices.array[ 1 + 3 * cornerBindex ],
 				flatnet_vertices.array[ 0 + 3 * cornerCindex ],flatnet_vertices.array[ 1 + 3 * cornerCindex ]
 			)){
-			console.error("triangle inverted");
+			console.log("triangle inverted");
 			return 0;
 		}
 	}

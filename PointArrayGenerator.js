@@ -198,27 +198,27 @@ function generate_QCatom_locations(){
 		}
 	}
 	
-	var bigstring = "";
-	bigstring += QCatom_positions.length + "\n" + "test" + "\n";
-	for(var i = 0; i < QCatom_positions.length; i++){
-		var ourlen = Math.sqrt(QCatom_positions[i].x*QCatom_positions[i].x+QCatom_positions[i].y*QCatom_positions[i].y+QCatom_positions[i].z*QCatom_positions[i].z);
-		if( Math.abs(ourlen - 92) < 0.01)
-			bigstring += "N ";
-		else if( Math.abs(ourlen - 114) < 0.01)
-			bigstring += "F ";
-		else if( Math.abs(ourlen - 131) < 0.01)
-			bigstring += "S ";
-		else if( Math.abs(ourlen - 140) < 1)
-			bigstring += "O ";
-		else if( Math.abs(ourlen - 174) < 0.01)
-			bigstring += "C ";
-		else console.log(ourlen);
-		bigstring += QCatom_positions[i].x + " ";
-		bigstring += QCatom_positions[i].y + " ";
-		bigstring += QCatom_positions[i].z + " ";
-		bigstring += "\n"
-	}
-	console.log(bigstring);
+//	var bigstring = "";
+//	bigstring += QCatom_positions.length + "\n" + "test" + "\n";
+//	for(var i = 0; i < QCatom_positions.length; i++){
+//		var ourlen = Math.sqrt(QCatom_positions[i].x*QCatom_positions[i].x+QCatom_positions[i].y*QCatom_positions[i].y+QCatom_positions[i].z*QCatom_positions[i].z);
+//		if( Math.abs(ourlen - 92) < 0.01)
+//			bigstring += "N ";
+//		else if( Math.abs(ourlen - 114) < 0.01)
+//			bigstring += "F ";
+//		else if( Math.abs(ourlen - 131) < 0.01)
+//			bigstring += "S ";
+//		else if( Math.abs(ourlen - 140) < 1)
+//			bigstring += "O ";
+//		else if( Math.abs(ourlen - 174) < 0.01)
+//			bigstring += "C ";
+//		else console.log(ourlen);
+//		bigstring += QCatom_positions[i].x + " ";
+//		bigstring += QCatom_positions[i].y + " ";
+//		bigstring += QCatom_positions[i].z + " ";
+//		bigstring += "\n"
+//	}
+//	console.log(bigstring);
 	
 	for(var i = 0; i < QCatom_positions.length; i++)
 		insert_quasiatom(QCatom_positions[i],i);

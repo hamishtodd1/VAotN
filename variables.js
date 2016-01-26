@@ -16,7 +16,7 @@ var QC_SPHERE_MODE = 5;
 var CUBIC_LATTICE_MODE = 6;
 var FINAL_FORMATION_MODE = 7;
 	
-var MODE = 7;
+var MODE = 4;
 
 //--------------Technologically fundamental
 var playing_field_width = 7*HS3;
@@ -193,6 +193,7 @@ var shear_matrix = new Array(20);
 
 //initial values chosen rather randomly. Potential speedup by decreasing this? Does algorithm ever increase them? Probably easy to work out a better bound.
 var radii = new Float32Array([100,100,100, 100,100,100, 100,100,100, 100,100,100]);
+var alexandrov_triangle_vertex_indices = new Uint16Array( 3 * 20);
 var polyhedron_edge_length;
 
 var lattice_colors = new Float32Array(number_of_lattice_points * 3);
@@ -224,6 +225,7 @@ var Button;
 var varyingsurface_cylinders = Array(41);
 var varyingsurface_spheres = Array(22);
 var irreghighlight_progresses = Array(22);
+var irreg_rope;
 var varyingsurface_openmode = false;
 
 var vertex_identifications = new Array();
