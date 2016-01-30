@@ -127,7 +127,6 @@ function ChangeScene(new_mode) {
 				scene.add(varyingsurface_cylinders[i]);
 			for( var i = 0; i < varyingsurface_spheres.length; i++)
 				scene.add(varyingsurface_spheres[i]);
-			scene.add(irreg_rope);
 			break;
 			
 		case QC_SPHERE_MODE:

@@ -258,20 +258,6 @@ function HandleVertexRearrangement() {
 	
 	theyknowyoucanchangevertices = 1;
 	
-	irreg_rope.geometry.vertices[0].x = MousePosition.x;
-	irreg_rope.geometry.vertices[0].y = MousePosition.y;
-	irreg_rope.geometry.vertices[1].x = flatnet_vertices.array[vertex_tobechanged * 3 + 0];
-	irreg_rope.geometry.vertices[1].y = flatnet_vertices.array[vertex_tobechanged * 3 + 1];
-	irreg_rope.geometry.verticesNeedUpdate = true;
-	var max_irregchange_speed = 0.045; //maybe also try changing the angle? Just little bits, so it can climb slopes
-	if(movement_vector.length() > max_irregchange_speed)
-		movement_vector.setLength(max_irregchange_speed);
-	
-//	if(logged)return;
-//	movement_vector.x = -1.331088900566101 + 0.8660253882408142; //-0.6088666915893555
-//	movement_vector.y = -1.5888888835906982 + 1.5; //-1.211111068725586
-//	logged = 1;
-	
 	//log the current positions
 	var net_log = new Array(66);
 	for( var i = 0; i < 66; i++)

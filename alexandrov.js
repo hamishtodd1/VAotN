@@ -13,7 +13,13 @@
 //It's taking on the order of 300 steps. That can almost certainly be reduced by tweaking what you can tweak. But you can't have one step per frame if it's too many.
 
 /*
- * Compromise possibilities.
+ * Plan:
+ * Player can move vertex all they like. When they let go it snaps to the closest lattice vertex
+ * When it is determined as being vertex_tobechanged, we start compiling a set of potential snap-to lattice vertices
+ */
+
+/*
+ * (other) Compromise possibilities.
  * 
  * Can you put extra edges in when they press the fold button?
  * Can you squash the edge lengths on the surface when capsid is closed? Probably it wouldn't be contracted that much, the  
@@ -38,193 +44,7 @@
  * Many of these options would be made easier by speeding up the algorithm, which you need to do anyway.
  */
 
-function reset_net(){
-	for(var i = 0; i< radii.length; i++)
-		radii[i] = 100;
-	for(var i = 0; i < polyhedron_edge_length.length; i++)
-		for(var j = 0; j < polyhedron_edge_length[i].length; j++)
-			polyhedron_edge_length[i][j] = 666;
-	for(var i = 0; i< net_triangle_vertex_indices.length / 3; i++) {
-		for(var j = 0; j < 3; j++){
-			var a_index = polyhedron_index(net_triangle_vertex_indices[i*3 + j]);
-			var b_index = polyhedron_index(net_triangle_vertex_indices[i*3 + (j+1)%3]);
-			
-			polyhedron_edge_length[a_index][b_index] = Math.sqrt( Square(flatnet_vertices.array[3*net_triangle_vertex_indices[i*3 + j]  ]-flatnet_vertices.array[3*net_triangle_vertex_indices[i*3 + (j+1)%3]  ])
-																+ Square(flatnet_vertices.array[3*net_triangle_vertex_indices[i*3 + j]+1]-flatnet_vertices.array[3*net_triangle_vertex_indices[i*3 + (j+1)%3]+1]) );
-			polyhedron_edge_length[b_index][a_index] = polyhedron_edge_length[a_index][b_index]; 
-		}
-	}
-	for(var i = 0; i < net_triangle_vertex_indices.length; i++)
-		alexandrov_triangle_vertex_indices[i] = polyhedron_index(net_triangle_vertex_indices[i]);
-	
-	/* create the delaunay triangulation
-	 * 
-	 * It's just a question of putting 666s in the array and replacing them with the right thing
-	 */
-	
-//	var S = Array(0);
-//	var Markings = Array(polyhedron_edge_length.length);
-//	for(var i = 0; i < Markings.length; i++){
-//		Markings[i] = Array(Markings.length);
-//		for(var j = 0; j < Markings[i].length; j++)
-//			Markings[i][j] = 1;
-//	}
-//	for(var i = 0; i<polyhedron_edge_length.length; i++){
-//		for(var j = i+1; j <polyhedron_edge_length.length; j++){
-//			if(polyhedron_edge_length[i][j] !== 666)
-//				S.push(Array(i,j));
-//		}
-//	}
-//	
-////	console.log("S: ")
-////	for(var i = 0; i < S.length; i++)
-////		console.log(S[i]);
-//	var flips = 0;
-//	while( S.length > 0 ){
-//		var ouredge = S.pop();
-//		Markings[ouredge[0]][ouredge[1]] = 0;
-//		
-//		var ourindices = get_diamond_indices(ouredge[0],ouredge[1]);
-//		
-//		var old_edgelen = polyhedron_edge_length[ourindices[0]][ourindices[1]];
-//		var l_a = polyhedron_edge_length[ourindices[0]][ourindices[2]];
-//		var l_b = polyhedron_edge_length[ourindices[1]][ourindices[2]];
-//		var l_c = polyhedron_edge_length[ourindices[0]][ourindices[3]];
-//		var l_d = polyhedron_edge_length[ourindices[1]][ourindices[3]];
-//		
-//		var angle2 = Math.acos( get_cos_rule(l_a, l_b, old_edgelen) );
-//		var angle3 = Math.acos( get_cos_rule(l_c, l_d, old_edgelen) );
-//		
-//		if(angle2+angle3 > Math.PI){
-//			flip(ourindices, l_a,l_b,l_c,l_d, old_edgelen);			
-//			flips++;
-//			
-//			for(var i = 0; i<4; i++){
-//				var index1 = ourindices[i];
-//				var index2;
-//				if(i < 2)
-//					index2 = ourindices[i + 2];
-//				else
-//					index2 = ourindices[3 - i];
-//				if(!Markings[index1][index2]){
-//					Markings[index1][index2] = 1;
-//					S.push(Array(index1,index2));
-//				}
-//			}
-//		}
-//	}
-//	if(flips>0)
-//		console.log("had " + flips + " flips");
-}
 
-function get_diamond_indices(topcorner,bottomcorner){
-	var ourindices = Array(4);
-	ourindices[0] = topcorner;
-	ourindices[1] = bottomcorner;
-	ourindices[2] = get_third_corner(topcorner,bottomcorner,0);
-	ourindices[3] = get_third_corner(topcorner,bottomcorner,1); //it shouldn't matter which way around
-	return ourindices;
-}
-
-function get_cos_of_summed_acoses(cos1,cos2){
-	return cos1*cos2-Math.sqrt(1-cos1*cos1)*Math.sqrt(1-cos2*cos2);
-}
-
-function flip(ourindices, l_a,l_b,l_c,l_d, old_edgelen){
-	var violations = check_triangle_inequalities(0);
-	
-	var cosalpha = get_cos_of_summed_acoses(get_cos_rule(l_b,l_a,old_edgelen),get_cos_rule(l_d,l_c,old_edgelen) );
-	var cosalpha2 = get_cos_of_summed_acoses(get_cos_rule(l_a,l_b,old_edgelen),get_cos_rule(l_c,l_d,old_edgelen) );
-	
-	var newlength = Math.sqrt( l_a*l_a + l_d*l_d - 2*l_b*l_c * cosalpha );
-	var newlength2 =Math.sqrt( l_b*l_b + l_c*l_c - 2*l_a*l_d * cosalpha2 );
-	console.log("compare", newlength, newlength2) //shouldn't these be the same?
-	
-	var experiment_length1 = Math.sqrt( l_b*l_b + l_d*l_d - 2*l_b*l_d * cosalpha );
-	
-	var cosbeta = get_cos_of_summed_acoses(get_cos_rule(l_a,l_b,old_edgelen),get_cos_rule(l_c,l_d,old_edgelen) );
-	console.log(cosbeta, Math.cos(Math.acos(get_cos_rule(l_c,l_d,old_edgelen) )+Math.acos(get_cos_rule(l_a,l_b,old_edgelen) ) ) )
-	
-	console.log("tau?",Math.acos(get_cos_rule(old_edgelen,l_c,l_d) )+Math.acos(get_cos_rule(old_edgelen,l_a,l_b) )
-			+Math.acos(cosalpha)+Math.acos(get_cos_rule(l_c,l_d,old_edgelen) )+Math.acos(get_cos_rule(l_a,l_b,old_edgelen) ))
-	console.log(Math.acos(get_cos_rule(l_c,l_d,old_edgelen) )+Math.acos(get_cos_rule(l_d,l_c,old_edgelen) )+Math.acos(get_cos_rule(old_edgelen,l_c,l_d) ))
-	console.log(Math.acos(get_cos_rule(l_a,l_b,old_edgelen) )+Math.acos(get_cos_rule(l_b,l_a,old_edgelen) )+Math.acos(get_cos_rule(old_edgelen,l_a,l_b) ))
-	var experiment_length2 = Math.sqrt( l_c*l_c + l_a*l_a - 2*l_c*l_a * cosbeta );
-	if(Math.abs(experiment_length1-experiment_length2) > 0.001) //it is possible that because of the cos/acosing, these two ARE different
-		console.error("different lengths to swap to ", experiment_length1,experiment_length2, "newlength",newlength )
-	
-	console.log("lengths involved", l_a,l_b,l_c,l_d, old_edgelen);
-	
-	if(newlength > l_a+l_c )
-		console.log("baa")
-	if(newlength > l_d+l_b )
-		console.log("bee");
-	
-	polyhedron_edge_length[ourindices[0]][ourindices[1]] = 666;
-	polyhedron_edge_length[ourindices[1]][ourindices[0]] = 666;
-	
-	polyhedron_edge_length[ourindices[2]][ourindices[3]] = newlength;
-	polyhedron_edge_length[ourindices[3]][ourindices[2]] = newlength;
-	
-	console.log("old triangle: ",ourindices[0],ourindices[2],ourindices[1]);
-	console.log("old triangle: ",ourindices[0],ourindices[1],ourindices[3]);
-	console.log("new triangle: ",ourindices[0],ourindices[2],ourindices[3]);
-	console.log("new triangle: ",ourindices[2],ourindices[1],ourindices[3]);
-	print_ATVIs();
-	
-	//our two old triangles will have been ourindices[0 then 1 then 2 ] and ourindices[0 then 3 then 1]
-	//we want to change them to ourindices[0 then 3 then 2] and ourindices[2 then 3 then 1]
-	
-	var num_triangles_swapped = 0;
-	for(var i = 0; i < 20; i++){
-		for(var j = 0; j < 3; j++){
-			if( alexandrov_triangle_vertex_indices[i*3+(j+0)%3] === ourindices[0] &&
-				alexandrov_triangle_vertex_indices[i*3+(j+1)%3] === ourindices[1] &&
-				alexandrov_triangle_vertex_indices[i*3+(j+2)%3] === ourindices[2] 
-			 ){
-				alexandrov_triangle_vertex_indices[i*3+(j+1)%3] = ourindices[3];
-				num_triangles_swapped++;
-			}
-			else if( alexandrov_triangle_vertex_indices[i*3+(j+0)%3] === ourindices[0] &&
-					alexandrov_triangle_vertex_indices[i*3+(j+1)%3] === ourindices[3] &&
-					alexandrov_triangle_vertex_indices[i*3+(j+2)%3] === ourindices[1] 
-			 ){
-				alexandrov_triangle_vertex_indices[i*3+(j+0)%3] = ourindices[2];
-				num_triangles_swapped++;
-			}
-		} 
-	}
-	if(num_triangles_swapped != 2)
-		console.error("only found " + num_triangles_swapped + " triangles to swap");
-	
-	if(check_triangle_inequalities(1) > violations){
-		console.log("triangle inequality NOW violated")
-	}
-}
-
-function check_triangle_inequalities(print_violations){
-	var num_violations = 0;
-	
-	for(var i = 0; i < 20; i++){
-		var ind0 = alexandrov_triangle_vertex_indices[i*3+0];
-		var ind1 = alexandrov_triangle_vertex_indices[i*3+1];
-		var ind2 = alexandrov_triangle_vertex_indices[i*3+2];
-		
-		if( polyhedron_edge_length[ind0][ind1] > polyhedron_edge_length[ind1][ind2] + polyhedron_edge_length[ind2][ind0] ){
-			num_violations++;
-			if(print_violations)console.log(ind0,ind1,ind2)
-		}
-		if( polyhedron_edge_length[ind1][ind2] > polyhedron_edge_length[ind2][ind0] + polyhedron_edge_length[ind0][ind1] ){
-			num_violations++;
-			if(print_violations)console.log(ind0,ind1,ind2);
-		}
-		if( polyhedron_edge_length[ind2][ind0] > polyhedron_edge_length[ind0][ind1] + polyhedron_edge_length[ind1][ind2] ){
-			num_violations++;
-			if(print_violations)console.log(ind0,ind1,ind2)
-		}
-	}
-	return num_violations;
-}
 
 function polyhedron_index(i) {
 	if(i<2)	   return i; //the two in the central crack
@@ -562,4 +382,193 @@ function quadrance(vector_values) {
 		result += vector_values[i] * vector_values[i];
 	
 	return result;
+}
+
+
+function reset_net(){
+	for(var i = 0; i< radii.length; i++)
+		radii[i] = 100;
+	for(var i = 0; i < polyhedron_edge_length.length; i++)
+		for(var j = 0; j < polyhedron_edge_length[i].length; j++)
+			polyhedron_edge_length[i][j] = 666;
+	for(var i = 0; i< net_triangle_vertex_indices.length / 3; i++) {
+		for(var j = 0; j < 3; j++){
+			var a_index = polyhedron_index(net_triangle_vertex_indices[i*3 + j]);
+			var b_index = polyhedron_index(net_triangle_vertex_indices[i*3 + (j+1)%3]);
+			
+			polyhedron_edge_length[a_index][b_index] = Math.sqrt( Square(flatnet_vertices.array[3*net_triangle_vertex_indices[i*3 + j]  ]-flatnet_vertices.array[3*net_triangle_vertex_indices[i*3 + (j+1)%3]  ])
+																+ Square(flatnet_vertices.array[3*net_triangle_vertex_indices[i*3 + j]+1]-flatnet_vertices.array[3*net_triangle_vertex_indices[i*3 + (j+1)%3]+1]) );
+			polyhedron_edge_length[b_index][a_index] = polyhedron_edge_length[a_index][b_index]; 
+		}
+	}
+	for(var i = 0; i < net_triangle_vertex_indices.length; i++)
+		alexandrov_triangle_vertex_indices[i] = polyhedron_index(net_triangle_vertex_indices[i]);
+	
+	/* create the delaunay triangulation
+	 * 
+	 * It's just a question of putting 666s in the array and replacing them with the right thing
+	 */
+	
+//	var S = Array(0);
+//	var Markings = Array(polyhedron_edge_length.length);
+//	for(var i = 0; i < Markings.length; i++){
+//		Markings[i] = Array(Markings.length);
+//		for(var j = 0; j < Markings[i].length; j++)
+//			Markings[i][j] = 1;
+//	}
+//	for(var i = 0; i<polyhedron_edge_length.length; i++){
+//		for(var j = i+1; j <polyhedron_edge_length.length; j++){
+//			if(polyhedron_edge_length[i][j] !== 666)
+//				S.push(Array(i,j));
+//		}
+//	}
+//	
+////	console.log("S: ")
+////	for(var i = 0; i < S.length; i++)
+////		console.log(S[i]);
+//	var flips = 0;
+//	while( S.length > 0 ){
+//		var ouredge = S.pop();
+//		Markings[ouredge[0]][ouredge[1]] = 0;
+//		
+//		var ourindices = get_diamond_indices(ouredge[0],ouredge[1]);
+//		
+//		var old_edgelen = polyhedron_edge_length[ourindices[0]][ourindices[1]];
+//		var l_a = polyhedron_edge_length[ourindices[0]][ourindices[2]];
+//		var l_b = polyhedron_edge_length[ourindices[1]][ourindices[2]];
+//		var l_c = polyhedron_edge_length[ourindices[0]][ourindices[3]];
+//		var l_d = polyhedron_edge_length[ourindices[1]][ourindices[3]];
+//		
+//		var angle2 = Math.acos( get_cos_rule(l_a, l_b, old_edgelen) );
+//		var angle3 = Math.acos( get_cos_rule(l_c, l_d, old_edgelen) );
+//		
+//		if(angle2+angle3 > Math.PI){
+//			flip(ourindices, l_a,l_b,l_c,l_d, old_edgelen);			
+//			flips++;
+//			
+//			for(var i = 0; i<4; i++){
+//				var index1 = ourindices[i];
+//				var index2;
+//				if(i < 2)
+//					index2 = ourindices[i + 2];
+//				else
+//					index2 = ourindices[3 - i];
+//				if(!Markings[index1][index2]){
+//					Markings[index1][index2] = 1;
+//					S.push(Array(index1,index2));
+//				}
+//			}
+//		}
+//	}
+//	if(flips>0)
+//		console.log("had " + flips + " flips");
+}
+
+function get_diamond_indices(topcorner,bottomcorner){
+	var ourindices = Array(4);
+	ourindices[0] = topcorner;
+	ourindices[1] = bottomcorner;
+	ourindices[2] = get_third_corner(topcorner,bottomcorner,0);
+	ourindices[3] = get_third_corner(topcorner,bottomcorner,1); //it shouldn't matter which way around
+	return ourindices;
+}
+
+function get_cos_of_summed_acoses(cos1,cos2){
+	return cos1*cos2-Math.sqrt(1-cos1*cos1)*Math.sqrt(1-cos2*cos2);
+}
+
+function flip(ourindices, l_a,l_b,l_c,l_d, old_edgelen){
+	var violations = check_triangle_inequalities(0);
+	
+	var cosalpha = get_cos_of_summed_acoses(get_cos_rule(l_b,l_a,old_edgelen),get_cos_rule(l_d,l_c,old_edgelen) );
+	var cosalpha2 = get_cos_of_summed_acoses(get_cos_rule(l_a,l_b,old_edgelen),get_cos_rule(l_c,l_d,old_edgelen) );
+	
+	var newlength = Math.sqrt( l_a*l_a + l_d*l_d - 2*l_b*l_c * cosalpha );
+	var newlength2 =Math.sqrt( l_b*l_b + l_c*l_c - 2*l_a*l_d * cosalpha2 );
+	console.log("compare", newlength, newlength2) //shouldn't these be the same?
+	
+	var experiment_length1 = Math.sqrt( l_b*l_b + l_d*l_d - 2*l_b*l_d * cosalpha );
+	
+	var cosbeta = get_cos_of_summed_acoses(get_cos_rule(l_a,l_b,old_edgelen),get_cos_rule(l_c,l_d,old_edgelen) );
+	console.log(cosbeta, Math.cos(Math.acos(get_cos_rule(l_c,l_d,old_edgelen) )+Math.acos(get_cos_rule(l_a,l_b,old_edgelen) ) ) )
+	
+	console.log("tau?",Math.acos(get_cos_rule(old_edgelen,l_c,l_d) )+Math.acos(get_cos_rule(old_edgelen,l_a,l_b) )
+			+Math.acos(cosalpha)+Math.acos(get_cos_rule(l_c,l_d,old_edgelen) )+Math.acos(get_cos_rule(l_a,l_b,old_edgelen) ))
+	console.log(Math.acos(get_cos_rule(l_c,l_d,old_edgelen) )+Math.acos(get_cos_rule(l_d,l_c,old_edgelen) )+Math.acos(get_cos_rule(old_edgelen,l_c,l_d) ))
+	console.log(Math.acos(get_cos_rule(l_a,l_b,old_edgelen) )+Math.acos(get_cos_rule(l_b,l_a,old_edgelen) )+Math.acos(get_cos_rule(old_edgelen,l_a,l_b) ))
+	var experiment_length2 = Math.sqrt( l_c*l_c + l_a*l_a - 2*l_c*l_a * cosbeta );
+	if(Math.abs(experiment_length1-experiment_length2) > 0.001) //it is possible that because of the cos/acosing, these two ARE different
+		console.error("different lengths to swap to ", experiment_length1,experiment_length2, "newlength",newlength )
+	
+	console.log("lengths involved", l_a,l_b,l_c,l_d, old_edgelen);
+	
+	if(newlength > l_a+l_c )
+		console.log("baa")
+	if(newlength > l_d+l_b )
+		console.log("bee");
+	
+	polyhedron_edge_length[ourindices[0]][ourindices[1]] = 666;
+	polyhedron_edge_length[ourindices[1]][ourindices[0]] = 666;
+	
+	polyhedron_edge_length[ourindices[2]][ourindices[3]] = newlength;
+	polyhedron_edge_length[ourindices[3]][ourindices[2]] = newlength;
+	
+	console.log("old triangle: ",ourindices[0],ourindices[2],ourindices[1]);
+	console.log("old triangle: ",ourindices[0],ourindices[1],ourindices[3]);
+	console.log("new triangle: ",ourindices[0],ourindices[2],ourindices[3]);
+	console.log("new triangle: ",ourindices[2],ourindices[1],ourindices[3]);
+	print_ATVIs();
+	
+	//our two old triangles will have been ourindices[0 then 1 then 2 ] and ourindices[0 then 3 then 1]
+	//we want to change them to ourindices[0 then 3 then 2] and ourindices[2 then 3 then 1]
+	
+	var num_triangles_swapped = 0;
+	for(var i = 0; i < 20; i++){
+		for(var j = 0; j < 3; j++){
+			if( alexandrov_triangle_vertex_indices[i*3+(j+0)%3] === ourindices[0] &&
+				alexandrov_triangle_vertex_indices[i*3+(j+1)%3] === ourindices[1] &&
+				alexandrov_triangle_vertex_indices[i*3+(j+2)%3] === ourindices[2] 
+			 ){
+				alexandrov_triangle_vertex_indices[i*3+(j+1)%3] = ourindices[3];
+				num_triangles_swapped++;
+			}
+			else if( alexandrov_triangle_vertex_indices[i*3+(j+0)%3] === ourindices[0] &&
+					alexandrov_triangle_vertex_indices[i*3+(j+1)%3] === ourindices[3] &&
+					alexandrov_triangle_vertex_indices[i*3+(j+2)%3] === ourindices[1] 
+			 ){
+				alexandrov_triangle_vertex_indices[i*3+(j+0)%3] = ourindices[2];
+				num_triangles_swapped++;
+			}
+		} 
+	}
+	if(num_triangles_swapped != 2)
+		console.error("only found " + num_triangles_swapped + " triangles to swap");
+	
+	if(check_triangle_inequalities(1) > violations){
+		console.log("triangle inequality NOW violated")
+	}
+}
+
+function check_triangle_inequalities(print_violations){
+	var num_violations = 0;
+	
+	for(var i = 0; i < 20; i++){
+		var ind0 = alexandrov_triangle_vertex_indices[i*3+0];
+		var ind1 = alexandrov_triangle_vertex_indices[i*3+1];
+		var ind2 = alexandrov_triangle_vertex_indices[i*3+2];
+		
+		if( polyhedron_edge_length[ind0][ind1] > polyhedron_edge_length[ind1][ind2] + polyhedron_edge_length[ind2][ind0] ){
+			num_violations++;
+			if(print_violations)console.log(ind0,ind1,ind2)
+		}
+		if( polyhedron_edge_length[ind1][ind2] > polyhedron_edge_length[ind2][ind0] + polyhedron_edge_length[ind0][ind1] ){
+			num_violations++;
+			if(print_violations)console.log(ind0,ind1,ind2);
+		}
+		if( polyhedron_edge_length[ind2][ind0] > polyhedron_edge_length[ind0][ind1] + polyhedron_edge_length[ind1][ind2] ){
+			num_violations++;
+			if(print_violations)console.log(ind0,ind1,ind2)
+		}
+	}
+	return num_violations;
 }

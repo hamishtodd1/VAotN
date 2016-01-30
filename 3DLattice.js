@@ -148,8 +148,9 @@ function update_3DLattice() {
 	update_shape_layer(icosahedra_convergence_time, triacontahedra_convergence_time, allshape_fadeout_start_time, 1, Quasi_meshes[2], meshes_original_numbers[2], 0 );
 	update_shape_layer(icosahedra_convergence_time, triacontahedra_convergence_time, allshape_fadeout_start_time, 1, Quasi_outlines[2], outlines_original_numbers[2], 0 );
 	
-	update_shape_bunch_layer(triacontahedra_convergence_time, star_convergence_time, allshape_fadeout_start_time, ico_star_convergence_time, star_bunch_time, Quasi_meshes[3], meshes_original_numbers[3], 0 );
-	update_shape_bunch_layer(triacontahedra_convergence_time, star_convergence_time, allshape_fadeout_start_time, ico_star_convergence_time, star_bunch_time, Quasi_outlines[3], outlines_original_numbers[3], 0 );
+	//you can change the 1 in here back to ico_star_convergence_time if you like
+	update_shape_bunch_layer(triacontahedra_convergence_time, star_convergence_time, allshape_fadeout_start_time, 1, star_bunch_time, Quasi_meshes[3], meshes_original_numbers[3], 0 );
+	update_shape_bunch_layer(triacontahedra_convergence_time, star_convergence_time, allshape_fadeout_start_time, 1, star_bunch_time, Quasi_outlines[3], outlines_original_numbers[3], 0 );
 	
 	update_shape_bunch_layer(ico_star_startfadein_time, ico_star_convergence_time, allshape_fadeout_start_time, 1, ico_star_convergence_time, Quasi_meshes[4], meshes_original_numbers[4], 1 );
 	update_shape_bunch_layer(ico_star_startfadein_time, ico_star_convergence_time, allshape_fadeout_start_time, 1, ico_star_convergence_time, Quasi_outlines[4], outlines_original_numbers[4], 1 );
@@ -232,7 +233,7 @@ function init_cubicLattice_stuff() {
 	slider.position.y = progress_bar.position.y;
 	slider.position.z = 0.01;
 
-	var number_of_QC_atoms = 462;
+	var number_of_QC_atoms = 242;
 	var QC_atoms_geometry = new THREE.BufferGeometry();
 	QC_atoms_geometry.addAttribute( 'position', new THREE.BufferAttribute(new Float32Array(number_of_QC_atoms * 3), 3) );
 	QC_atoms_geometry.addAttribute( 'color', new THREE.BufferAttribute(new Float32Array(number_of_QC_atoms * 3), 3) );
@@ -739,6 +740,19 @@ function init_cubicLattice_stuff() {
    	put_into_two_objects(2,golden_triacontahedra);
    	put_bunch_into_two_objects(3,golden_stars);
    	put_bunch_into_two_objects(4,ico_stars);
+   	
+   	//hack to get rid of what we put in. Speed up opportunity: don't put them in.
+   	for(var i = 0; i < Quasi_meshes[4].geometry.index.array.length / 12 / 6; i++){
+   		//for every twelfth of this array, the first sixth of it needs setting to zero
+		for(var j = 0; j < 12; j++ ){
+			Quasi_meshes[4].geometry.index.array[ j * Quasi_meshes[4].geometry.index.array.length / 12 + i] = 0;
+		}
+   	}
+   	for(var i = 0; i < Quasi_outlines[4].geometry.index.array.length / 12 / 6; i++){
+		for(var j = 0; j < 12; j++ ){
+			Quasi_outlines[4].geometry.index.array[ j * Quasi_outlines[4].geometry.index.array.length / 12 + i] = 0;
+		}
+   	}
    	
    	//QC_atoms
    	generate_QCatom_locations();

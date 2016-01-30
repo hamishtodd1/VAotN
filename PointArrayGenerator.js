@@ -36,6 +36,7 @@ function generate_QCatom_locations(){
 	var overts = Array(3);
 //	var lbverts = Array(3);
 	var yverts = Array(30);
+	var iverts = Array(12);
 	var pverts = Array(3);
 	var bverts = Array(3);
 	
@@ -106,6 +107,13 @@ function generate_QCatom_locations(){
 		}
 	}
 	
+	{	//black
+		for(var i = 0; i < iverts.length; i++ ) {
+			iverts[i] = normalized_virtualico_vertices[i].clone();
+			iverts[i].setLength(77);
+		}
+	}
+	
 	{	//dark green
 //		var distalong = dist_along_tria_edge(dodeca_types[0].length(),112 );
 //		for(var i = 0; i < dgverts.length; i++ ) {
@@ -128,7 +136,7 @@ function generate_QCatom_locations(){
 	{
 		//copy them all
 		var num_in_dod_cluster = dodeca_types.length + overts.length + pverts.length + bverts.length; // + dgverts.length;
-		QCatom_positions = Array(20 * num_in_dod_cluster + yverts.length);
+		QCatom_positions = Array(20 * num_in_dod_cluster + yverts.length + iverts.length);
 		for(var dodeca_vertex_offset = 0; dodeca_vertex_offset < 20 * num_in_dod_cluster; dodeca_vertex_offset += num_in_dod_cluster){
 			var offset = dodeca_vertex_offset;
 			
@@ -173,6 +181,11 @@ function generate_QCatom_locations(){
 			var myindex = 20 * num_in_dod_cluster + i;
 			QCatom_positions[myindex] = yverts[i].clone();
 			QC_atoms.geometry.attributes.color.setXYZ(myindex,253/256,232/256,37/256);
+		}
+		for(var i = 0; i < iverts.length; i++) {
+			var myindex = 20 * num_in_dod_cluster + yverts.length + i;
+			QCatom_positions[myindex] = iverts[i].clone();
+			QC_atoms.geometry.attributes.color.setXYZ(myindex,0.01,0.01,0.01);
 		}
 		
 		//a weird axis that we use to get half of them upside-down
@@ -224,10 +237,13 @@ function generate_QCatom_locations(){
 		insert_quasiatom(QCatom_positions[i],i);
 	for(var i = QCatom_positions.length * 3; i < QC_atoms.geometry.attributes.position.array.length; i++)
 		QC_atoms.geometry.attributes.position.array[i] = 0;
+	for(var i = QCatom_positions.length * 3; i < QC_atoms.geometry.attributes.position.array.length; i++)
+		QC_atoms.geometry.attributes.color.array[i] = 1;
+	console.log(QCatom_positions.length)
 }
 
 function insert_quasiatom(ourposition,lowest_unused_index){
-	var multfactor = 0.03;
+	var multfactor = 0.0169;
 	QC_atoms.geometry.attributes.position.setXYZ(lowest_unused_index, ourposition.x * multfactor, ourposition.y * multfactor, ourposition.z * multfactor );
 	
 	if(	QC_atoms.geometry.attributes.color.array[lowest_unused_index*3+0]===0 &&
