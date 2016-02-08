@@ -5,6 +5,7 @@
  *  -wobbly DNA (?)
  *  -overhaul irreg
  *  -your tuned round-off error compensators might be different on different CPUs.
+ *  -get a person with a sense of color to look at everything
  *  
  *  -make it feel good
  *  -test
@@ -149,7 +150,11 @@ function ChangeScene(new_mode) {
 			
 		case FINAL_FORMATION_MODE:
 			animation_progress = 1;
+			for(var i = 0; i< lights.length; i++)
+				scene.add( lights[i] );
 			scene.add(QC_atoms);
+			for(var i = 0; i< Paria_models.length; i++)
+				scene.add(Paria_models[i]);
 			break;
 	}
 }

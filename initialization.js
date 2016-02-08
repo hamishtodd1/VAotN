@@ -1,4 +1,21 @@
 function init() {
+	init_CK_and_irreg();
+	init_cubicLattice_stuff();
+	initialize_QS_stuff();	
+	initialize_protein();
+	init_DNA_cage();
+	init_static_capsid();
+	initialize_formation_atom();
+	init_pariacoto();
+	
+	//------------------need this so there's something in there for the first frame
+	ourclock.getDelta();
+	
+	//must be kept at bottom
+	ChangeScene(MODE);
+}
+
+function init_CK_and_irreg(){
 	vertices_derivations = new Array(
 		[666,666,666],
 		[666,666,666],
@@ -136,32 +153,32 @@ function init() {
 	
 	//-------------stuff that goes in the scene
 	{
-//		var texture_loader = new THREE.TextureLoader();
-//		texture_loader.load(
-//				'adenovirus256.jpg', //"http://icons.iconarchive.com/icons/aha-soft/torrent/256/virus-icon.png", 
-//				function(texture) {
-//					console.log("hey");
-//					
-//					var backgroundtexture_material = new THREE.MeshBasicMaterial({
-//						map: texture
+//			var texture_loader = new THREE.TextureLoader();
+//			texture_loader.load(
+//					'adenovirus256.jpg', //"http://icons.iconarchive.com/icons/aha-soft/torrent/256/virus-icon.png", 
+//					function(texture) {
+//						console.log("hey");
+//						
+//						var backgroundtexture_material = new THREE.MeshBasicMaterial({
+//							map: texture
+//						});
+//						var texturedist = -min_cameradist;
+//						var texturewidth = playing_field_width;
+//						var textureheight = texturewidth; //currently we have a square texture
+//			
+//						backgroundtexture_geometry = new THREE.CubeGeometry( texturewidth, textureheight, 0);
+//						backgroundtexture = new THREE.Mesh( backgroundtexture_geometry, backgroundtexture_material );
+//						backgroundtexture.position.z = -10;
+//						
+//						if(MODE == CK_MODE)
+//							scene.add(backgroundtexture);
+//						
+//						console.log(texture);
+//					},
+//					function ( xhr ) {},
+//					function ( xhr ) {
+//						console.log( 'texture loading error' );
 //					});
-//					var texturedist = -min_cameradist;
-//					var texturewidth = playing_field_width;
-//					var textureheight = texturewidth; //currently we have a square texture
-//		
-//					backgroundtexture_geometry = new THREE.CubeGeometry( texturewidth, textureheight, 0);
-//					backgroundtexture = new THREE.Mesh( backgroundtexture_geometry, backgroundtexture_material );
-//					backgroundtexture.position.z = -10;
-//					
-//					if(MODE == CK_MODE)
-//						scene.add(backgroundtexture);
-//					
-//					console.log(texture);
-//				},
-//				function ( xhr ) {},
-//				function ( xhr ) {
-//					console.log( 'texture loading error' );
-//				});
 		
 		var surfacematerial = new THREE.MeshBasicMaterial({
 			color: 0x00ffff,
@@ -673,17 +690,4 @@ function init() {
 			shear_matrix[i] = new Array(4);
 		Update_net_variables();
 	}
-	
-	init_cubicLattice_stuff();
-	initialize_QS_stuff();	
-	initialize_protein();
-	init_DNA_cage();
-	init_static_capsid();
-	initialize_formation_atom();
-	
-	//------------------need this so there's something in there for the first frame
-	ourclock.getDelta();
-	
-	//must be kept at bottom
-	ChangeScene(MODE);
 }

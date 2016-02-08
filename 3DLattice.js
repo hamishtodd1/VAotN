@@ -1,17 +1,6 @@
 /*
- * Might be nice to have points on sharp corners only? Most shapes combine them though
- * 
- * So maybe things should scale a little, or indeed indefinitely
- * 
  * Speedup: Remove the lines and faces from the sides of the shapes that you can't see. This is trivial, just need a separate material
- * 
- * Ok probably what we want here is a set of points that can very convincingly be laid on pariacoto, and which plausibly derive from the tiling that you have, maybe one layer more or less.
- * 
- * In the meantime a point that ends up on a fivefold corner will be quite alright
- * 
- * But do you want something about merging points together?
  */
-
 
 
 function rotate_layer(index,MovementAxis,movementangle){
@@ -27,6 +16,17 @@ function rotate_layer(index,MovementAxis,movementangle){
 	myquaternion.setFromAxisAngle( myaxis, movementangle );
 	Quasi_outlines[index].quaternion.multiply(myquaternion);
 	Quasi_outlines[index].updateMatrixWorld();
+}
+
+function rotate_Parialayer(index,MovementAxis,movementangle){
+	var myaxis = MovementAxis.clone();
+	Paria_models[index].updateMatrixWorld();
+	Paria_models[index].worldToLocal(myaxis);
+	myaxis.normalize();
+	var myquaternion = new THREE.Quaternion();
+	myquaternion.setFromAxisAngle( myaxis, movementangle );
+	Paria_models[index].quaternion.multiply(myquaternion);
+	Paria_models[index].updateMatrixWorld();
 }
 
 function sphere_array_rotate(shape_array, MovementAxis,movementangle,quaternion){
@@ -166,11 +166,10 @@ function update_3DLattice() {
 }
 
 function rotate_3DPenrose_entirety(MovementAxis,MovementAngle){
-	rotate_layer(0,MovementAxis, MovementAngle);
-	rotate_layer(1,MovementAxis, MovementAngle);
-	rotate_layer(2,MovementAxis, MovementAngle);
-	rotate_layer(3,MovementAxis, MovementAngle);
-	rotate_layer(4,MovementAxis, MovementAngle);
+	for(var i = 0; i < 5; i++)
+		rotate_layer(i,MovementAxis, MovementAngle);
+	for(var i = 0; i < Paria_models.length; i++)
+		rotate_Parialayer(i,MovementAxis,MovementAngle);
 	
 	var atoms_axis = MovementAxis.clone();
 	QC_atoms.updateMatrixWorld();
