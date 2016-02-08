@@ -16,7 +16,7 @@ var QC_SPHERE_MODE = 5;
 var CUBIC_LATTICE_MODE = 6;
 var FINAL_FORMATION_MODE = 7;
 	
-var MODE = 6;
+var MODE = 5;
 
 //--------------Technologically fundamental
 var playing_field_width = 7*HS3;
@@ -108,7 +108,7 @@ var dodeca_faceflatness = 0;
 var dodeca_angle = 0;
 var dodeca_triangle_vertex_indices;
 var back_hider;
-var quasilattice_default_vertices = Array(7*5);
+var quasilattice_default_vertices = Array(8*5+1);
 var quasilattice_pairs = Array(29*5*2);
 var cutout_vector0; //these lie on the lattice
 var cutout_vector1;
@@ -119,6 +119,7 @@ var quasicutout_intermediate_vertices = Array(quasilattice_default_vertices.leng
 var quasicutouts_vertices_components = Array(quasilattice_default_vertices.length*2 * 2 );
 var quasicutout_line_pairs = new Uint16Array(quasilattice_default_vertices.length*2 * 2 * 2); //TODO work out how many there should be in here really.
 var quasicutouts = Array(60);
+var quasicutout_meshes = Array(60);
 var stable_points = Array(345);
 var lowest_unused_stablepoint = 0;
 var quasiquasilattice;
@@ -126,7 +127,8 @@ var stablepointslattice;
 var nearby_quasicutouts;
 var stitchup;
 var stitchup_line_pairs = new Uint16Array(1000);
-var set_stable_point = 32;
+var set_stable_point = 0;
+var Guide_quasilattice;
 
 //------------3D penrose stuff
 var animation_playing_automatically = true;

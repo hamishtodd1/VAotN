@@ -12,17 +12,25 @@
 //it would be best to detect what kind of shape you have there, as you may want to colour shapes differently
 
 /*
- * Shouldn't there be one allowing for the fat rhomb and pentagon to rest on the top? Or that simple one allowing bowties? 
- * 
- * Points on the corners should be in.
+ * Zika virus!
+ * How about getting two viruses for every pattern.
+ * EM images in top left and bottom left
+ * Colored spot images in top right and bottom right
  */
 
 /*
- * So we could have the square (triangle, and hexagon) lattice be interactive too
- * You could have something clever happen with color wherein two squares side by side will have their colors get closer as they get smaller
- * Argument for is that it justifies the quasisphere coming on, it gets you ready for the controls, and it lets you talk about things in a better order
- * Argument against is that it'd be extremely simple. What would it tell you? Might be a nice demonstration of infinity
- * So: PLAYTEST, ONCE YOU'VE SUBMITTED EGW
+ * There are lots of fucking shapes
+ * 
+ * Probably your only hope is a set of pre-defined indices
+ * Have them for lots of interior shapes. For those on edges and corners
+ * 
+ * How about, for every vertex, look at those that it is connected to. "web" everything with triangles? Ack, many for which this won't work
+ */
+
+/*
+ * Shouldn't there be one allowing for the fat rhomb and pentagon to rest on the top? Or that simple one allowing bowties? 
+ * 
+ * Points on the corners should be in.
  */
 
 function UpdateQuasiSurface(){
@@ -31,7 +39,9 @@ function UpdateQuasiSurface(){
 	var dodeca_openingspeed = 0.029;
 	var dodeca_squashingspeed = 0.022;
 	if(isMouseDown) {
-		if(dodeca_angle === 0 || dodeca_angle === 2*atanphi-TAU/2 ) dodeca_openness += dodeca_openingspeed;
+		if(dodeca_angle === 0 || dodeca_angle === 2*atanphi-TAU/2 ) 
+//		if(dodeca_faceflatness == 1) //TODO change to this at some point, the stitchup can look nasty
+			dodeca_openness += dodeca_openingspeed;
 		dodeca_faceflatness += dodeca_squashingspeed; //should really be determined by the difference between dodeca_angle and 0 or
 	}
 	else {
@@ -50,16 +60,41 @@ function UpdateQuasiSurface(){
 	
 	if(dodeca_openness !== 0 ){
 		for(var i = 0; i < quasicutouts.length; i++)
-			if((i + 5)%11 < 5 || i > 54) scene.remove(quasicutouts[i]); //hopefully this is fine to happen if it's already in there
+			if(i%11 > 5 || i > 49) scene.remove(quasicutouts[i]); //hopefully this is fine to happen if it's already in there
 		back_hider.position.z = -3;
 	}
 	if(dodeca_openness === 0){
 		for(var i = 0; i < quasicutouts.length; i++)
-			if((i + 5)%11 < 5 || i > 54) scene.add(quasicutouts[i]);
+			if(i%11 > 5 || i > 44) scene.add(quasicutouts[i]);
 		back_hider.position.z = -0.01;
 	}
+	//TODO performance hit from the above?
 	
-	dodeca.material.opacity = (dodeca_faceflatness + dodeca_openness) / 2;	
+	dodeca.material.opacity = (dodeca_faceflatness + dodeca_openness) / 2; 
+	var quasicutout_opacity = 1 - dodeca.material.opacity;
+	
+	for(var i = 0; i < quasicutouts.length; i++)
+		if(i % 11 != 0 || i > 44 )
+			quasicutouts[i].material.opacity = quasicutout_opacity;
+	if(quasicutout_opacity === 0){
+		scene.remove(stitchup);
+		for(var i = 0; i < quasicutouts.length; i++)
+			if(i % 11 != 0 && i % 11 < 6 && i < 50 )
+				scene.remove(quasicutouts[i]);
+	}
+	else{
+		scene.add(stitchup);
+		for(var i = 0; i < quasicutouts.length; i++)
+			if(i % 11 != 0 && i % 11 < 6 && i < 50 )
+				scene.add(quasicutouts[i]);
+	}
+		
+	var stitchupfadeintime_proportionof_facefadeintime = 0.66;
+	stitchup.material.opacity = quasicutout_opacity / stitchupfadeintime_proportionof_facefadeintime 
+											  - (1 / stitchupfadeintime_proportionof_facefadeintime - 1);
+	if(stitchup.material.opacity < 0)
+		stitchup.material.opacity = 0;
+	
 	deduce_dodecahedron(dodeca_openness);
 	
 	{
@@ -127,8 +162,9 @@ function MoveQuasiLattice(){
 	if( isMouseDown) {
 		var Mousedist = MousePosition.length();
 		var OldMousedist = OldMousePosition.length(); //unless the center is going to change?
-		if(Mousedist > 0.47){
-			var scalefactor = OldMousedist / Mousedist;
+//		if(Mousedist > 0.47)
+		{
+			var scalefactor = Mousedist / OldMousedist;
 			scalefactor = (scalefactor - 1) * 0.685 +1; //0.685 is the drag
 			
 			cutout_vector0_player.multiplyScalar(scalefactor);
@@ -165,7 +201,7 @@ function MoveQuasiLattice(){
 			var LatticeAngleChange = OldMouseAngle - MouseAngle;
 			
 			var QuasiLatticeAngle = Math.atan2(cutout_vector0_player.y, cutout_vector0_player.x);
-			var newQuasiLatticeAngle = QuasiLatticeAngle + LatticeAngleChange;
+			var newQuasiLatticeAngle = QuasiLatticeAngle - LatticeAngleChange;
 			cutout_vector0_player.x = veclength * Math.cos(newQuasiLatticeAngle);
 			cutout_vector0_player.y = veclength * Math.sin(newQuasiLatticeAngle);
 			cutout_vector1_player.x = veclength * Math.cos(newQuasiLatticeAngle - TAU / 5);
@@ -192,6 +228,7 @@ function MoveQuasiLattice(){
 	cutout_vector1.copy(stable_points[closest_stable_point_index]);
 	if(!isMouseDown&&isMouseDown_previously)
 		set_stable_point++;
+//	console.log(set_stable_point);
 //	cutout_vector0.copy(stable_points[set_stable_point]);
 //	cutout_vector1.copy(stable_points[set_stable_point]);	
 	cutout_vector1.applyAxisAngle(z_central_axis, -TAU/5);
@@ -213,6 +250,22 @@ function MoveQuasiLattice(){
 	quasi_shear_matrix[1] = cutout_vector1_displayed.x /-factor;
 	quasi_shear_matrix[2] = cutout_vector0_displayed.y /-factor;
 	quasi_shear_matrix[3] = cutout_vector0_displayed.x / factor;
+	
+	var cameraquaternion = new THREE.Quaternion();
+	//the number in the following is the starting angle to cutout_vector0
+//	console.log(-Math.atan2(cutout_vector0_displayed.y,cutout_vector0_displayed.x));
+	cameraquaternion.setFromAxisAngle(z_central_axis,-Math.atan2(cutout_vector0_displayed.y,cutout_vector0_displayed.x) -  0.9424777960769378);
+	camera.quaternion.copy(cameraquaternion);
+	camera.position.z = 20 / cutout_vector0_displayed.length() + 0.5*Math.sqrt(5/2+11/10*Math.sqrt(5));
+	
+	Guide_quasilattice.scale.x = 0.85 / cutout_vector0_displayed.length();
+	Guide_quasilattice.scale.y = Guide_quasilattice.scale.x;
+	Guide_quasilattice.scale.z = Guide_quasilattice.scale.x;
+	Guide_quasilattice.quaternion.copy(cameraquaternion);
+	if(dodeca_angle < Math.atan(PHI) - TAU/4)
+		Guide_quasilattice.rotateOnAxis(z_central_axis,Math.PI);
+	Guide_quasilattice.position.z = 0.5*Math.sqrt(5/2+11/10*Math.sqrt(5)) - 0.0001;
+	Guide_quasilattice.material.opacity = dodeca_openness;
 	
 //	if(dodeca_faceflatness != 0 && dodeca_faceflatness < 0.018) 
 //		console.log(cutout_vector0_displayed,cutout_vector1_displayed);
@@ -251,7 +304,7 @@ function mirror_point_along_base(ourpoint, c0,c1, lowest_unused_vertex){
 
 
 function deduce_dodecahedron(openness) {	
-	var elevation = (1-openness)*0.5*Math.sqrt(5/2+11/10*Math.sqrt(5));
+	var elevation = 0.5*Math.sqrt(5/2+11/10*Math.sqrt(5));
 	
 	dodeca_vertices_numbers[0*3+0] = 0;
 	dodeca_vertices_numbers[0*3+1] = 0;
@@ -340,11 +393,12 @@ function initialize_QS_stuff() {
 		quasicutouts_vertices_components[i] = new Array(0,0,1);
 
 	var materialx = new THREE.LineBasicMaterial({
- 		color: 0x0000ff
+ 		color: 0x0000ff,
+ 		transparent: true
  	});
 	
  	for( var i = 0; i < quasicutouts.length; i++) { 
- 		quasicutouts[i] = new THREE.LineSegments( new THREE.BufferGeometry(), materialx, THREE.LineSegmentsPieces );
+ 		quasicutouts[i] = new THREE.LineSegments( new THREE.BufferGeometry(), materialx.clone(), THREE.LineSegmentsPieces );
  		quasicutouts[i].geometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array(quasilattice_default_vertices.length * 6), 3 ) );
  		quasicutouts[i].geometry.setIndex( new THREE.BufferAttribute( quasicutout_line_pairs, 1 ) );
  		for( var j = 0; j < 3; j++){
@@ -353,12 +407,22 @@ function initialize_QS_stuff() {
  	 	}
 	}
  	
+ 	for( var i = 0; i < quasicutout_meshes.length; i++) { 
+ 		quasicutout_meshes[i] = new THREE.Mesh( new THREE.BufferGeometry(), new THREE.MeshBasicMaterial({color:0xff0000}) );
+ 		quasicutout_meshes[i].geometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array(quasilattice_default_vertices.length * 6), 3 ) );
+ 		quasicutout_meshes[i].geometry.setIndex( new THREE.BufferAttribute( new Uint16Array(3 * 13), 1 ) );
+ 		for(var j = 0; j < quasicutouts[i].geometry.index.array.length; j++)
+ 			quasicutout_meshes[i].geometry.index.array[j] = 0;
+ 		quasicutout_meshes[i].geometry.index.array[0] = 0;
+ 		quasicutout_meshes[i].geometry.index.array[0] = 0;
+ 		quasicutout_meshes[i].geometry.index.array[0] = 0;
+	}
+ 	
  	stitchup = new THREE.LineSegments( new THREE.BufferGeometry(), materialx, THREE.LineSegmentsPieces );
  	stitchup.geometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array(3000*3), 3 ) );
  	stitchup.geometry.setIndex( new THREE.BufferAttribute( stitchup_line_pairs, 1 ) );
- 	
- 	var materialf = new THREE.MeshBasicMaterial({color: 0xffff00});
-	back_hider = new THREE.Mesh( new THREE.PlaneBufferGeometry( playing_field_width * 2,playing_field_width * 2 ), materialf );
+
+ 	back_hider = new THREE.Mesh( new THREE.PlaneBufferGeometry( playing_field_width * 4,playing_field_width * 4 ), new THREE.MeshBasicMaterial({color: 0xffff00}) );
 	back_hider.position.z = -0.01;
  	
  	var materialy = new THREE.LineBasicMaterial({
@@ -368,11 +432,11 @@ function initialize_QS_stuff() {
  	});
  	var dodeca_line_pairs = new Uint16Array([
  	    2,1,	1,11,	11,20,	20,29,	29,2,
- 	    2,4,	4,5,	5,6,	6,1,
- 	    1,13,	13,14,	14,15,	15,11,
- 	    11,22,	22,23,	23,24,	24,20,
- 	    20,31,	31,32,	32,33,	33,29,
- 	    29,39,	39,40,	40,41,	41,2,
+// 	    2,4,	4,5,	5,6,	6,1,
+// 	    1,13,	13,14,	14,15,	15,11,
+// 	    11,22,	22,23,	23,24,	24,20,
+// 	    20,31,	31,32,	32,33,	33,29,
+// 	    29,39,	39,40,	40,41,	41,2, //the other five faces
  	    
 // 	    0,1,0,2 //useful for seeing a triangle
  	    
@@ -498,6 +562,28 @@ function initialize_QS_stuff() {
 		}
 	}
 	
+	Guide_quasilattice = new THREE.Points( new THREE.BufferGeometry(), 
+			new THREE.PointsMaterial({color: 0xf0000f,transparent: true, size: 0.9,sizeAttenuation:false})
+//			,THREE.LineSegmentsPieces
+			);
+	Guide_quasilattice.geometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array(quasilattice_default_vertices.length * 3), 3 ) );
+	for(var i = 0; i < quasilattice_default_vertices.length; i++){
+		Guide_quasilattice.geometry.attributes.position.array[i*3+0] = quasilattice_default_vertices[i].x;
+		Guide_quasilattice.geometry.attributes.position.array[i*3+1] = quasilattice_default_vertices[i].y;
+		Guide_quasilattice.geometry.attributes.position.array[i*3+2] = quasilattice_default_vertices[i].z;
+	}
+//	Guide_quasilattice.geometry.setIndex( new THREE.BufferAttribute( new Uint16Array(11 * 5 * 2), 1 ) );
+//	var lowest_unused_pair = 0;
+//	for(var i = 0 ; i<quasilattice_default_vertices.length; i++){
+//		for(var j = i+1; j<quasilattice_default_vertices.length; j++){
+//			if(Math.abs(quasilattice_default_vertices[i].distanceTo(quasilattice_default_vertices[j]) - 1) < 0.001){
+//				 Guide_quasilattice.geometry.index.array[lowest_unused_pair * 2 + 0] = i;
+//				 Guide_quasilattice.geometry.index.array[lowest_unused_pair * 2 + 1] = j;
+//				 lowest_unused_pair++;
+//			}
+//		}
+//	})
+	
 	var spoke_to_side_angle = 3 * TAU / 20;
 	
 	var second_hand = new THREE.Vector3(1,0,0); //d
@@ -613,9 +699,10 @@ function initialize_QS_stuff() {
 	midpoint.applyAxisAngle(axis, TAU/5);
 	cutout_vector1.copy(midpoint);
 	
-	cutout_vector0.set(1.1172738319468614, -0.6887854926593675);
-	cutout_vector1.set(-0.30981732968125997, -1.275436981069784);
+//	cutout_vector0.set(1.3090169943749475, -0.10040570794311371);
+//	cutout_vector1.set(0.30901699437494745, -1.27597621252806);
 	/* 
+	 * 
 	 * 1.3090169943749475, -0.10040570794311371, 0.30901699437494745, -1.27597621252806 //so this one is bad. More thinking needed. For some rotations it fails, probably just round off errors
 	 */
 	cutout_vector0_player = cutout_vector0.clone();

@@ -2,9 +2,9 @@
  * Long term To Do
  *  -implement protein models
  *  -faces on quasisphere
- *  -implement database
  *  -wobbly DNA (?)
  *  -overhaul irreg
+ *  -your tuned round-off error compensators might be different on different CPUs.
  *  
  *  -make it feel good
  *  -test
@@ -132,9 +132,12 @@ function ChangeScene(new_mode) {
 		case QC_SPHERE_MODE:
 			for( var i = 0; i < quasicutouts.length; i++)
 				scene.add(quasicutouts[i]);
+			for( var i = 0; i < quasicutouts.length; i++)
+				scene.add(quasicutout_meshes[i]);
 			scene.add(dodeca);
 			scene.add(back_hider);
 			scene.add(stitchup);
+			scene.add(Guide_quasilattice);
 //			scene.add(quasiquasilattice);
 //			scene.add(stablepointslattice);
 			break;

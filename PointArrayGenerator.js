@@ -136,7 +136,7 @@ function generate_QCatom_locations(){
 	{
 		//copy them all
 		var num_in_dod_cluster = dodeca_types.length + overts.length + pverts.length + bverts.length; // + dgverts.length;
-		QCatom_positions = Array(20 * num_in_dod_cluster + yverts.length + iverts.length);
+		QCatom_positions = Array(20 * num_in_dod_cluster + yverts.length); // + iverts.length);
 		for(var dodeca_vertex_offset = 0; dodeca_vertex_offset < 20 * num_in_dod_cluster; dodeca_vertex_offset += num_in_dod_cluster){
 			var offset = dodeca_vertex_offset;
 			
@@ -182,11 +182,11 @@ function generate_QCatom_locations(){
 			QCatom_positions[myindex] = yverts[i].clone();
 			QC_atoms.geometry.attributes.color.setXYZ(myindex,253/256,232/256,37/256);
 		}
-		for(var i = 0; i < iverts.length; i++) {
-			var myindex = 20 * num_in_dod_cluster + yverts.length + i;
-			QCatom_positions[myindex] = iverts[i].clone();
-			QC_atoms.geometry.attributes.color.setXYZ(myindex,0.01,0.01,0.01);
-		}
+//		for(var i = 0; i < iverts.length; i++) {
+//			var myindex = 20 * num_in_dod_cluster + yverts.length + i;
+//			QCatom_positions[myindex] = iverts[i].clone();
+//			QC_atoms.geometry.attributes.color.setXYZ(myindex,0.01,0.01,0.01);
+//		}
 		
 		//a weird axis that we use to get half of them upside-down
 		var crazy_axis_intermediate = new THREE.Vector3();

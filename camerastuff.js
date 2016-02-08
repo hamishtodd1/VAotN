@@ -12,6 +12,10 @@ function camera_changes_for_mode_switch(){
 		
 		camera.updateProjectionMatrix();
 	}
+	else if( MODE == QC_SPHERE_MODE){
+		//WARNING: THERE IS STUFF THAT HAPPENS IN UPDATEQUASILATTICE
+		camera.updateProjectionMatrix();
+	}
 	else{
 		camera.position.z = min_cameradist;
 		camera.cameraO.left =-playing_field_width / 2;

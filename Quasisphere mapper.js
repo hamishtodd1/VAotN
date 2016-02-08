@@ -60,12 +60,14 @@ function Map_To_Quasisphere() {
 	center_triangle_mirrored_top.addVectors(cutout_vector1, cutout_vector0);
 	
 	var interior_wiggleroom = 0.000000000000003; //...00018 is an important minimum!
+	var num_that_got_through = 0;
 	for( var i = 0; i < lowest_unused_vertex; i++) {
 		//TODO so should we have inflation everywhere?
 		if( !point_in_inflated_triangle( quasicutout_intermediate_vertices[i].x, quasicutout_intermediate_vertices[i].y,
 				0, 0, cutout_vector0.x, cutout_vector0.y, cutout_vector1.x, cutout_vector1.y, 
 				true) )
 			continue;
+		num_that_got_through++;
 		
 		for( var j = 0; j < lowest_unused_vertex; j++) {
 			var edgelength_minus_1 = quasicutout_intermediate_vertices[i].distanceTo(quasicutout_intermediate_vertices[j]) - 1;
@@ -191,7 +193,7 @@ function Map_To_Quasisphere() {
 			continue;
 		for(var j = 0; j < index_index_triangle_triplets.length; j++){
 			var quasicutout_containing_index2 = nearby_quasicutouts[i][ index_index_triangle_triplets[j][2] ];
-			if(quasicutout_containing_index2 === 666 || ((quasicutout_containing_index2 % 11 > 2 && quasicutout_containing_index2 % 11 != 5) && dodeca_openness != 0))
+			if(quasicutout_containing_index2 === 666 )
 				continue; //not in the picture
 			stitchup_line_pairs[ lowest_unused_stitchup_edgepair*2 ] = index_index_triangle_triplets[j][0] + lowest_unused_vertex * i;
 			stitchup_line_pairs[lowest_unused_stitchup_edgepair*2+1] = index_index_triangle_triplets[j][1] + lowest_unused_vertex * quasicutout_containing_index2;
@@ -204,4 +206,13 @@ function Map_To_Quasisphere() {
 		stitchup_line_pairs[i] = 0;
 	stitchup.geometry.attributes.position.needsUpdate = true;
 	stitchup.geometry.index.needsUpdate = true;
+	
+	for(var i = 0; i < quasicutouts.length; i++){
+//		quasicutout_meshes[i].matrix.copy(quasicutouts[i].matrix);
+		for(var j = 0; j < quasicutouts[i].geometry.attributes.position.array.length; j++){
+			quasicutout_meshes[i].geometry.attributes.position.array[j] = quasicutouts[i].geometry.attributes.position.array[j];
+		}	
+		quasicutout_meshes[i].geometry.attributes.position.needsUpdate = true;
+//		quasicutout_meshes[i].geometry.index.needsUpdate = true;
+	}
 }
