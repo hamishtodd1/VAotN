@@ -414,8 +414,8 @@ function initialize_QS_stuff() {
  		for(var j = 0; j < quasicutouts[i].geometry.index.array.length; j++)
  			quasicutout_meshes[i].geometry.index.array[j] = 0;
  		quasicutout_meshes[i].geometry.index.array[0] = 0;
- 		quasicutout_meshes[i].geometry.index.array[0] = 0;
- 		quasicutout_meshes[i].geometry.index.array[0] = 0;
+ 		quasicutout_meshes[i].geometry.index.array[1] = 1;
+ 		quasicutout_meshes[i].geometry.index.array[2] = 2;
 	}
  	
  	stitchup = new THREE.LineSegments( new THREE.BufferGeometry(), materialx, THREE.LineSegmentsPieces );
@@ -540,6 +540,10 @@ function initialize_QS_stuff() {
 	quasilattice_default_vertices[3] = quasilattice_default_vertices[4].clone(); 	quasilattice_default_vertices[3].sub(quasilattice_generator[3]);
 	quasilattice_default_vertices[5] = quasilattice_default_vertices[4].clone(); 	quasilattice_default_vertices[5].sub(quasilattice_generator[2]);
 	quasilattice_default_vertices[6] = quasilattice_default_vertices[4].clone(); 	quasilattice_default_vertices[6].add(quasilattice_generator[3]);
+	
+	//the invisible helpers
+	quasilattice_default_vertices[7] = quasilattice_default_vertices[1].clone();	quasilattice_default_vertices[7].add(pentagon[2]);
+	
 //	quasilattice_default_vertices[9] = quasilattice_default_vertices[7].clone(); 	quasilattice_default_vertices[9].add(quasilattice_generator[4]);
 //	quasilattice_default_vertices[10] =quasilattice_default_vertices[9].clone();	quasilattice_default_vertices[10].add(quasilattice_generator[0]);
 //	quasilattice_default_vertices[7] = quasilattice_default_vertices[3].clone();	quasilattice_default_vertices[7].sub(quasilattice_generator[2]); quasilattice_default_vertices[7].sub(quasilattice_generator[1]);
@@ -553,7 +557,7 @@ function initialize_QS_stuff() {
 //	quasilattice_default_vertices[17] = quasilattice_default_vertices[16].clone(); 	quasilattice_default_vertices[17].add(quasilattice_generator[0]);
 	
 	//the number found in one-fifth of the lattice
-	var num_points = 7;
+	var num_points = 8;
 	
 	for( var i = 1; i < 5; i++){
 		for(var j = 0; j < num_points; j++) {
@@ -561,16 +565,21 @@ function initialize_QS_stuff() {
 			quasilattice_default_vertices[i*num_points+j].applyAxisAngle(axis, i*TAU/5);
 		}
 	}
+	quasilattice_default_vertices[quasilattice_default_vertices.length - 1] = new THREE.Vector3(0,0,0);
 	
 	Guide_quasilattice = new THREE.Points( new THREE.BufferGeometry(), 
 			new THREE.PointsMaterial({color: 0xf0000f,transparent: true, size: 0.9,sizeAttenuation:false})
 //			,THREE.LineSegmentsPieces
 			);
-	Guide_quasilattice.geometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array(quasilattice_default_vertices.length * 3), 3 ) );
+	Guide_quasilattice.geometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array((quasilattice_default_vertices.length-6) * 3), 3 ) );
+	lowest_unset_GQ_vertex = 0;
 	for(var i = 0; i < quasilattice_default_vertices.length; i++){
-		Guide_quasilattice.geometry.attributes.position.array[i*3+0] = quasilattice_default_vertices[i].x;
-		Guide_quasilattice.geometry.attributes.position.array[i*3+1] = quasilattice_default_vertices[i].y;
-		Guide_quasilattice.geometry.attributes.position.array[i*3+2] = quasilattice_default_vertices[i].z;
+		if(i%8==7 || i == quasilattice_default_vertices.length-1)
+			continue;
+		Guide_quasilattice.geometry.attributes.position.array[lowest_unset_GQ_vertex*3+0] = quasilattice_default_vertices[i].x;
+		Guide_quasilattice.geometry.attributes.position.array[lowest_unset_GQ_vertex*3+1] = quasilattice_default_vertices[i].y;
+		Guide_quasilattice.geometry.attributes.position.array[lowest_unset_GQ_vertex*3+2] = quasilattice_default_vertices[i].z;
+		lowest_unset_GQ_vertex++;
 	}
 //	Guide_quasilattice.geometry.setIndex( new THREE.BufferAttribute( new Uint16Array(11 * 5 * 2), 1 ) );
 //	var lowest_unused_pair = 0;
@@ -629,6 +638,8 @@ function initialize_QS_stuff() {
 //		console.log(lowest_unused_stablepoint)
 //	}
 	for(var i = 0; i < quasilattice_default_vertices.length; i++){
+		if(i%8==7 || i == quasilattice_default_vertices.length-1)
+			continue;
 		deduce_stable_points_from_fanning_vertex(hour_hand, i, spoke_to_side_angle);
 		deduce_stable_points_from_fanning_vertex(minute_hand, i, spoke_to_side_angle);
 		deduce_stable_points_from_fanning_vertex(second_hand, i, spoke_to_side_angle);
