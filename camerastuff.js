@@ -1,8 +1,7 @@
 //not allowed to do anything with camera outside of here!
 function camera_changes_for_mode_switch(){
-	if(MODE == CUBIC_LATTICE_MODE || MODE == FINAL_FORMATION_MODE){
+	if(MODE == CUBIC_LATTICE_MODE ){
 		//We could make it shift from perspective to orthographic when the mouse is down, to mimic diffraction, or would that be too complex? If you're going to do it, mention it in the text.
-		
 		var CLScale = 4.5;
 		camera.position.z = min_cameradist * CLScale;
 		camera.cameraO.left =-playing_field_width / 2 * CLScale;
@@ -15,6 +14,9 @@ function camera_changes_for_mode_switch(){
 	else if( MODE == QC_SPHERE_MODE){
 		//WARNING: THERE IS STUFF THAT HAPPENS IN UPDATEQUASILATTICE
 		camera.updateProjectionMatrix();
+	}
+	else if(MODE=== FINAL_FORMATION_MODE){
+		
 	}
 	else{
 		camera.position.z = min_cameradist;
@@ -64,27 +66,40 @@ function UpdateCamera() {
 //		cameradist -= 0.08;
 	
 	if(MODE == CK_MODE){
-		var max_camera_movementspeed = 0.044;
-		var camera_acceleration = 0.0007;
-		if(capsidopenness == 0){
-			camera_movementspeed -= camera_acceleration;
-			if( camera_movementspeed < -max_camera_movementspeed)
-				camera_movementspeed = -max_camera_movementspeed;
-		}
-		else {
-			camera_movementspeed += camera_acceleration;
-			if( camera_movementspeed > max_camera_movementspeed)
-				camera_movementspeed = max_camera_movementspeed;
-		}
-		camera.position.x += camera_movementspeed;
-		if(camera.position.x < camera_comparing_position){
-			camera.position.x = camera_comparing_position;
-			camera_movementspeed = 0;
-		}
-		if(camera.position.x > 0){
-			camera.position.x = 0;
-			camera_movementspeed = 0;
-		}
+//		var max_camera_movementspeed = 0.044;
+//		var camera_acceleration = 0.0007;
+//		if(capsidopenness == 0){
+//			camera_movementspeed -= camera_acceleration;
+//			if( camera_movementspeed < -max_camera_movementspeed)
+//				camera_movementspeed = -max_camera_movementspeed;
+//		}
+//		else {
+//			camera_movementspeed += camera_acceleration;
+//			if( camera_movementspeed > max_camera_movementspeed)
+//				camera_movementspeed = max_camera_movementspeed;
+//		}
+//		camera.position.x += camera_movementspeed;
+//		if(camera.position.x < camera_comparing_position){
+//			camera.position.x = camera_comparing_position;
+//			camera_movementspeed = 0;
+//		}
+//		if(camera.position.x > 0){
+//			camera.position.x = 0;
+//			camera_movementspeed = 0;
+//		}
+	}
+	if(MODE=== FINAL_FORMATION_MODE){
+		var oldFMScale = camera.position.z / min_cameradist;
+		var Scaledelta = 0.03;
+		var FinalScale = 2.1;
+		var FMScale = two_way_reduce(oldFMScale, FinalScale,Scaledelta);
+		camera.position.z = min_cameradist * FMScale;
+		camera.cameraO.left =-playing_field_width / 2 * FMScale;
+		camera.cameraO.right = playing_field_width / 2 * FMScale;
+		camera.cameraO.top = playing_field_height / 2 * FMScale;
+		camera.cameraO.bottom =-playing_field_height / 2 * FMScale;
+		
+		camera.updateProjectionMatrix();
 	}
 	
 	

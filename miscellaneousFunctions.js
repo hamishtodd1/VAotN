@@ -16,6 +16,23 @@ function Square(a){
 	return a*a;
 }
 
+function two_way_reduce(num, destnum,reduction_speed){
+	if(num > destnum){
+		num -= reduction_speed;
+		if(num < destnum){
+			num = destnum;
+		}
+	}
+	else{
+		num += reduction_speed;
+		if(num > destnum){
+			num = destnum;
+		}
+	}
+	
+	return num;
+}
+
 //v and w are ends of a line segment, p is a point and we wish to know its dist from the line
 function minimum_distance(v0, w0, p0) {
 	var w = new THREE.Vector2(w0.x,w0.y);
@@ -67,7 +84,7 @@ function deduce_stable_points_from_fanning_vertex(fanning_vertex_start, lattice_
 		
 		//gotta check what points WOULD be in the face IF we snapped to this point.
 		for(var k = 0; k < quasilattice_default_vertices.length; k++) {
-			if(k==lattice_vertex_index)
+			if(k==lattice_vertex_index || k%8==7 || k == quasilattice_default_vertices.length-1)
 				continue;
 			var k_dist_to_potentialpoint = quasilattice_default_vertices[k].distanceTo(potential_stable_point);
 			if( 0.00001 < k_dist_to_potentialpoint && k_dist_to_potentialpoint < fanning_vertex_length + 0.00001){ //points on points ARE allowed in.

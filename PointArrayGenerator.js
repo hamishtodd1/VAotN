@@ -1,5 +1,3 @@
-var QC_atoms_numbers = new Float32Array(3 * 462);
-
 function generate_QCatom_locations(){
 	/*
 	 * Get everything in one icosa triangle, so everything except y and db
@@ -24,13 +22,13 @@ function generate_QCatom_locations(){
 		to_triaconta_far_corners[i].sub(normalized_virtualdodeca_vertices[original_dodeca_vertex]);
 	}
 	
-	var dodeca_types = Array(1);
-	for(var i = 0; i < dodeca_types.length; i++)
-		dodeca_types[i] = normalized_virtualdodeca_vertices[original_dodeca_vertex].clone();
+//	var dodeca_types = Array(0);
+//	for(var i = 0; i < dodeca_types.length; i++)
+//		dodeca_types[i] = normalized_virtualdodeca_vertices[original_dodeca_vertex].clone();
 	
 //	dodeca_types[0].multiplyScalar(43);		//lp
 //	dodeca_types[1].multiplyScalar(70);		//dr
-	dodeca_types[0].multiplyScalar(114); 	//lg
+//	dodeca_types[0].multiplyScalar(114); 	//lg
 	
 	var dgverts = Array(3);
 	var overts = Array(3);
@@ -135,16 +133,23 @@ function generate_QCatom_locations(){
 	//getting them on every vertex
 	{
 		//copy them all
-		var num_in_dod_cluster = dodeca_types.length + overts.length + pverts.length + bverts.length; // + dgverts.length;
+		var num_in_dod_cluster = overts.length + pverts.length + bverts.length; // + dgverts.length;
 		QCatom_positions = Array(20 * num_in_dod_cluster + yverts.length); // + iverts.length);
+		
+		//TODO lots of little icosahedrons
+		QC_atoms = new THREE.Points( new THREE.BufferGeometry(), new THREE.PointsMaterial({size: 0.79,vertexColors: THREE.VertexColors}));
+		QC_atoms.geometry.addAttribute( 'position', new THREE.BufferAttribute(new Float32Array(QCatom_positions.length * 3), 3) );
+		QC_atoms.geometry.addAttribute( 'color', new THREE.BufferAttribute(new Float32Array(QCatom_positions.length * 3), 3) );
+		QC_atoms.scale.set(2,2,2);
+		
 		for(var dodeca_vertex_offset = 0; dodeca_vertex_offset < 20 * num_in_dod_cluster; dodeca_vertex_offset += num_in_dod_cluster){
 			var offset = dodeca_vertex_offset;
 			
-			for(var i = 0; i < dodeca_types.length; i++){
-				QCatom_positions[offset + i] = dodeca_types[i].clone();
-				QC_atoms.geometry.attributes.color.setXYZ(offset+i,141/256,199/256,70/256)
-			}
-			offset += dodeca_types.length;
+//			for(var i = 0; i < dodeca_types.length; i++){
+//				QCatom_positions[offset + i] = dodeca_types[i].clone();
+//				QC_atoms.geometry.attributes.color.setXYZ(offset+i,141/256,199/256,70/256)
+//			}
+//			offset += dodeca_types.length;
 			
 //			for(var i = 0; i < dgverts.length; i++){
 //				QCatom_positions[offset + i] = dgverts[i].clone();
@@ -235,11 +240,7 @@ function generate_QCatom_locations(){
 	
 	for(var i = 0; i < QCatom_positions.length; i++)
 		insert_quasiatom(QCatom_positions[i],i);
-	for(var i = QCatom_positions.length * 3; i < QC_atoms.geometry.attributes.position.array.length; i++)
-		QC_atoms.geometry.attributes.position.array[i] = 0;
-	for(var i = QCatom_positions.length * 3; i < QC_atoms.geometry.attributes.position.array.length; i++)
-		QC_atoms.geometry.attributes.color.array[i] = 1;
-	console.log(QCatom_positions.length)
+//	console.log(QCatom_positions.length)
 }
 
 function insert_quasiatom(ourposition,lowest_unused_index){

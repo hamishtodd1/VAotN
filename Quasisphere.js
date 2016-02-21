@@ -1,17 +1,9 @@
-//we shift based on the location of the corner of your cutout pentagon, the "radius".
-//If it's smaller than the radius of the green, you start to fade in the second layer.
-//If it's  equal   to  the radius of the blue, the second layer is in and the first is out, because the first can have been made to vanish
-//If it's smaller than the radius of the blue, you start to fade in the third layer.
-//If it's smaller than the radius of the red, the third layer is in and second is out.
-
-//you could find and fill in every trinity of points with a triangle.
-//problem: leaves a hold in the pentagons
-//Maybe quadrilaterals. This may screw up on a curved surface and would cover everything 4 times
-//could try having a flatshaded dodecahedron in there
-//or could have an extra thing for all the pentagons
-//it would be best to detect what kind of shape you have there, as you may want to colour shapes differently
-
-/*
+/* TODO
+ * separate out the "stitchup" again so you can change its opacity
+ * 	probably just change opacity on triangles that contain an odd index
+ * 	try to rearrange indices so you can have as many triangles in there, touching the points, as possible
+ * Is there some way you could change the way you spherically project so that the fat rhombs on the smallest ones aren't so squashed?
+ * 
  * Zika virus!
  * How about getting two viruses for every pattern.
  * EM images in top left and bottom left
@@ -19,18 +11,22 @@
  */
 
 /*
- * There are lots of fucking shapes
- * 
- * Probably your only hope is a set of pre-defined indices
- * Have them for lots of interior shapes. For those on edges and corners
- * 
- * How about, for every vertex, look at those that it is connected to. "web" everything with triangles? Ack, many for which this won't work
+ * There are times when it'd be kinda nice to have an extra point that is on the lattice but not in the pent
+ * But it would be compatible. eg 10 with the pointy hexagons, and those two with the flat heptagons. You would only need that extra pentagon point
  */
 
 /*
- * Shouldn't there be one allowing for the fat rhomb and pentagon to rest on the top? Or that simple one allowing bowties? 
+ * So what's Konevtsova's logic? He certainly can't argue for that trimer on the corner without a trimer on HPV. He could try to find a virus with no trimer there
+ * At the very least he needs a "no crossings allowed" thing
+ * The simple thing to say is "edgelengths are all the same, angles are all divisible by TAU/10"
+ * If it's that, there may be some proof to do to see if we got everything. There could be very funny shaped topological defects.
+ * He claims that there aren't quite trimers on the T=4 and T=3 too! "Idealized", he's full of shit!
  * 
- * Points on the corners should be in.
+ * His model leaves it open whether
+ *
+ * Shouldn't there be one allowing for the fat rhomb and pentagon to rest on the top?
+ * 
+ * Should points on the corners be in?
  */
 
 function UpdateQuasiSurface(){
@@ -64,29 +60,38 @@ function UpdateQuasiSurface(){
 		back_hider.position.z = -3;
 	}
 	if(dodeca_openness === 0){
-		for(var i = 0; i < quasicutouts.length; i++)
-			if(i%11 > 5 || i > 44) scene.add(quasicutouts[i]);
+//		for(var i = 0; i < quasicutouts.length; i++)
+//			if(i%11 > 5 || i > 44) scene.add(quasicutouts[i]);
 		back_hider.position.z = -0.01;
 	}
 	//TODO performance hit from the above?
 	
-	dodeca.material.opacity = (dodeca_faceflatness + dodeca_openness) / 2; 
+	dodeca.material.opacity = dodeca_faceflatness; //(dodeca_faceflatness + dodeca_openness) / 2; 
 	var quasicutout_opacity = 1 - dodeca.material.opacity;
 	
 	for(var i = 0; i < quasicutouts.length; i++)
-		if(i % 11 != 0 || i > 44 )
+		if(i % 11 != 0 || i > 44 ){
 			quasicutouts[i].material.opacity = quasicutout_opacity;
+			for(var j = 0; j < quasicutout_meshes.length; j++)
+				quasicutout_meshes[j][i].material.opacity = quasicutout_opacity;
+		}
 	if(quasicutout_opacity === 0){
 		scene.remove(stitchup);
 		for(var i = 0; i < quasicutouts.length; i++)
-			if(i % 11 != 0 && i % 11 < 6 && i < 50 )
+			if(i % 11 != 0 && i % 11 < 6 && i < 50 ){
 				scene.remove(quasicutouts[i]);
+				if(stable_point_of_meshes_currently_in_scene != 666)
+					scene.remove(quasicutout_meshes[stable_point_of_meshes_currently_in_scene][i]);
+			}
 	}
 	else{
-		scene.add(stitchup);
+//		scene.add(stitchup);
 		for(var i = 0; i < quasicutouts.length; i++)
-			if(i % 11 != 0 && i % 11 < 6 && i < 50 )
-				scene.add(quasicutouts[i]);
+			if(i % 11 != 0 && i % 11 < 6 && i < 50 ){
+//				scene.add(quasicutouts[i]);
+				if(stable_point_of_meshes_currently_in_scene != 666)
+					scene.add(quasicutout_meshes[stable_point_of_meshes_currently_in_scene][i]);
+			}
 	}
 		
 	var stitchupfadeintime_proportionof_facefadeintime = 0.66;
@@ -95,14 +100,14 @@ function UpdateQuasiSurface(){
 	if(stitchup.material.opacity < 0)
 		stitchup.material.opacity = 0;
 	
-	deduce_dodecahedron(dodeca_openness);
+	deduce_dodecahedron(0);
 	
 	{
 		var normalturningspeed = TAU/5/2; //this is the amount you want to do in a second
 		normalturningspeed *= delta_t;
 		
 		if( !isMouseDown && dodeca_openness === 0) {
-			dodeca_angle += normalturningspeed;
+//			dodeca_angle += normalturningspeed;
 		}
 		else {
 			var dist_from_desired_angle = 666;
@@ -162,7 +167,8 @@ function MoveQuasiLattice(){
 	if( isMouseDown) {
 		var Mousedist = MousePosition.length();
 		var OldMousedist = OldMousePosition.length(); //unless the center is going to change?
-//		if(Mousedist > 0.47)
+//		if(	Mousedist > 0.47 &&
+//			OldMousePosition.x != MousePosition.x && OldMousePosition.y != MousePosition.y)
 		{
 			var scalefactor = Mousedist / OldMousedist;
 			scalefactor = (scalefactor - 1) * 0.685 +1; //0.685 is the drag
@@ -171,7 +177,7 @@ function MoveQuasiLattice(){
 			cutout_vector1_player.multiplyScalar(scalefactor);
 			var veclength = cutout_vector0_player.length();
 			
-			var maxlength = 3.48; //3.48 to make it exact
+			var maxlength = 3.48;
 			if(veclength > maxlength) {
 				veclength -= 0.028;
 				if(veclength < maxlength)
@@ -208,6 +214,7 @@ function MoveQuasiLattice(){
 			cutout_vector1_player.y = veclength * Math.sin(newQuasiLatticeAngle - TAU / 5);
 		}
 	}
+	
 	//Quite a few speedup opportunities here
 	//to do it generatively it is a question of either... 
 	//find every possible two-fold symmetry on the lattice that gets any kind of rhomb...
@@ -222,15 +229,25 @@ function MoveQuasiLattice(){
 			closest_stable_point_dist = stable_points[i].distanceTo(cutout_vector0_player);
 		}
 	}
-//	console.log(closest_stable_point_index);
 	
-	cutout_vector0.copy(stable_points[closest_stable_point_index]);
-	cutout_vector1.copy(stable_points[closest_stable_point_index]);
-	if(!isMouseDown&&isMouseDown_previously)
-		set_stable_point++;
-//	console.log(set_stable_point);
-//	cutout_vector0.copy(stable_points[set_stable_point]);
-//	cutout_vector1.copy(stable_points[set_stable_point]);	
+	var modulated_CSP = closest_stable_point_index % (stable_points.length / 5);
+	var anglechange = stable_points[closest_stable_point_index].angleTo(stable_points[modulated_CSP]);
+	cutout_vector0_player.applyAxisAngle(z_central_axis, anglechange);
+	cutout_vector1_player.applyAxisAngle(z_central_axis, anglechange);
+	
+	if( set_stable_point !== 666 ){
+		if(!isMouseDown && isMouseDown_previously){
+//			set_stable_point++;
+			if(set_stable_point >= stable_points.length / 5)
+				set_stable_point = 0;
+			console.log(set_stable_point);
+		}
+		modulated_CSP = set_stable_point;
+	}
+	
+	cutout_vector0.copy(stable_points[modulated_CSP]);
+	cutout_vector1.copy(stable_points[modulated_CSP]);
+	
 	cutout_vector1.applyAxisAngle(z_central_axis, -TAU/5);
 	
 //	console.log("current stable point: " + set_stable_point);
@@ -257,6 +274,18 @@ function MoveQuasiLattice(){
 	cameraquaternion.setFromAxisAngle(z_central_axis,-Math.atan2(cutout_vector0_displayed.y,cutout_vector0_displayed.x) -  0.9424777960769378);
 	camera.quaternion.copy(cameraquaternion);
 	camera.position.z = 20 / cutout_vector0_displayed.length() + 0.5*Math.sqrt(5/2+11/10*Math.sqrt(5));
+
+	//we want to remove the one that was previously in there, and add
+	if(stable_point_of_meshes_currently_in_scene != modulated_CSP ){
+		dodeca_faceflatness = 1; //skip to the faces being gone
+		if(stable_point_of_meshes_currently_in_scene !== 666 )
+			for( var i = 0; i < quasicutout_meshes[stable_point_of_meshes_currently_in_scene].length; i++)
+				scene.remove(quasicutout_meshes[stable_point_of_meshes_currently_in_scene][i]);
+		for( var i = 0; i < quasicutout_meshes[modulated_CSP].length; i++)
+			scene.add(quasicutout_meshes[modulated_CSP][i]);
+		
+		stable_point_of_meshes_currently_in_scene = modulated_CSP;
+	}
 	
 	Guide_quasilattice.scale.x = 0.85 / cutout_vector0_displayed.length();
 	Guide_quasilattice.scale.y = Guide_quasilattice.scale.x;
@@ -271,37 +300,6 @@ function MoveQuasiLattice(){
 //		console.log(cutout_vector0_displayed,cutout_vector1_displayed);
 //	console.log(cutout_vector0.length(), Math.acos(cutout_vector0.x / cutout_vector0.length()) / TAU);
 }
-
-//base goes from c0 to c1
-function mirror_point_along_base(ourpoint, c0,c1, lowest_unused_vertex){
-	var c0_to_1 = c1.clone();
-	c0_to_1.sub(c0);
-	var c0_c1_summed_unit = c0.clone();
-	c0_c1_summed_unit.add(c1);
-	c0_c1_summed_unit.normalize();
-	
-	var c0_to_point = ourpoint.clone();
-	c0_to_point.sub(c0);
-	var c1_to_point = ourpoint.clone();
-	c1_to_point.sub(c1);
-	
-	var dist_from_bottom = ourpoint.distanceTo(c0) * get_sin_Vector2(c0_to_point, c0_to_1);
-	
-//	if(dist_from_bottom < 1) //see we COULD test for this and only do the below if it's true but we wouldn't have the convenient expectations of the indices of inserted points
-	var horizontal_dist_from_c0 = Math.sqrt(c0_to_point.lengthSq() - dist_from_bottom * dist_from_bottom );
-	var closest_point_on_bottom = c0_to_1.clone();
-	closest_point_on_bottom.setLength(c0_to_1.length() - horizontal_dist_from_c0 ); //mirrored
-	closest_point_on_bottom.add(c0);
-	
-	quasicutout_intermediate_vertices[lowest_unused_vertex].copy(c0_c1_summed_unit);
-	quasicutout_intermediate_vertices[lowest_unused_vertex].multiplyScalar(dist_from_bottom);
-	quasicutout_intermediate_vertices[lowest_unused_vertex].add(closest_point_on_bottom);
-	
-	quasicutouts_vertices_components[lowest_unused_vertex][0] = quasicutout_intermediate_vertices[lowest_unused_vertex].x * quasi_shear_matrix[0] + quasicutout_intermediate_vertices[lowest_unused_vertex].y * quasi_shear_matrix[1];
-	quasicutouts_vertices_components[lowest_unused_vertex][1] = quasicutout_intermediate_vertices[lowest_unused_vertex].x * quasi_shear_matrix[2] + quasicutout_intermediate_vertices[lowest_unused_vertex].y * quasi_shear_matrix[3];
-}
-
-
 
 function deduce_dodecahedron(openness) {	
 	var elevation = 0.5*Math.sqrt(5/2+11/10*Math.sqrt(5));
@@ -407,19 +405,12 @@ function initialize_QS_stuff() {
  	 	}
 	}
  	
- 	for( var i = 0; i < quasicutout_meshes.length; i++) { 
- 		quasicutout_meshes[i] = new THREE.Mesh( new THREE.BufferGeometry(), new THREE.MeshBasicMaterial({color:0xff0000}) );
- 		quasicutout_meshes[i].geometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array(quasilattice_default_vertices.length * 6), 3 ) );
- 		quasicutout_meshes[i].geometry.setIndex( new THREE.BufferAttribute( new Uint16Array(3 * 13), 1 ) );
- 		for(var j = 0; j < quasicutouts[i].geometry.index.array.length; j++)
- 			quasicutout_meshes[i].geometry.index.array[j] = 0;
- 		quasicutout_meshes[i].geometry.index.array[0] = 0;
- 		quasicutout_meshes[i].geometry.index.array[1] = 1;
- 		quasicutout_meshes[i].geometry.index.array[2] = 2;
-	}
+// 	assign_stablepoint_triangles(0,new Uint16Array([0,2,6]));
+// 	for(var i = 1; i < stable_points.length; i++)
+// 		assign_stablepoint_triangles(i);
  	
  	stitchup = new THREE.LineSegments( new THREE.BufferGeometry(), materialx, THREE.LineSegmentsPieces );
- 	stitchup.geometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array(3000*3), 3 ) );
+ 	stitchup.geometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array(12000), 3 ) ); //much less and HPV breaks. That is lunacy
  	stitchup.geometry.setIndex( new THREE.BufferAttribute( stitchup_line_pairs, 1 ) );
 
  	back_hider = new THREE.Mesh( new THREE.PlaneBufferGeometry( playing_field_width * 4,playing_field_width * 4 ), new THREE.MeshBasicMaterial({color: 0xffff00}) );
@@ -574,7 +565,7 @@ function initialize_QS_stuff() {
 	Guide_quasilattice.geometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array((quasilattice_default_vertices.length-6) * 3), 3 ) );
 	lowest_unset_GQ_vertex = 0;
 	for(var i = 0; i < quasilattice_default_vertices.length; i++){
-		if(i%8==7 || i == quasilattice_default_vertices.length-1)
+		if(i%num_points==num_points-1 || i == quasilattice_default_vertices.length-1)
 			continue;
 		Guide_quasilattice.geometry.attributes.position.array[lowest_unset_GQ_vertex*3+0] = quasilattice_default_vertices[i].x;
 		Guide_quasilattice.geometry.attributes.position.array[lowest_unset_GQ_vertex*3+1] = quasilattice_default_vertices[i].y;
@@ -656,39 +647,59 @@ function initialize_QS_stuff() {
 	for(var i = 0; i<stable_points.length; i++){
 		if(stable_points[i].length() > 3.48 ){ //the length of HPV's cutouts
 			stable_points.splice(i,1);
-			i--
+			i--;
 		}	
 	}
 	remove_stable_point_and_its_rotations(4);
 	remove_stable_point_and_its_rotations(5);
 	remove_stable_point_and_its_rotations(9);
-	remove_stable_point_and_its_rotations(10);
-	remove_stable_point_and_its_rotations(14); //Crossovers - Konevtsova's fault!
-	remove_stable_point_and_its_rotations(15); 
-	remove_stable_point_and_its_rotations(15); 
-	remove_stable_point_and_its_rotations(15);
-	remove_stable_point_and_its_rotations(21); 
-	remove_stable_point_and_its_rotations(21);
-	remove_stable_point_and_its_rotations(21);
-	remove_stable_point_and_its_rotations(30);
-	remove_stable_point_and_its_rotations(30);
-	remove_stable_point_and_its_rotations(31);
-	remove_stable_point_and_its_rotations(31);
-	remove_stable_point_and_its_rotations(35);
-	remove_stable_point_and_its_rotations(38);
-	remove_stable_point_and_its_rotations(41); //Sort of our fault for wanting points on dodeca vertices. Which is arguably bad because are there really rotationally symmetric proteins?
 	
-	var quasiquasilattice_geometry = new THREE.Geometry();
-	quasiquasilattice = new THREE.Points( quasiquasilattice_geometry,new THREE.PointsMaterial({size: 0.2, color: 0x000000}));
-	quasiquasilattice.scale.set(0.6,0.6,0.6);
-	for(var i = 0; i < quasilattice_default_vertices.length; i++)
-		quasiquasilattice.geometry.vertices.push(quasilattice_default_vertices[i]);
-	var stablepointslattice_geometry = new THREE.Geometry();
-	stablepointslattice = new THREE.Points( stablepointslattice_geometry,new THREE.PointsMaterial({size: 0.1, color: 0xf00f00}));
-	stablepointslattice.scale.copy(quasiquasilattice.scale);
-	stablepointslattice.position.z += 0.01;
-	for(var i = 0; i < stable_points.length; i++)
-		stablepointslattice.geometry.vertices.push(stable_points[i]);
+	remove_stable_point_and_its_rotations(10);
+	remove_stable_point_and_its_rotations(10);//convex
+	remove_stable_point_and_its_rotations(10);//convex
+	remove_stable_point_and_its_rotations(10);//convex
+	
+	remove_stable_point_and_its_rotations(11); //Crossovers - Konevtsova's fault!
+	
+	remove_stable_point_and_its_rotations(12);
+	remove_stable_point_and_its_rotations(12); 
+	remove_stable_point_and_its_rotations(12); 
+	remove_stable_point_and_its_rotations(12);//convex
+	remove_stable_point_and_its_rotations(12);//convex
+	remove_stable_point_and_its_rotations(12);//convex
+	remove_stable_point_and_its_rotations(12);//convex
+	remove_stable_point_and_its_rotations(13);//convex
+	remove_stable_point_and_its_rotations(13); 
+	remove_stable_point_and_its_rotations(13);
+	remove_stable_point_and_its_rotations(13);
+	remove_stable_point_and_its_rotations(17);//convex
+	remove_stable_point_and_its_rotations(17);//convex
+	remove_stable_point_and_its_rotations(20);
+	remove_stable_point_and_its_rotations(20);
+	remove_stable_point_and_its_rotations(21);
+	remove_stable_point_and_its_rotations(21);
+	remove_stable_point_and_its_rotations(22);//ugly
+	remove_stable_point_and_its_rotations(23);//convex
+	remove_stable_point_and_its_rotations(23);
+	remove_stable_point_and_its_rotations(26);
+	remove_stable_point_and_its_rotations(0); //Sort of our fault for wanting points on dodeca vertices. Which is arguably bad because are there really rotationally symmetric proteins?
+	//NOTE because of that last one, the number you see it as is one less than the number you need to deduct from here
+	remove_stable_point_and_its_rotations(10);//ugly
+//	remove_stable_point_and_its_rotations(6); //ugly
+//	remove_stable_point_and_its_rotations(5); //ugly
+	remove_stable_point_and_its_rotations(3); //ugly
+	
+//	var quasiquasilattice_geometry = new THREE.Geometry();
+//	quasiquasilattice = new THREE.Points( quasiquasilattice_geometry,new THREE.PointsMaterial({size: 0.2, color: 0x000000}));
+//	quasiquasilattice.scale.set(0.6,0.6,0.6);
+//	for(var i = 0; i < quasilattice_default_vertices.length; i++)
+//		quasiquasilattice.geometry.vertices.push(quasilattice_default_vertices[i]);
+//	var stablepointslattice_geometry = new THREE.Geometry();
+//	stablepointslattice = new THREE.Points( stablepointslattice_geometry,new THREE.PointsMaterial({size: 0.1, color: 0xf00f00}));
+//	stablepointslattice.scale.copy(quasiquasilattice.scale);
+//	stablepointslattice.position.z += 0.01;
+//	for(var i = 0; i < stable_points.length; i++)
+//		stablepointslattice.geometry.vertices.push(stable_points[i]);
 	
 	
 	//we're just going to try all the blue points.
@@ -698,6 +709,432 @@ function initialize_QS_stuff() {
 //	stable_points[0] = quasilattice_default_vertices[2].clone(); stable_points[0].add(quasilattice_default_vertices[num_points]); stable_points[0].multiplyScalar(0.5);
 //	stable_points[0] = quasilattice_default_vertices[2].clone(); stable_points[0].add(quasilattice_default_vertices[num_points]); stable_points[0].multiplyScalar(0.5);
 //	stable_points[0] = quasilattice_default_vertices[2].clone(); stable_points[0].add(quasilattice_default_vertices[num_points]); stable_points[0].multiplyScalar(0.5);
+	
+	quasicutout_meshes = Array(stable_points.length / 5);
+	var num_quasi_mesh_triangles = 15;
+	var color_selection = Array(num_quasi_mesh_triangles); //actually much less because some triangles are in quads
+	for(var i = 0; i < color_selection.length; i++){
+		if(i==2 || i==4 || i==6 || i==8)
+			color_selection[i] = new THREE.Color(color_selection[i-1].r, color_selection[i-1].g, color_selection[i-1].b );
+		else if( 9 <= i && i <= 13)
+			color_selection[i] = new THREE.Color(color_selection[0].r, color_selection[0].g, color_selection[0].b );
+		else
+			color_selection[i] = new THREE.Color(Math.random(), Math.random(), Math.random() );
+	}
+	for(var i = 0; i < quasicutout_meshes.length; i++){
+		quasicutout_meshes[i] = Array(quasicutouts.length);
+		for(var j = 0; j < quasicutout_meshes[i].length; j++){
+			quasicutout_meshes[i][j] = new THREE.Mesh( new THREE.Geometry(), new THREE.MeshBasicMaterial({vertexColors:THREE.FaceColors,transparent: true}) ); //TODO portability problem? Well, we're using a webgl renderer
+			for(var k = 0; k < quasicutouts[j].geometry.attributes.position.array.length / 3; k++ ) //TODO memory save opportunity, and probably speedup: you do NOT need the maximum in all of them!
+				quasicutout_meshes[i][j].geometry.vertices.push(new THREE.Vector3(0,0,0));
+			for(var k = 0; k < num_quasi_mesh_triangles; k++){ //TODO speedup(?): clone
+				var indexA = 0;
+				var indexB = 0;
+				var indexC = 0;
+				
+				//anti clockwise
+				
+				if(i===0){
+					if(k===0){	indexA = 2;		indexB = 4;		indexC = 6;		}
+					
+					if(k===1){	indexA = 4;		indexB = 2;		indexC = 3;		}
+					
+					if(k===3){	indexA = 4;		indexB = 3;		indexC = 5;		}
+				} else if(i===1){
+					if(k===0){	indexA = 0;		indexB = 2;		indexC = 6;		}
+					
+					if(k===1){	indexA = 2;		indexB = 0;		indexC = 3;		}
+					
+					if(k===3){	indexA = 3;		indexB = 0;		indexC = 1;		}
+				} else if(i===2){
+					if(k===0){	indexA = 0;		indexB = 2;		indexC = 6;		}
+					
+					if(k===1){	indexA = 2;		indexB = 0;		indexC = 3;		}
+					
+					if(k===3){	indexA = 3;		indexB = 0;		indexC = 1;		}
+				} else if(i===3){
+					if(k===0){	indexA = 24;		indexB = 26;	indexC = 36;	}
+					
+					if(k===1){	indexA = 24;		indexB = 0;		indexC = 26;	}
+					if(k===2){	indexA = 8;			indexB = 26;	indexC = 0;		}
+					
+					if(k===3){	indexA = 24;		indexB = 6;		indexC = 0;		}
+					if(k===4){	indexA = 12;		indexB = 0;		indexC = 6;		}
+					
+					if(k===5){	indexA = 14;		indexB =  8;	indexC = 32;		}
+					if(k===6){	indexA = 32;		indexB = 15;	indexC = 14;		}
+					
+					if(k===9){	indexA = 18;		indexB = 0;		indexC = 12;		}
+					if(k===10){	indexA = 18;		indexB = 8;		indexC = 0;		}
+					if(k===11){	indexA = 18;		indexB = 32;	indexC = 8;		}
+					if(k===12){	indexA = 20;		indexB = 33;	indexC = 34;		}
+					if(k===13){	indexA = 20;		indexB = 14;	indexC = 33;		}
+					
+					if(k===14){	indexA =  35;		indexB = 34;		indexC = 33;		}
+				} else if(i===4){
+					if(k===0){	indexA = 30;		indexB = 32;	indexC = 42;	}
+					
+					if(k===1){	indexA = 30;		indexB =  0;	indexC = 32;	}
+					if(k===2){	indexA = 32;		indexB =  0;	indexC = 8;	}
+					
+					if(k===3){	indexA =  0;		indexB = 30;	indexC = 6;		}
+					if(k===4){	indexA = 12;		indexB = 0;		indexC = 6;		}
+					
+					if(k===5){	indexA = 14;		indexB =  8;	indexC = 15;		}
+					if(k===6){	indexA = 15;		indexB =  8;	indexC = 21;		}
+					
+					if(k===7){	indexA = 21;		indexB =  8;	indexC = 38;		}
+					if(k===8){	indexA = 40;		indexB = 20;	indexC = 39;		}
+					
+					if(k===9){	indexA =  0;		indexB = 38;	indexC = 8;		}
+					if(k===10){	indexA =  0;		indexB = 18;	indexC = 38;		}
+					if(k===11){	indexA =  0;		indexB = 12;	indexC = 18;		}
+					
+					if(k===14){	indexA = 40;		indexB = 39;	indexC = 41;		}
+					
+					/* without our cheating vertex
+					 * 	if(k===0){	indexA = 24;		indexB = 26;	indexC = 36;	}
+					
+						if(k===1){	indexA = 8;			indexB = 24;	indexC = 0;		}
+						if(k===2){	indexA = 24;		indexB = 8;		indexC = 26;	}
+						
+						if(k===3){	indexA = 12;		indexB = 0;		indexC = 6;		}
+						if(k===4){	indexA = 24;		indexB = 6;		indexC = 0;		}
+					 */
+				} else if(i===5){
+					if(k===0){	indexA = 4;			indexB = 42;	indexC = 2;		}
+					
+					if(k===1){	indexA = 12;		indexB = 20;	indexC = 0;		}
+					if(k===2){	indexA = 2;			indexB = 16;	indexC = 4;		}
+					
+					if(k===3){	indexA = 20;		indexB = 26;	indexC = 0;		}
+					if(k===4){	indexA = 16;		indexB = 2;		indexC = 28;	}
+					
+					if(k===5){	indexA = 26;		indexB = 20;	indexC = 33;	}
+					if(k===6){	indexA = 26;		indexB = 33;	indexC = 27;	}
+					
+					if(k===7){	indexA = 33;		indexB = 20;	indexC =  6;	}
+					if(k===8){	indexA = 33;		indexB =  6;	indexC =  9;	}
+					
+					if(k===9){	indexA = 12;		indexB =  6;	indexC = 20;	}
+					if(k===10){	indexA = 12;		indexB = 30;	indexC = 6;		}
+					if(k===11){	indexA = 12;		indexB = 24;	indexC = 30;	}
+					
+					if(k===12){	indexA =  9;		indexB =  6;	indexC =  7;	}
+					
+					/* without cheat
+					if(k===0){	indexA = 4;			indexB = 36;	indexC = 2;		}
+					
+					if(k===1){	indexA = 12;		indexB = 20;	indexC = 0;		}
+					if(k===2){	indexA = 2;			indexB = 16;	indexC = 4;		}
+					
+					if(k===3){	indexA = 20;		indexB = 26;	indexC = 0;		}
+					if(k===4){	indexA = 16;		indexB = 2;		indexC = 28;		}
+					*/
+				} else if(i===6){
+					if(k===0){	indexA = 4;			indexB = 36;	indexC = 2;			}
+					
+					if(k===1){	indexA = 12;		indexB = 20;	indexC = 0;		}
+					if(k===2){	indexA = 2;			indexB = 16;	indexC = 4;			}
+					
+					if(k===3){	indexA = 20;		indexB = 26;	indexC = 0;		}
+					if(k===4){	indexA = 16;		indexB = 2;		indexC = 28;	}
+					
+					if(k===5){	indexA = 20;		indexB = 6;		indexC = 26;		}
+					if(k===6){	indexA = 9;			indexB = 26;	indexC = 6;		}
+					
+					if(k===7){	indexA = 9;			indexB =  6;	indexC = 7;		}
+
+					if(k===9){	indexA = 32;		indexB = 14;	indexC = 26;	}
+					if(k===10){	indexA = 32;		indexB = 22;	indexC = 14;		}
+					if(k===11){	indexA = 32;		indexB = 8;		indexC = 22;		}
+					if(k===12){	indexA = 32;		indexB = 27;	indexC = 8;		}
+					if(k===13){	indexA = 32;		indexB = 26;	indexC = 27;		}
+				} else if(i===7){
+					if(k===0){	indexA = 2;			indexB = 60;	indexC = 0;			}
+					
+					if(k===1){	indexA = 12;		indexB = 20;	indexC = 0;		}
+					if(k===2){	indexA = 2;			indexB = 16;	indexC = 4;			}
+					
+					if(k===3){	indexA = 20;		indexB = 26;	indexC = 0;		}
+					if(k===4){	indexA = 16;		indexB = 2;		indexC = 28;	}
+					
+					if(k===5){	indexA = 18;		indexB = 30;	indexC = 24;		}
+					if(k===6){	indexA = 30;		indexB = 18;	indexC = 54;		}
+					
+					if(k===7){	indexA = 34;		indexB = 57;	indexC = 59;		}
+					if(k===8){	indexA = 58;		indexB = 57;	indexC = 34;		}
+
+					if(k===9){	indexA = 42;		indexB = 36;	indexC = 56;	}
+					if(k===10){	indexA = 42;		indexB = 56;	indexC = 20;		}
+					if(k===11){	indexA = 42;		indexB = 20;	indexC = 12;		}
+					if(k===12){	indexA = 42;		indexB = 12;	indexC = 24;		}
+					if(k===13){	indexA = 42;		indexB = 24;	indexC = 36;		}
+					
+					if(k===14){	indexA = 36;		indexB = 24;	indexC = 30;		}
+				} else if(i===8){
+					if(k===0){	indexA = 6;			indexB = 8;		indexC = 12;		}
+					
+					if(k===1){	indexA = 8;			indexB = 6;		indexC = 0;		}
+					if(k===2){	indexA = 8;			indexB = 0;		indexC = 3;		}
+					
+					if(k===3){	indexA = 8;			indexB = 3;		indexC = 2;		}
+					
+					if(k===5){	indexA = 3;			indexB = 0;		indexC = 1;		}
+				} else if(i===9){
+					if(k===0){	indexA = 6;			indexB = 8;		indexC = 18;	}
+					
+					if(k===1){	indexA = 8;			indexB = 6;		indexC = 14;	}
+					if(k===2){	indexA = 8;			indexB = 14;	indexC = 2;		}
+					
+					if(k===3){	indexA = 14;		indexB = 6;		indexC = 0;		}
+					if(k===4){	indexA = 14;		indexB = 0;		indexC = 3;		}
+					
+					if(k===5){	indexA = 14;		indexB = 3;		indexC = 2;		}
+					
+					if(k===7){	indexA =  3;		indexB = 0;		indexC = 1;		}
+				} else if(i===10){
+					if(k===0){	indexA = 20;		indexB = 24;	indexC = 18;	}
+					
+					if(k===1){	indexA = 20;		indexB = 18;	indexC = 0;		}
+					if(k===2){	indexA = 20;		indexB = 0;		indexC = 8;		}
+					
+					if(k===3){	indexA = 20;		indexB = 8;		indexC = 2;		}
+					if(k===4){	indexA = 2;			indexB = 8;		indexC = 9;		}
+					
+					if(k===5){	indexA =  10;		indexB =  9;	indexC = 11;	}
+					if(k===6){	indexA =  10;		indexB =  2;	indexC = 9;		}
+				} else if(i===11){
+					if(k===0){	indexA = 0;			indexB = 2; 	indexC = 48;	}
+					
+					if(k===1){	indexA = 2;			indexB = 0;		indexC = 14;	}
+					if(k===2){	indexA = 2;			indexB = 14;	indexC = 22;		}
+					
+					if(k===3){	indexA = 2;			indexB = 22;	indexC = 16;		}
+					if(k===4){	indexA = 12;		indexB = 18;	indexC = 24;		}
+					
+					if(k===9){	indexA = 30;		indexB = 12;	indexC = 24;	}
+					if(k===10){	indexA = 30;		indexB = 20;	indexC = 12;	}
+					if(k===11){	indexA = 30;		indexB = 44;	indexC = 20;	}
+					if(k===12){	indexA = 32;		indexB = 21;	indexC = 46;	}
+					if(k===13){	indexA = 32;		indexB = 26;	indexC = 21;	}
+				} else if(i===12){
+					if(k===0){	indexA = 6;			indexB = 8; 	indexC = 30;	}
+					
+					if(k===1){	indexA = 8;			indexB = 6;		indexC = 14;	}
+					if(k===2){	indexA = 8;			indexB = 14;	indexC = 2;		}
+					
+					if(k===3){	indexA = 14;		indexB = 6;		indexC = 0;		}
+					if(k===4){	indexA = 20;		indexB = 14;	indexC = 0;		}
+					
+					if(k===5){	indexA = 14;		indexB = 20;	indexC = 2;		}
+					if(k===6){	indexA = 2;			indexB = 20;	indexC = 21;	}
+					
+					if(k===7){	indexA = 20;		indexB =  0;	indexC =  3;	}
+					if(k===8){	indexA = 3;			indexB =  0;	indexC =  1;	}
+				} else if(i===13){
+					if(k===0){	indexA = 18;		indexB = 20; 	indexC = 24;	}
+					
+					if(k===1){	indexA = 20;		indexB = 18;	indexC = 0;		}
+					if(k===2){	indexA = 20;		indexB = 0;		indexC = 8;		}
+					
+					if(k===3){	indexA = 20;		indexB = 8;		indexC = 2;		}
+					if(k===4){	indexA = 2;			indexB = 8;		indexC = 9;		}
+					
+					if(k===5){	indexA = 0;			indexB = 1;		indexC = 3;		}
+					if(k===6){	indexA = 0;			indexB = 3;		indexC = 8;		}
+				} else if(i===14){
+					if(k===0){	indexA = 12;		indexB = 14;	indexC = 30;	}
+
+					if(k===1){	indexA = 14;		indexB = 12;	indexC = 20;	}
+					if(k===2){	indexA = 14;		indexB = 20;	indexC = 2;		}
+					
+					if(k===3){	indexA = 14;		indexB = 2;		indexC = 22;	}
+					if(k===4){	indexA = 22;		indexB = 2;		indexC = 8;		}
+					
+					if(k===9){	indexA = 28;		indexB = 22;	indexC = 8;		}
+					if(k===10){	indexA = 28;		indexB = 4;		indexC = 22;	}
+					if(k===11){	indexA = 26;		indexB = 3;		indexC = 2;		}
+					if(k===12){	indexA = 26;		indexB = 9;		indexC = 3;		}
+					if(k===13){	indexA = 26;		indexB = 6;		indexC = 9;		}
+					
+					if(k===14){	indexA =  6;		indexB = 7;		indexC = 9;	}
+				} else if(i===15){
+					if(k===0){	indexA = 12;		indexB = 14;	indexC = 30;	}
+
+					if(k===1){	indexA = 14;		indexB = 12;	indexC = 20;	}
+					if(k===2){	indexA = 14;		indexB = 20;	indexC = 2;		}
+					
+					if(k===3){	indexA = 12;		indexB = 0;		indexC = 20;	}
+					if(k===4){	indexA = 20;		indexB = 0;		indexC = 6;		}
+					
+					if(k===5){	indexA = 20;		indexB = 6;		indexC = 2;	}
+					if(k===6){	indexA = 2;			indexB = 6;		indexC = 9;		}
+					
+					if(k===7){	indexA = 9;			indexB = 8;		indexC = 2;		}
+					
+					if(k===14){	indexA = 6;			indexB = 7;		indexC = 9;		}
+				} else if(i===16){
+					if(k===0){	indexA = 6;			indexB = 8; 	indexC = 30;	}
+					
+					if(k===1){	indexA = 8;			indexB = 6;		indexC = 14;	}
+					if(k===2){	indexA = 8;			indexB = 14;	indexC = 2;		}
+					
+					if(k===3){	indexA = 14;		indexB = 6;		indexC = 0;		}
+					if(k===4){	indexA = 20;		indexB = 14;	indexC = 0;		}
+					
+					if(k===5){	indexA = 14;		indexB = 20;	indexC = 2;		}
+					if(k===6){	indexA = 2;			indexB = 20;	indexC = 21;	}
+					
+					if(k===7){	indexA = 22;		indexB = 21;	indexC = 23;	}
+					if(k===8){	indexA = 21;		indexB = 22;	indexC =  2;	}
+				} else if(i===17){
+					if(k===0){	indexA = 12;		indexB = 14; 	indexC = 42;	}
+
+					if(k===1){	indexA = 14;		indexB = 12;	indexC = 20;	}
+					if(k===2){	indexA = 14;		indexB = 20;	indexC = 2;		}
+					
+					if(k===3){	indexA = 12;		indexB = 0;		indexC = 20;	}
+					if(k===4){	indexA = 20;		indexB = 0;		indexC = 26;	}
+					
+					if(k===5){	indexA = 2;			indexB = 20;	indexC = 26;	}
+					if(k===6){	indexA = 2;			indexB = 26;	indexC = 27;	}
+					
+					if(k===7){	indexA = 28;		indexB = 27;	indexC = 29;	}
+					if(k===8){	indexA = 28;		indexB =  2;	indexC = 27;	}
+				} else if(i===18){
+					if(k===0){	indexA = 24;		indexB = 26; 	indexC = 42;	}
+
+					if(k===1){	indexA = 8;			indexB = 24;	indexC = 0;		}
+					if(k===2){	indexA = 24;		indexB = 8;		indexC = 26;		}
+					
+					if(k===3){	indexA = 12;		indexB = 0;		indexC = 6;		}
+					if(k===4){	indexA = 24;		indexB = 6;		indexC = 0;		}
+					
+					if(k===5){	indexA = 0;			indexB = 0;		indexC = 0;		}
+					if(k===6){	indexA = 0;			indexB = 0;		indexC = 0;		}
+					
+					if(k===7){	indexA = 8;			indexB = 15;	indexC = 14;		}
+					
+					if(k===9){	indexA = 18;		indexB = 0;		indexC = 12;		}
+					if(k===10){	indexA = 18;		indexB = 8;		indexC = 0;		}
+					if(k===11){	indexA = 8;			indexB = 18;	indexC = 15;		}
+				} else if(i===19){
+					if(k===0){	indexA = 12;		indexB = 14; 	indexC = 42;	}
+
+					if(k===1){	indexA = 14;		indexB = 12;	indexC = 26;	}
+					if(k===2){	indexA = 14;		indexB = 26;	indexC = 2;		}
+					
+					if(k===3){	indexA = 12;		indexB = 0;		indexC = 26;	}
+					if(k===4){	indexA = 26;		indexB = 0;		indexC = 32;	}
+					
+					if(k===5){	indexA = 32;		indexB = 0;		indexC = 18;	}
+					if(k===6){	indexA = 18;		indexB = 6;		indexC = 32;	}
+					
+					if(k===7){	indexA = 32;		indexB = 6;		indexC = 21;	}
+					if(k===8){	indexA = 6;			indexB = 9;		indexC = 21;	}
+					
+					if(k===9){	indexA = 20;		indexB = 2;		indexC = 26;	}
+					if(k===10){	indexA = 20;		indexB = 26;	indexC = 21;	}
+					if(k===11){	indexA = 21;		indexB = 26;	indexC = 32;	}
+					
+					if(k===14){	indexA = 6;			indexB = 7;		indexC = 9;	}
+				} else if(i===20){
+					if(k===0){	indexA = 12;		indexB = 14; 	indexC = 42;	}
+
+					if(k===1){	indexA = 14;		indexB = 12;	indexC = 26;	}
+					if(k===2){	indexA = 14;		indexB = 26;	indexC = 2;		}
+					
+					if(k===3){	indexA = 12;		indexB = 0;		indexC = 26;	}
+					if(k===4){	indexA = 26;		indexB = 0;		indexC = 6;		}
+					
+					if(k===5){	indexA =  6;		indexB =  0;	indexC = 18;	}
+					if(k===6){	indexA = 20;		indexB = 21;	indexC =  8;	}
+					
+					if(k===7){	indexA =  8;		indexB = 21;	indexC = 34;	}
+					if(k===8){	indexA = 34;		indexB = 21;	indexC = 33;	}
+					
+					if(k===9){	indexA = 26;		indexB = 20;	indexC = 2;		}
+					if(k===10){	indexA = 26;		indexB = 32;	indexC = 20;	}
+					if(k===11){	indexA = 26;		indexB = 6;		indexC = 32;	}
+					
+					if(k===14){	indexA = 34;		indexB = 33;	indexC = 35;	}
+				} else if(i===21){
+					if(k===0){	indexA = 30;		indexB = 32; 	indexC = 48;	}
+
+					if(k===1){	indexA = 32;		indexB = 30;	indexC = 0;		}
+					if(k===2){	indexA = 32;		indexB =  0;	indexC =  8;	}
+					
+					if(k===3){	indexA =  6;		indexB =  0;	indexC = 30;	}
+					if(k===4){	indexA = 12;		indexB =  0;	indexC = 6;		}
+					
+					if(k===5){	indexA = 18;		indexB = 21;	indexC = 38;	}
+					if(k===6){	indexA = 20;		indexB = 14;	indexC = 39;	}
+					
+					if(k===7){	indexA =  8;		indexB = 38;	indexC = 14;	}
+					if(k===8){	indexA = 14;		indexB = 38;	indexC = 39;	}
+					
+					if(k===9){	indexA =  0;		indexB = 38;	indexC =  8;	}
+					if(k===10){	indexA =  0;		indexB = 18;	indexC = 38;	}
+					if(k===11){	indexA =  0;		indexB = 12;	indexC = 18;	}
+					 
+					if(k===14){	indexA = 18;		indexB = 19;	indexC = 21;	}
+				} else if(i===22){
+					if(k===0){	indexA = 12;		indexB = 14; 	indexC = 42;	}
+
+					if(k===1){	indexA = 14;		indexB = 12;	indexC = 26;	}
+					if(k===2){	indexA = 14;		indexB = 26;	indexC = 2;		}
+					
+					if(k===3){	indexA = 12;		indexB = 0;		indexC = 26;	}
+					if(k===4){	indexA = 26;		indexB = 0;		indexC = 6;		}
+					
+					if(k===5){	indexA =  8;		indexB =  2;	indexC = 21;	}
+					if(k===6){	indexA = 21;		indexB = 33;	indexC =  8;	}
+					
+					if(k===7){	indexA = 34;		indexB = 33;	indexC = 35;	}
+					if(k===8){	indexA = 34;		indexB =  8;	indexC = 33;	}
+					
+					if(k===9){	indexA = 26;		indexB = 20;	indexC = 2;		}
+					if(k===10){	indexA = 26;		indexB = 32;	indexC = 20;	}
+					if(k===11){	indexA = 26;		indexB = 6;		indexC = 32;	}
+
+					if(k===14){	indexA = 21;		indexB =  2;	indexC = 20;	}
+				}
+				//TODO: fill in everything, including corners.
+				
+
+				quasicutout_meshes[i][j].geometry.faces.push( new THREE.Face3(
+					indexA,indexB,indexC,
+ 					new THREE.Vector3(1,0,0), //Face normal; unused
+ 					color_selection[k] ) ); //TODO spectrum
+			}
+		}
+	}
+	
+	var one_fifth_stablepoints = stable_points.length / 5;
+	//so why aren't 26 and 2
+	for(var i = 0; i < one_fifth_stablepoints; i++){
+		var rotations = Array(5);
+		rotations[0] = stable_points[i].clone();
+		for(var j = 1; j < 5; j++){
+			rotations[j] = rotations[0].clone();
+			rotations[j].applyAxisAngle(z_central_axis,TAU/5 * j);
+			for(var k = one_fifth_stablepoints; k < stable_points.length; k++ ){
+				if(	Math.abs(rotations[j].x - stable_points[k].x) < 0.00001 &&
+					Math.abs(rotations[j].y - stable_points[k].y) < 0.00001 ) {
+					var proper_index = j * one_fifth_stablepoints + i;
+					if( k !== proper_index){
+						var temp = stable_points[proper_index].clone();
+						stable_points[proper_index].copy(stable_points[k]);
+						stable_points[k].copy(temp);
+					}
+					break;
+				}
+				if(k === stable_points.length - 1)
+					console.log("couldn't find the right point")
+			}
+		}
+	}
 	
 	var midpoint = quasilattice_default_vertices[0].clone();
 	midpoint.lerp(quasilattice_default_vertices[2], 0.5);
@@ -710,8 +1147,9 @@ function initialize_QS_stuff() {
 	midpoint.applyAxisAngle(axis, TAU/5);
 	cutout_vector1.copy(midpoint);
 	
-//	cutout_vector0.set(1.3090169943749475, -0.10040570794311371);
-//	cutout_vector1.set(0.30901699437494745, -1.27597621252806);
+	cutout_vector0.copy(stable_points[0]);
+	cutout_vector1.copy(stable_points[0]);	
+	cutout_vector1.applyAxisAngle(z_central_axis, -TAU/5);
 	/* 
 	 * 
 	 * 1.3090169943749475, -0.10040570794311371, 0.30901699437494745, -1.27597621252806 //so this one is bad. More thinking needed. For some rotations it fails, probably just round off errors
@@ -874,6 +1312,12 @@ function remove_stable_point_and_its_rotations(unwanted_index){
 		for(var i = stable_points.length-1; i >= 0; i--){
 			if(	Math.abs(rotations[j].x - stable_points[i].x) < 0.00001 &&
 				Math.abs(rotations[j].y - stable_points[i].y) < 0.00001 ) {
+				if(i < unwanted_index){
+					console.log(unwanted_index,i)
+					console.log(stable_points[i].length());
+					console.log(stable_points[unwanted_index].length());
+				}
+				
 				stable_points.splice(i,1);
 				number_removed++;
 			}

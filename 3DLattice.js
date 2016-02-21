@@ -18,58 +18,10 @@ function rotate_layer(index,MovementAxis,movementangle){
 	Quasi_outlines[index].updateMatrixWorld();
 }
 
-function rotate_Parialayer(index,MovementAxis,movementangle){
-	var myaxis = MovementAxis.clone();
-	Paria_models[index].updateMatrixWorld();
-	Paria_models[index].worldToLocal(myaxis);
-	myaxis.normalize();
-	var myquaternion = new THREE.Quaternion();
-	myquaternion.setFromAxisAngle( myaxis, movementangle );
-	Paria_models[index].quaternion.multiply(myquaternion);
-	Paria_models[index].updateMatrixWorld();
-}
-
 function sphere_array_rotate(shape_array, MovementAxis,movementangle,quaternion){
 	for(var i = 0; i < shape_array.length; i++){		
 		shape_array[i].position.applyQuaternion(quaternion);
 	}	
-}
-
-function attempt_quasiatom_addition_and_return_next_index(ourposition, lowest_unused_index ){
-	var multfactor = 1.147;
-	QC_atoms.geometry.attributes.position.setXYZ(lowest_unused_index, ourposition.x * multfactor, ourposition.y * multfactor, ourposition.z * multfactor );
-	
-	for(var k = 0; k < lowest_unused_index; k++){
-		var separationX = QC_atoms.geometry.attributes.position.array[k*3+0] - ourposition.x;
-		var separationY = QC_atoms.geometry.attributes.position.array[k*3+1] - ourposition.y;
-		var separationZ = QC_atoms.geometry.attributes.position.array[k*3+2] - ourposition.z;
-		
-		if(separationX*separationX+separationY*separationY+separationZ*separationZ < 0.5 ){ //if there's one anywhere near you, we want to overwrite you.
-			return lowest_unused_index;
-		}		
-	}
-	
-	var wavelength = ourposition.lengthSq();
-	wavelength /= 10.9; //apparently as large as we get
-	wavelength *= (781-380);
-	wavelength += 380;
-	if((wavelength >= 380) && (wavelength<440)){
-        QC_atoms.geometry.attributes.color.setXYZ(lowest_unused_index,	-(wavelength - 440) / (440 - 380),	0,	1);
-    }else if((wavelength >= 440) && (wavelength<490)){
-        QC_atoms.geometry.attributes.color.setXYZ(lowest_unused_index,	0,	(wavelength - 440) / (490 - 440),	1);
-    }else if((wavelength >= 490) && (wavelength<510)){
-        QC_atoms.geometry.attributes.color.setXYZ(lowest_unused_index,	0,	1,	-(wavelength - 510) / (510 - 490));
-    }else if((wavelength >= 510) && (wavelength<580)){
-        QC_atoms.geometry.attributes.color.setXYZ(lowest_unused_index,	(wavelength - 510) / (580 - 510),	1,	0);
-    }else if((wavelength >= 580) && (wavelength<645)){
-        QC_atoms.geometry.attributes.color.setXYZ(lowest_unused_index,	1,	-(wavelength - 645) / (645 - 580),	0);
-    }else if((wavelength >= 645) && (wavelength<781)){
-    	QC_atoms.geometry.attributes.color.setXYZ(lowest_unused_index,	1,	0,	0);
-    }else{
-    	QC_atoms.geometry.attributes.color.setXYZ(lowest_unused_index,	0,	0,	0);
-    };
-		
-	return lowest_unused_index + 1; //quasiatom successfully installed!
 }
 
 function update_animationprogress(){
@@ -133,7 +85,6 @@ function update_3DLattice() {
 	if(animation_progress >= allshape_fadeout_start_time && previous_animation_progress < allshape_fadeout_start_time){
 		scene.add(QC_atoms);
 	}
-	
 	
 	if(animation_progress < allshape_fadeout_start_time && previous_animation_progress >= allshape_fadeout_start_time){		
 		scene.remove(QC_atoms);
@@ -232,13 +183,6 @@ function init_cubicLattice_stuff() {
 	slider.position.y = progress_bar.position.y;
 	slider.position.z = 0.01;
 
-	var number_of_QC_atoms = 242;
-	var QC_atoms_geometry = new THREE.BufferGeometry();
-	QC_atoms_geometry.addAttribute( 'position', new THREE.BufferAttribute(new Float32Array(number_of_QC_atoms * 3), 3) );
-	QC_atoms_geometry.addAttribute( 'color', new THREE.BufferAttribute(new Float32Array(number_of_QC_atoms * 3), 3) );
-	QC_atoms = new THREE.Points( QC_atoms_geometry,new THREE.PointsMaterial({size: 0.79,vertexColors: THREE.VertexColors}));
-	QC_atoms.scale.set(2,2,2);
-	
 	normalized_virtualdodeca_vertices[0] = new THREE.Vector3(1,-1,1);
 	normalized_virtualdodeca_vertices[1] = new THREE.Vector3(0,-1/PHI, PHI);
 	normalized_virtualdodeca_vertices[2] = new THREE.Vector3(-1,-1,1);

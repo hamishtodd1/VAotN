@@ -1,6 +1,3 @@
-//you had better be sure that your inputs are con-bloody-vex. Is it enough that defects are right?
-//You could have a function draw red dots in the places that work, will they form a curve or straight lines?
-//So what are limitations that could ensure we always converge? Or indeed that we remain biologically relevant?
 //could limit edge lengths to a minimum size, like jeez, that breaks the angular defects
 //it would be a size minimum based on the size of the longest edge, like you can't be less than about a twentieth of its length - that seems to hold for HIV.
 
@@ -14,8 +11,8 @@
 
 /*
  * Plan:
- * Player can move vertex all they like. When they let go it snaps to the closest lattice vertex
- * When it is determined as being vertex_tobechanged, we start compiling a set of potential snap-to lattice vertices
+ * Player can move vertex all they like, but when they let go it snaps to the closest lattice vertex that works
+ * When it is determined as being vertex_tobechanged, we start putting together a list of potential snap-to lattice vertices
  */
 
 /*
@@ -24,13 +21,12 @@
  * Can you put extra edges in when they press the fold button?
  * Can you squash the edge lengths on the surface when capsid is closed? Probably it wouldn't be contracted that much, the  
  * 
- * Shall we at least see about whether it's true that they can sometimes flip back? It's a fuck of a time investment
+ * Shall we at least see about whether it's true that they can SOMETIMES flip back? It's a fuck of a time investment
  * Would it be hard to check that the combinatorics are what they were?
  * 
  * Can you make anything of the fact that if you're close to a place where you're about to flip, one of the minimum angles will be pi?
  * 
- * certainly, make the vertex move towards where your mouse is slowly.
- * Say it's at p1 and next frame goes to p2, but p2 is bad. Revert to p1 and next frame, try (p1+p2)/2
+ * Could: Say p1 worked and player is now at p2. Try p2. If it doesn't work, next frame move to (p1+p2)/2
  * 
  * Could have the algorithm run a bunch of times on a patch to profile where you can and can't go without flips, from there get an idea of stuff
  * Could have a triangle surrounding your cursor, one corner pointing in the last direction you went in. Work out whether you can go on the corners, flatten a corner if not
@@ -404,10 +400,7 @@ function reset_net(){
 	for(var i = 0; i < net_triangle_vertex_indices.length; i++)
 		alexandrov_triangle_vertex_indices[i] = polyhedron_index(net_triangle_vertex_indices[i]);
 	
-	/* create the delaunay triangulation
-	 * 
-	 * It's just a question of putting 666s in the array and replacing them with the right thing
-	 */
+	//Create the delaunay triangulation
 	
 //	var S = Array(0);
 //	var Markings = Array(polyhedron_edge_length.length);
@@ -477,6 +470,7 @@ function get_cos_of_summed_acoses(cos1,cos2){
 	return cos1*cos2-Math.sqrt(1-cos1*cos1)*Math.sqrt(1-cos2*cos2);
 }
 
+//Get some numbers to test this with.
 function flip(ourindices, l_a,l_b,l_c,l_d, old_edgelen){
 	var violations = check_triangle_inequalities(0);
 	

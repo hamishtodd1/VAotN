@@ -1,3 +1,22 @@
+/*
+ * TODO
+ * make lattice circular (just add a few fake points)
+ * colors
+ * make lattice points little spheres
+ * more comfortable system for showing the pictures. You probably need 3 anyway, along the top or whatever: EM (always b&w)->EM+points->just points
+ */
+function put_picture_in_place(){
+	for(var i = 0; i < picture_objects.length; i++){
+		scene.remove(picture_objects[i]);
+	}
+	
+	var tolerance = 0.01;
+	for(var i = 0; i < viruspicture_scales.length; i++){
+		if(Math.abs(LatticeScale-viruspicture_scales[i]) < tolerance)
+			scene.add(picture_objects[i]);
+	}
+}
+
 function UpdateCapsid() {
 	var oldcapsidopenness = capsidopenness;
 	
@@ -17,8 +36,10 @@ function UpdateCapsid() {
 		capsidopeningspeed = 0;
 	}
 	
-	if( (oldcapsidopenness != 0 && capsidopenness == 0) || (oldcapsidopenness == 0 && capsidopenness != 0 ) )
+//	if( (oldcapsidopenness != 0 && capsidopenness == 0) || (oldcapsidopenness == 0 && capsidopenness != 0 ) )
 		put_picture_in_place();
+	for(var i = 0; i < picture_objects.length; i++)
+		picture_objects[i].material.opacity = 1 - capsidopenness;
 	
 	CK_deduce_surface(capsidopenness, surface_vertices);
 	

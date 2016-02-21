@@ -1,9 +1,7 @@
 /*	
  * Long term To Do
- *  -implement protein models
- *  -faces on quasisphere
- *  -wobbly DNA (?)
- *  -overhaul irreg
+ *  -everything listed in CKsurfacestuff, bocavirus, alexandrov, quasisphere
+ *  -get new form of video in (?)
  *  -your tuned round-off error compensators might be different on different CPUs.
  *  -get a person with a sense of color to look at everything
  *  
@@ -55,6 +53,7 @@ function UpdateWorld() {
 		case FINAL_FORMATION_MODE:
 			update_3DLattice();
 			update_formation_atom();
+			update_Pariacoto();
 	}
 }
 
@@ -131,13 +130,11 @@ function ChangeScene(new_mode) {
 			break;
 			
 		case QC_SPHERE_MODE:
-			for( var i = 0; i < quasicutouts.length; i++)
-				scene.add(quasicutouts[i]);
-			for( var i = 0; i < quasicutouts.length; i++)
-				scene.add(quasicutout_meshes[i]);
+//			for( var i = 0; i < quasicutouts.length; i++)
+//				scene.add(quasicutouts[i]);
 			scene.add(dodeca);
-			scene.add(back_hider);
-			scene.add(stitchup);
+//			scene.add(back_hider);
+//			scene.add(stitchup);
 			scene.add(Guide_quasilattice);
 //			scene.add(quasiquasilattice);
 //			scene.add(stablepointslattice);
