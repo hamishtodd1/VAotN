@@ -30,6 +30,8 @@ function UpdateWorld() {
 
 			Update_net_variables();			
 			Map_lattice();
+			if(logged==2)console.log(surface);
+			logged++;
 			break;
 			
 		case IRREGULAR_MODE:

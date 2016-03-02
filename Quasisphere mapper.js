@@ -1,7 +1,3 @@
-/*
- * TODO look at stable point 5, with the elongated shapes. Should the pent be in there?
- */
-
 function Map_To_Quasisphere() {
 	var lowest_unused_vertex = 0;
 	
@@ -23,12 +19,8 @@ function Map_To_Quasisphere() {
 			  ){/*this is an exception, we just like this vertex*/}
 			else
 				continue;
-			
-			//0,1,5,6
 		}
-		
-		//an exception for stable points 4 and 5?
-		
+
 		//TODO take out the stitchup and line stuff
 		
 		quasicutout_intermediate_vertices[lowest_unused_vertex].copy(quasilattice_default_vertices[i]);
@@ -54,7 +46,6 @@ function Map_To_Quasisphere() {
 		mirror_point_along_base(quasicutout_intermediate_vertices[lowest_unused_vertex-1], right_triangle_cutout_vector, cutout_vector0,lowest_unused_vertex);
 		lowest_unused_vertex++;
 	}
-	logged = 1;
 	
 	var lowest_unused_edgepair = 0;
 	
@@ -178,11 +169,6 @@ function Map_To_Quasisphere() {
 			quasicutouts[i].geometry.attributes.position.array[vertex_index*3+1] = ourvertex.y;
 			quasicutouts[i].geometry.attributes.position.array[vertex_index*3+2] = ourvertex.z;
 			
-//			quasicutouts[i].localToWorld(ourvertex);
-			/*
-			 * So what to do about 
-			 */
-			
 			stitchup.geometry.attributes.position.array[lowest_unused_vertex * i * 3 + vertex_index*3+0] = ourvertex.x;
 			stitchup.geometry.attributes.position.array[lowest_unused_vertex * i * 3 + vertex_index*3+1] = ourvertex.y;
 			stitchup.geometry.attributes.position.array[lowest_unused_vertex * i * 3 + vertex_index*3+2] = ourvertex.z;
@@ -222,6 +208,16 @@ function Map_To_Quasisphere() {
 			quasicutout_meshes[stable_point_of_meshes_currently_in_scene][i].geometry.verticesNeedUpdate = true;
 		}
 	}
+	
+	/* So now we need to go through all the triangles
+	 * And draw rectangles between their adjacent points
+	 * Soooo, for every face edge there are two extra points that need to be put down, both a certain w from the extremities.
+	 * Make sure to spherically project them too, prevent z-fighting!
+	 * So for face f, the indices of the extra points, to be worked out in the mapper, on edge e, will be O + f * 6 + e * 2 + 0 and O + f * 6 + e * 2 + 1
+	 * Where O is the offset, the number of vertices that are in the real corners, which you can find out by looking at that first face's largest index
+	 * Therefore by default, we will connect the actual face corners to those corners. Not hard to set up more indices after the face-generating code.
+	 * How many points will there need to be in quasicutout_meshes? largest_no_of_points + no_of_faces_on_that_mesh * 6 OR largest_no_of_faces * 6 + no_of_points_on_that_mesh
+	 */
 }
 
 function get_vertex_position(local_vertices_components,basis_vectors,ourcenter,radius){

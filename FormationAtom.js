@@ -74,7 +74,6 @@ function initialize_formation_atom(){
 }
 
 function check_requirements(position, place){
-	return 1; //we ain't doing this right now
 	if(position.lengthSq() < 13.7 )
 		return 0;
 	if(position.lengthSq() > 15.6 )

@@ -1,19 +1,20 @@
 /* TODO
- * separate out the "stitchup" again so you can change its opacity
- * 	probably just change opacity on triangles that contain an odd index
- * 	try to rearrange indices so you can have as many triangles in there, touching the points, as possible
  * Is there some way you could change the way you spherically project so that the fat rhombs on the smallest ones aren't so squashed?
  * 
  * Zika virus!
  * How about getting two viruses for every pattern.
  * EM images in top left and bottom left
  * Colored spot images in top right and bottom right
+ * 
+ * Bring back edges
+ * 
+ * Remove stitchup, quasicutouts, and everything that uses them, when you know there's no work left to be done on this.
+ * 
+ * Fix that problem where you can't change while the deflation is occurring. Might be you start within that small non-responsive part?
  */
 
-/*
- * There are times when it'd be kinda nice to have an extra point that is on the lattice but not in the pent
- * But it would be compatible. eg 10 with the pointy hexagons, and those two with the flat heptagons. You would only need that extra pentagon point
- */
+//TODO some corner triangles, because of being triplicated, take longer to fade out
+//TODO make the points on quasiquasilattice larger
 
 /*
  * So what's Konevtsova's logic? He certainly can't argue for that trimer on the corner without a trimer on HPV. He could try to find a virus with no trimer there
@@ -21,10 +22,9 @@
  * The simple thing to say is "edgelengths are all the same, angles are all divisible by TAU/10"
  * If it's that, there may be some proof to do to see if we got everything. There could be very funny shaped topological defects.
  * He claims that there aren't quite trimers on the T=4 and T=3 too! "Idealized", he's full of shit!
- * 
- * His model leaves it open whether
- *
- * Shouldn't there be one allowing for the fat rhomb and pentagon to rest on the top?
+ */
+
+/* Shouldn't there be one allowing for the fat rhomb and pentagon to rest on the top?
  * 
  * Should points on the corners be in?
  */
@@ -66,14 +66,16 @@ function UpdateQuasiSurface(){
 	}
 	//TODO performance hit from the above?
 	
-	dodeca.material.opacity = dodeca_faceflatness; //(dodeca_faceflatness + dodeca_openness) / 2; 
+	dodeca.material.opacity = dodeca_faceflatness; //(dodeca_faceflatness + dodeca_openness) / 2;
+	if(dodeca.material.opacity === 0)
+		scene.remove(dodeca);
+	else
+		scene.add(dodeca)
 	var quasicutout_opacity = 1 - dodeca.material.opacity;
 	
 	for(var i = 0; i < quasicutouts.length; i++)
 		if(i % 11 != 0 || i > 44 ){
 			quasicutouts[i].material.opacity = quasicutout_opacity;
-			for(var j = 0; j < quasicutout_meshes.length; j++)
-				quasicutout_meshes[j][i].material.opacity = quasicutout_opacity;
 		}
 	if(quasicutout_opacity === 0){
 		scene.remove(stitchup);
@@ -93,6 +95,10 @@ function UpdateQuasiSurface(){
 					scene.add(quasicutout_meshes[stable_point_of_meshes_currently_in_scene][i]);
 			}
 	}
+	if(stable_point_of_meshes_currently_in_scene !== 666){
+		//done one, done all
+		quasicutout_meshes[stable_point_of_meshes_currently_in_scene][0].material.materials[1].opacity = quasicutout_opacity;
+	}
 		
 	var stitchupfadeintime_proportionof_facefadeintime = 0.66;
 	stitchup.material.opacity = quasicutout_opacity / stitchupfadeintime_proportionof_facefadeintime 
@@ -107,7 +113,7 @@ function UpdateQuasiSurface(){
 		normalturningspeed *= delta_t;
 		
 		if( !isMouseDown && dodeca_openness === 0) {
-//			dodeca_angle += normalturningspeed;
+			dodeca_angle += normalturningspeed;
 		}
 		else {
 			var dist_from_desired_angle = 666;
@@ -710,21 +716,33 @@ function initialize_QS_stuff() {
 //	stable_points[0] = quasilattice_default_vertices[2].clone(); stable_points[0].add(quasilattice_default_vertices[num_points]); stable_points[0].multiplyScalar(0.5);
 //	stable_points[0] = quasilattice_default_vertices[2].clone(); stable_points[0].add(quasilattice_default_vertices[num_points]); stable_points[0].multiplyScalar(0.5);
 	
+	//TODO change the color of the random rhombus to the color of the wide rhombus, once you have edges in
 	quasicutout_meshes = Array(stable_points.length / 5);
-	var num_quasi_mesh_triangles = 15;
+	var num_quasi_mesh_triangles = 18;
 	var color_selection = Array(num_quasi_mesh_triangles); //actually much less because some triangles are in quads
 	for(var i = 0; i < color_selection.length; i++){
 		if(i==2 || i==4 || i==6 || i==8)
 			color_selection[i] = new THREE.Color(color_selection[i-1].r, color_selection[i-1].g, color_selection[i-1].b );
 		else if( 9 <= i && i <= 13)
 			color_selection[i] = new THREE.Color(color_selection[0].r, color_selection[0].g, color_selection[0].b );
+		else if( i === 14 || i === 15 )
+			color_selection[i] = new THREE.Color(color_selection[1].r, color_selection[1].g, color_selection[1].b );
+		else if( i === 16 || i === 17 )
+			color_selection[i] = new THREE.Color(color_selection[3].r, color_selection[3].g, color_selection[3].b );
 		else
 			color_selection[i] = new THREE.Color(Math.random(), Math.random(), Math.random() );
 	}
+	var QM_materials = Array(2);
+	QM_materials[0] = new THREE.MeshBasicMaterial({vertexColors:THREE.FaceColors});
+	QM_materials[1] = new THREE.MeshBasicMaterial({vertexColors:THREE.FaceColors,transparent: true});
+	var ourmultimaterial = new THREE.MultiMaterial(QM_materials);
 	for(var i = 0; i < quasicutout_meshes.length; i++){
 		quasicutout_meshes[i] = Array(quasicutouts.length);
 		for(var j = 0; j < quasicutout_meshes[i].length; j++){
-			quasicutout_meshes[i][j] = new THREE.Mesh( new THREE.Geometry(), new THREE.MeshBasicMaterial({vertexColors:THREE.FaceColors,transparent: true}) ); //TODO portability problem? Well, we're using a webgl renderer
+			if(j % 11 === 0)
+				quasicutout_meshes[i][j] = new THREE.Mesh( new THREE.Geometry(), ourmultimaterial );
+			else
+				quasicutout_meshes[i][j] = new THREE.Mesh( new THREE.Geometry(), QM_materials[1] );
 			for(var k = 0; k < quasicutouts[j].geometry.attributes.position.array.length / 3; k++ ) //TODO memory save opportunity, and probably speedup: you do NOT need the maximum in all of them!
 				quasicutout_meshes[i][j].geometry.vertices.push(new THREE.Vector3(0,0,0));
 			for(var k = 0; k < num_quasi_mesh_triangles; k++){ //TODO speedup(?): clone
@@ -734,24 +752,31 @@ function initialize_QS_stuff() {
 				
 				//anti clockwise
 				
+				//0 is inner pentagon
+				//1, 2 are inner thin
+				//3,4 are inner fat
+				//5,6 is a rhombus of any kind you like
+				//9-13 is outer pentagon
+				//7, 8 are topological defects
+				
 				if(i===0){
 					if(k===0){	indexA = 2;		indexB = 4;		indexC = 6;		}
 					
 					if(k===1){	indexA = 4;		indexB = 2;		indexC = 3;		}
 					
-					if(k===3){	indexA = 4;		indexB = 3;		indexC = 5;		}
+					if(k===7){	indexA = 4;		indexB = 3;		indexC = 5;		}
 				} else if(i===1){
 					if(k===0){	indexA = 0;		indexB = 2;		indexC = 6;		}
 					
 					if(k===1){	indexA = 2;		indexB = 0;		indexC = 3;		}
 					
-					if(k===3){	indexA = 3;		indexB = 0;		indexC = 1;		}
+					if(k===7){	indexA = 3;		indexB = 0;		indexC = 1;		}
 				} else if(i===2){
 					if(k===0){	indexA = 0;		indexB = 2;		indexC = 6;		}
 					
 					if(k===1){	indexA = 2;		indexB = 0;		indexC = 3;		}
 					
-					if(k===3){	indexA = 3;		indexB = 0;		indexC = 1;		}
+					if(k===7){	indexA = 3;		indexB = 0;		indexC = 1;		}
 				} else if(i===3){
 					if(k===0){	indexA = 24;		indexB = 26;	indexC = 36;	}
 					
@@ -764,13 +789,11 @@ function initialize_QS_stuff() {
 					if(k===5){	indexA = 14;		indexB =  8;	indexC = 32;		}
 					if(k===6){	indexA = 32;		indexB = 15;	indexC = 14;		}
 					
-					if(k===9){	indexA = 18;		indexB = 0;		indexC = 12;		}
-					if(k===10){	indexA = 18;		indexB = 8;		indexC = 0;		}
-					if(k===11){	indexA = 18;		indexB = 32;	indexC = 8;		}
-					if(k===12){	indexA = 20;		indexB = 33;	indexC = 34;		}
-					if(k===13){	indexA = 20;		indexB = 14;	indexC = 33;		}
+					if(k===7){	indexA =  35;		indexB = 34;		indexC = 33;		}
 					
-					if(k===14){	indexA =  35;		indexB = 34;		indexC = 33;		}
+					if(k===9){	indexA = 14;		indexB = 10;	indexC =  2;		}
+					if(k===10){	indexA = 14;		indexB = 34;	indexC = 10;		}
+					if(k===11){	indexA = 14;		indexB = 33;	indexC = 34;		}
 				} else if(i===4){
 					if(k===0){	indexA = 30;		indexB = 32;	indexC = 42;	}
 					
@@ -783,14 +806,14 @@ function initialize_QS_stuff() {
 					if(k===5){	indexA = 14;		indexB =  8;	indexC = 15;		}
 					if(k===6){	indexA = 15;		indexB =  8;	indexC = 21;		}
 					
-					if(k===7){	indexA = 21;		indexB =  8;	indexC = 38;		}
-					if(k===8){	indexA = 40;		indexB = 20;	indexC = 39;		}
+					if(k===7){	indexA = 40;		indexB = 39;	indexC = 41;		}
 					
-					if(k===9){	indexA =  0;		indexB = 38;	indexC = 8;		}
-					if(k===10){	indexA =  0;		indexB = 18;	indexC = 38;		}
-					if(k===11){	indexA =  0;		indexB = 12;	indexC = 18;		}
+					if(k===9){	indexA =  0;		indexB = 12;	indexC = 8;		}
+					if(k===10){	indexA =  8;		indexB = 12;	indexC = 38;		}
+					if(k===11){	indexA = 38;		indexB = 12;	indexC = 18;		}
 					
-					if(k===14){	indexA = 40;		indexB = 39;	indexC = 41;		}
+					if(k===14){	indexA = 21;		indexB =  8;	indexC = 38;		}
+					if(k===15){	indexA = 40;		indexB = 20;	indexC = 39;		}
 					
 					/* without our cheating vertex
 					 * 	if(k===0){	indexA = 24;		indexB = 26;	indexC = 36;	}
@@ -810,17 +833,17 @@ function initialize_QS_stuff() {
 					if(k===3){	indexA = 20;		indexB = 26;	indexC = 0;		}
 					if(k===4){	indexA = 16;		indexB = 2;		indexC = 28;	}
 					
-					if(k===5){	indexA = 26;		indexB = 20;	indexC = 33;	}
-					if(k===6){	indexA = 26;		indexB = 33;	indexC = 27;	}
+					if(k===7){	indexA =  9;		indexB =  6;	indexC =  7;	}
 					
-					if(k===7){	indexA = 33;		indexB = 20;	indexC =  6;	}
-					if(k===8){	indexA = 33;		indexB =  6;	indexC =  9;	}
+					if(k===9){	indexA = 12;		indexB = 24;	indexC = 20;	}
+					if(k===10){	indexA = 24;		indexB =  6;	indexC = 20;		}
+					if(k===11){	indexA = 24;		indexB = 30;	indexC =  6;	}
 					
-					if(k===9){	indexA = 12;		indexB =  6;	indexC = 20;	}
-					if(k===10){	indexA = 12;		indexB = 30;	indexC = 6;		}
-					if(k===11){	indexA = 12;		indexB = 24;	indexC = 30;	}
+					if(k===14){	indexA = 26;		indexB = 20;	indexC = 33;	}
+					if(k===15){	indexA = 26;		indexB = 33;	indexC = 27;	}
 					
-					if(k===12){	indexA =  9;		indexB =  6;	indexC =  7;	}
+					if(k===16){	indexA = 33;		indexB = 20;	indexC =  6;	}
+					if(k===17){	indexA = 33;		indexB =  6;	indexC =  9;	}
 					
 					/* without cheat
 					if(k===0){	indexA = 4;			indexB = 36;	indexC = 2;		}
@@ -845,11 +868,9 @@ function initialize_QS_stuff() {
 					
 					if(k===7){	indexA = 9;			indexB =  6;	indexC = 7;		}
 
-					if(k===9){	indexA = 32;		indexB = 14;	indexC = 26;	}
-					if(k===10){	indexA = 32;		indexB = 22;	indexC = 14;		}
-					if(k===11){	indexA = 32;		indexB = 8;		indexC = 22;		}
-					if(k===12){	indexA = 32;		indexB = 27;	indexC = 8;		}
-					if(k===13){	indexA = 32;		indexB = 26;	indexC = 27;		}
+					if(k===9){	indexA = 22;		indexB = 14;	indexC = 26;	}
+					if(k===10){	indexA = 22;		indexB = 26;	indexC =  8;	}
+					if(k===11){	indexA = 26;		indexB = 27;	indexC =  8;	}
 				} else if(i===7){
 					if(k===0){	indexA = 2;			indexB = 60;	indexC = 0;			}
 					
@@ -871,7 +892,7 @@ function initialize_QS_stuff() {
 					if(k===12){	indexA = 42;		indexB = 12;	indexC = 24;		}
 					if(k===13){	indexA = 42;		indexB = 24;	indexC = 36;		}
 					
-					if(k===14){	indexA = 36;		indexB = 24;	indexC = 30;		}
+					if(k===16){	indexA = 36;		indexB = 24;	indexC = 30;		}
 				} else if(i===8){
 					if(k===0){	indexA = 6;			indexB = 8;		indexC = 12;		}
 					
@@ -880,7 +901,7 @@ function initialize_QS_stuff() {
 					
 					if(k===3){	indexA = 8;			indexB = 3;		indexC = 2;		}
 					
-					if(k===5){	indexA = 3;			indexB = 0;		indexC = 1;		}
+					if(k===7){	indexA = 3;			indexB = 0;		indexC = 1;		}
 				} else if(i===9){
 					if(k===0){	indexA = 6;			indexB = 8;		indexC = 18;	}
 					
@@ -902,8 +923,8 @@ function initialize_QS_stuff() {
 					if(k===3){	indexA = 20;		indexB = 8;		indexC = 2;		}
 					if(k===4){	indexA = 2;			indexB = 8;		indexC = 9;		}
 					
-					if(k===5){	indexA =  10;		indexB =  9;	indexC = 11;	}
-					if(k===6){	indexA =  10;		indexB =  2;	indexC = 9;		}
+					if(k===7){	indexA =  10;		indexB =  9;	indexC = 11;	}
+					if(k===8){	indexA =  10;		indexB =  2;	indexC = 9;		}
 				} else if(i===11){
 					if(k===0){	indexA = 0;			indexB = 2; 	indexC = 48;	}
 					
@@ -913,11 +934,10 @@ function initialize_QS_stuff() {
 					if(k===3){	indexA = 2;			indexB = 22;	indexC = 16;		}
 					if(k===4){	indexA = 12;		indexB = 18;	indexC = 24;		}
 					
-					if(k===9){	indexA = 30;		indexB = 12;	indexC = 24;	}
-					if(k===10){	indexA = 30;		indexB = 20;	indexC = 12;	}
-					if(k===11){	indexA = 30;		indexB = 44;	indexC = 20;	}
-					if(k===12){	indexA = 32;		indexB = 21;	indexC = 46;	}
-					if(k===13){	indexA = 32;		indexB = 26;	indexC = 21;	}
+					if(k===9){	indexA = 26;		indexB = 22;	indexC = 14;	}
+					if(k===10){	indexA = 26;		indexB = 46;	indexC = 22;	}
+					
+					if(k===11){	indexA = 28;		indexB = 22;	indexC = 46;	}
 				} else if(i===12){
 					if(k===0){	indexA = 6;			indexB = 8; 	indexC = 30;	}
 					
@@ -927,8 +947,8 @@ function initialize_QS_stuff() {
 					if(k===3){	indexA = 14;		indexB = 6;		indexC = 0;		}
 					if(k===4){	indexA = 20;		indexB = 14;	indexC = 0;		}
 					
-					if(k===5){	indexA = 14;		indexB = 20;	indexC = 2;		}
-					if(k===6){	indexA = 2;			indexB = 20;	indexC = 21;	}
+					if(k===9){	indexA = 14;		indexB = 20;	indexC = 2;		}
+					if(k===10){	indexA = 2;			indexB = 20;	indexC = 21;	}
 					
 					if(k===7){	indexA = 20;		indexB =  0;	indexC =  3;	}
 					if(k===8){	indexA = 3;			indexB =  0;	indexC =  1;	}
@@ -941,8 +961,8 @@ function initialize_QS_stuff() {
 					if(k===3){	indexA = 20;		indexB = 8;		indexC = 2;		}
 					if(k===4){	indexA = 2;			indexB = 8;		indexC = 9;		}
 					
-					if(k===5){	indexA = 0;			indexB = 1;		indexC = 3;		}
-					if(k===6){	indexA = 0;			indexB = 3;		indexC = 8;		}
+					if(k===7){	indexA = 0;			indexB = 1;		indexC = 3;		}
+					if(k===8){	indexA = 0;			indexB = 3;		indexC = 8;		}
 				} else if(i===14){
 					if(k===0){	indexA = 12;		indexB = 14;	indexC = 30;	}
 
@@ -952,14 +972,12 @@ function initialize_QS_stuff() {
 					if(k===3){	indexA = 14;		indexB = 2;		indexC = 22;	}
 					if(k===4){	indexA = 22;		indexB = 2;		indexC = 8;		}
 					
-					if(k===9){	indexA = 28;		indexB = 22;	indexC = 8;		}
-					if(k===10){	indexA = 28;		indexB = 4;		indexC = 22;	}
-					if(k===11){	indexA = 26;		indexB = 3;		indexC = 2;		}
-					if(k===12){	indexA = 26;		indexB = 9;		indexC = 3;		}
-					if(k===13){	indexA = 26;		indexB = 6;		indexC = 9;		}
+					if(k===7){	indexA =  6;		indexB = 7;		indexC = 9;	}
 					
-					if(k===14){	indexA =  6;		indexB = 7;		indexC = 9;	}
-				} else if(i===15){
+					if(k===9){	indexA =  6;		indexB =  2;	indexC = 20;	}
+					if(k===10){	indexA =  6;		indexB =  3;	indexC =  2;	}
+					if(k===11){	indexA =  6;		indexB =  9;	indexC =  3;	}
+				} else if(i===15){ 
 					if(k===0){	indexA = 12;		indexB = 14;	indexC = 30;	}
 
 					if(k===1){	indexA = 14;		indexB = 12;	indexC = 20;	}
@@ -968,12 +986,12 @@ function initialize_QS_stuff() {
 					if(k===3){	indexA = 12;		indexB = 0;		indexC = 20;	}
 					if(k===4){	indexA = 20;		indexB = 0;		indexC = 6;		}
 					
-					if(k===5){	indexA = 20;		indexB = 6;		indexC = 2;	}
-					if(k===6){	indexA = 2;			indexB = 6;		indexC = 9;		}
+					if(k===9){	indexA = 20;		indexB = 6;		indexC = 2;	}
+					if(k===10){	indexA = 2;			indexB = 6;		indexC = 9;		}
 					
-					if(k===7){	indexA = 9;			indexB = 8;		indexC = 2;		}
+					if(k===7){	indexA = 6;			indexB = 7;		indexC = 9;		}
 					
-					if(k===14){	indexA = 6;			indexB = 7;		indexC = 9;		}
+					if(k===14){	indexA = 9;			indexB = 8;		indexC = 2;		}
 				} else if(i===16){
 					if(k===0){	indexA = 6;			indexB = 8; 	indexC = 30;	}
 					
@@ -983,8 +1001,8 @@ function initialize_QS_stuff() {
 					if(k===3){	indexA = 14;		indexB = 6;		indexC = 0;		}
 					if(k===4){	indexA = 20;		indexB = 14;	indexC = 0;		}
 					
-					if(k===5){	indexA = 14;		indexB = 20;	indexC = 2;		}
-					if(k===6){	indexA = 2;			indexB = 20;	indexC = 21;	}
+					if(k===9){	indexA = 14;		indexB = 20;	indexC = 2;		}
+					if(k===10){	indexA = 2;			indexB = 20;	indexC = 21;	}
 					
 					if(k===7){	indexA = 22;		indexB = 21;	indexC = 23;	}
 					if(k===8){	indexA = 21;		indexB = 22;	indexC =  2;	}
@@ -997,8 +1015,8 @@ function initialize_QS_stuff() {
 					if(k===3){	indexA = 12;		indexB = 0;		indexC = 20;	}
 					if(k===4){	indexA = 20;		indexB = 0;		indexC = 26;	}
 					
-					if(k===5){	indexA = 2;			indexB = 20;	indexC = 26;	}
-					if(k===6){	indexA = 2;			indexB = 26;	indexC = 27;	}
+					if(k===9){	indexA = 2;			indexB = 20;	indexC = 26;	}
+					if(k===10){	indexA = 2;			indexB = 26;	indexC = 27;	}
 					
 					if(k===7){	indexA = 28;		indexB = 27;	indexC = 29;	}
 					if(k===8){	indexA = 28;		indexB =  2;	indexC = 27;	}
@@ -1011,10 +1029,7 @@ function initialize_QS_stuff() {
 					if(k===3){	indexA = 12;		indexB = 0;		indexC = 6;		}
 					if(k===4){	indexA = 24;		indexB = 6;		indexC = 0;		}
 					
-					if(k===5){	indexA = 0;			indexB = 0;		indexC = 0;		}
-					if(k===6){	indexA = 0;			indexB = 0;		indexC = 0;		}
-					
-					if(k===7){	indexA = 8;			indexB = 15;	indexC = 14;		}
+					if(k===5){	indexA = 8;			indexB = 15;	indexC = 14;		}
 					
 					if(k===9){	indexA = 18;		indexB = 0;		indexC = 12;		}
 					if(k===10){	indexA = 18;		indexB = 8;		indexC = 0;		}
@@ -1031,14 +1046,14 @@ function initialize_QS_stuff() {
 					if(k===5){	indexA = 32;		indexB = 0;		indexC = 18;	}
 					if(k===6){	indexA = 18;		indexB = 6;		indexC = 32;	}
 					
-					if(k===7){	indexA = 32;		indexB = 6;		indexC = 21;	}
-					if(k===8){	indexA = 6;			indexB = 9;		indexC = 21;	}
+					if(k===7){	indexA = 6;			indexB = 7;		indexC = 9;	}
 					
-					if(k===9){	indexA = 20;		indexB = 2;		indexC = 26;	}
-					if(k===10){	indexA = 20;		indexB = 26;	indexC = 21;	}
-					if(k===11){	indexA = 21;		indexB = 26;	indexC = 32;	}
+					if(k===9){	indexA = 32;		indexB =  2;	indexC = 26;	}
+					if(k===10){	indexA = 32;		indexB = 20;	indexC =  2;	}
+					if(k===11){	indexA = 32;		indexB = 21;	indexC = 20;	}
 					
-					if(k===14){	indexA = 6;			indexB = 7;		indexC = 9;	}
+					if(k===16){	indexA = 32;		indexB = 6;		indexC = 21;	}
+					if(k===17){	indexA = 6;			indexB = 9;		indexC = 21;	}
 				} else if(i===20){
 					if(k===0){	indexA = 12;		indexB = 14; 	indexC = 42;	}
 
@@ -1051,14 +1066,14 @@ function initialize_QS_stuff() {
 					if(k===5){	indexA =  6;		indexB =  0;	indexC = 18;	}
 					if(k===6){	indexA = 20;		indexB = 21;	indexC =  8;	}
 					
-					if(k===7){	indexA =  8;		indexB = 21;	indexC = 34;	}
-					if(k===8){	indexA = 34;		indexB = 21;	indexC = 33;	}
+					if(k===7){	indexA = 34;		indexB = 33;	indexC = 35;	}
 					
 					if(k===9){	indexA = 26;		indexB = 20;	indexC = 2;		}
 					if(k===10){	indexA = 26;		indexB = 32;	indexC = 20;	}
 					if(k===11){	indexA = 26;		indexB = 6;		indexC = 32;	}
 					
-					if(k===14){	indexA = 34;		indexB = 33;	indexC = 35;	}
+					if(k===16){	indexA =  8;		indexB = 21;	indexC = 34;	}
+					if(k===17){	indexA = 34;		indexB = 21;	indexC = 33;	}
 				} else if(i===21){
 					if(k===0){	indexA = 30;		indexB = 32; 	indexC = 48;	}
 
@@ -1068,17 +1083,17 @@ function initialize_QS_stuff() {
 					if(k===3){	indexA =  6;		indexB =  0;	indexC = 30;	}
 					if(k===4){	indexA = 12;		indexB =  0;	indexC = 6;		}
 					
-					if(k===5){	indexA = 18;		indexB = 21;	indexC = 38;	}
-					if(k===6){	indexA = 20;		indexB = 14;	indexC = 39;	}
-					
-					if(k===7){	indexA =  8;		indexB = 38;	indexC = 14;	}
-					if(k===8){	indexA = 14;		indexB = 38;	indexC = 39;	}
+					if(k===5){	indexA =  8;		indexB = 38;	indexC = 14;	}
+					if(k===6){	indexA = 14;		indexB = 38;	indexC = 39;	}
+					 
+					if(k===7){	indexA = 18;		indexB = 19;	indexC = 21;	}
 					
 					if(k===9){	indexA =  0;		indexB = 38;	indexC =  8;	}
 					if(k===10){	indexA =  0;		indexB = 18;	indexC = 38;	}
 					if(k===11){	indexA =  0;		indexB = 12;	indexC = 18;	}
-					 
-					if(k===14){	indexA = 18;		indexB = 19;	indexC = 21;	}
+					
+					if(k===14){	indexA = 18;		indexB = 21;	indexC = 38;	}
+					if(k===15){	indexA = 20;		indexB = 14;	indexC = 39;	}
 				} else if(i===22){
 					if(k===0){	indexA = 12;		indexB = 14; 	indexC = 42;	}
 
@@ -1100,13 +1115,27 @@ function initialize_QS_stuff() {
 
 					if(k===14){	indexA = 21;		indexB =  2;	indexC = 20;	}
 				}
-				//TODO: fill in everything, including corners.
 				
+				if(j%11 === 0){ //one of the ones that may stay on
+					var ourmaterialindex;
+					if(indexA % 2 === 1 || indexB % 2 === 1 || indexC % 2 === 1 )
+						ourmaterialindex = 1;
+					else
+						ourmaterialindex = 0;
+					quasicutout_meshes[i][j].geometry.faces.push( new THREE.Face3(
+						indexA,indexB,indexC,
+	 					new THREE.Vector3(1,0,0), //Face normal; unused
+	 					color_selection[k],
+	 					ourmaterialindex ) );
+				}
+				else{
+					quasicutout_meshes[i][j].geometry.faces.push( new THREE.Face3(
+						indexA,indexB,indexC,
+	 					new THREE.Vector3(1,0,0), //Face normal; unused
+	 					color_selection[k] ) );
+				}
 
-				quasicutout_meshes[i][j].geometry.faces.push( new THREE.Face3(
-					indexA,indexB,indexC,
- 					new THREE.Vector3(1,0,0), //Face normal; unused
- 					color_selection[k] ) ); //TODO spectrum
+				 //TODO spectrum
 			}
 		}
 	}

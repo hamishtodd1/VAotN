@@ -1,13 +1,14 @@
 /* TODO
  * pieces come in
  * points are highlighted (flash and others fade) to indicate associations: 
- * 	blue and green for DNA, 
- * 	purple for all proteins
- * 	orange for Ps
+ * 	blue and green for DNA, (green??!!)
+ * 	purple, orange for all proteins
  * 	yellow (and orange and green?) for Ds and Ls
  * colors
  * points are spheres
  * order? obv DNA, but P D or L next?
+ * 
+ * have a color scheme on the Ls and Ds that makes it clear that this is a football.
  */
 
 var Paria_models = Array(4); //DNA, pentamers, Dextros, Laevos
@@ -16,10 +17,10 @@ var Paria_vertex_offsets;
 var paria_animation_progress = 0;
 
 function init_pariacoto(){
-	Paria_models[0] = new THREE.Mesh(new THREE.BufferGeometry, new THREE.MeshLambertMaterial({color:0xF6F0D8,transparent:true}) ); //DNA
-	Paria_models[1] = new THREE.Mesh(new THREE.BufferGeometry, new THREE.MeshLambertMaterial({color:0xBBC7DC,transparent:true}) ); //Pentamers
-	Paria_models[2] = new THREE.Mesh(new THREE.BufferGeometry, new THREE.MeshLambertMaterial({color:0xB5D5BF,transparent:true}) ); //Dextros
-	Paria_models[3] = new THREE.Mesh(new THREE.BufferGeometry, new THREE.MeshLambertMaterial({color:0xF2D4D7,transparent:true}) ); //Laevos
+	Paria_models[0] = new THREE.Mesh(new THREE.BufferGeometry, new THREE.MeshLambertMaterial({color:0xF6F0D8,transparent:false}) ); //DNA
+	Paria_models[1] = new THREE.Mesh(new THREE.BufferGeometry, new THREE.MeshLambertMaterial({color:0xBBC7DC,transparent:false}) ); //Pentamers
+	Paria_models[2] = new THREE.Mesh(new THREE.BufferGeometry, new THREE.MeshLambertMaterial({color:0xB5D5BF,transparent:false}) ); //Dextros
+	Paria_models[3] = new THREE.Mesh(new THREE.BufferGeometry, new THREE.MeshLambertMaterial({color:0xF2D4D7,transparent:false}) ); //Laevos
 	
 	Paria_models[0].geometry.addAttribute('position',new THREE.BufferAttribute( Pariacoto_DNAs_vertices, 3 ));
 	Paria_models[0].geometry.setIndex(new THREE.BufferAttribute( Pariacoto_DNAs_faces, 1 ));

@@ -157,17 +157,17 @@ function generate_QCatom_locations(){
 //			}
 //			offset += dgverts.length;
 			
-			for(var i = 0; i < overts.length; i++) {
-				QCatom_positions[offset + i] = overts[i].clone();
-				QC_atoms.geometry.attributes.color.setXYZ(offset+i,236/256,113/256,38/256);
-			}
-			offset += overts.length;
-			
 			for(var i = 0; i < pverts.length; i++) {
 				QCatom_positions[offset + i] = pverts[i].clone();
 				QC_atoms.geometry.attributes.color.setXYZ(offset+i,149/256,91/256,173/256);
 			}
 			offset += pverts.length;
+			
+			for(var i = 0; i < overts.length; i++) {
+				QCatom_positions[offset + i] = overts[i].clone();
+				QC_atoms.geometry.attributes.color.setXYZ(offset+i,236/256,113/256,38/256);
+			}
+			offset += overts.length;
 			
 			for(var i = 0; i < bverts.length; i++) {
 				QCatom_positions[offset + i] = bverts[i].clone();
