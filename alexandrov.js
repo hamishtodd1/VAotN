@@ -1,18 +1,54 @@
-//could limit edge lengths to a minimum size, like jeez, that breaks the angular defects
-//it would be a size minimum based on the size of the longest edge, like you can't be less than about a twentieth of its length - that seems to hold for HIV.
+//Might be nice to have pictures of the irregular viruses that people can click on?
 
-//TODO You could graph number of step size reductions over a run. Major tweakables are stepsizemax, initial radii, and newton solver accuracy.
+/* Do you really want the lattice?
+ * 	-it makes it seem less like a material people use every day
+ * 
+ * but it does help justify the snappings. Not that much though
+ * it was meant to be the whole point. There is an argument for not compromising to people.
+ * Is it more realistic? Moot point
+ * 
+ * You do want that "drag against the limit of triangle" thing, because people randomly moving it around do make it go places fast
+ */
 
-//TODO frame-stagger. Notes on that:
-//Possibly, the only thing that is important in terms of preserving the illusion is that the angles be strictly decreasing.
-//Perhaps find some way to relate the angle that is used to epsilon and openness in a way that makes it so they're strictly decreasing?
-//or, only write to those dihedral angles that are less than what they were in the previous frame (which may be dependent on openness)
-//It's taking on the order of 300 steps. That can almost certainly be reduced by tweaking what you can tweak. But you can't have one step per frame if it's too many.
-
-/*
+/*  Newest plan:
+ * 
+ * Maybe we should have one exploration point to the left, one to the right? 
+ * 
+ * Hey, was it able to converge for every non flipper?
+ * 
+ * Note that you don't move that far in a given frame. So the first time you move out of the zone, you are probably close, no shape weirdness. It's just after that
+ * 
+ * When you press the button, it switches in the REAL surface
+ * 
+ * How about you jump towards it in previously-decided-on-size steps, based on. You know what the straight line would be.
+ * 
+ * Since the vertex will be springing back and forth, you probably have quite a few evaluations. Though as soon as the button is pressed or another vertex is grabbed, you're done
+ * 
+ * 
  * Plan:
  * Player can move vertex all they like, but when they let go it snaps to the closest lattice vertex that works
  * When it is determined as being vertex_tobechanged, we start putting together a list of potential snap-to lattice vertices
+ * 
+ * Alternative:
+ * for the vertex you're holding, have "last_good_position" and call the player's position the "desired_position"
+ * if its desired_position is good, that becomes last_good_position.
+ * if its desired_position is bad
+ *   compromise_position = ( desired_position + last_good_position ) / 2;
+ * Then in the next frame
+ *   if compromise_position is good,
+ *   	last_good_position = compromise_position
+ *   	compromise_position = ( compromise_position + desired_position ) / 2;
+ *   else
+ *   	compromise_position = ( compromise_position + last_good_position ) / 2;
+ *   
+ * These things can be weird 2D shapes though. What if there's a 
+ *   
+ * When the vertex isn't held, it goes slowly-ish back to last_good_position. Probably good to have it be springy, like it can overshoot, but be attracted back
+ * So probably
+ *   
+ * Like, this is analysis. May want to ask someone about that, although what can you do without a derivative?
+ * 
+ * this doesn't stagger so well
  */
 
 /*
@@ -38,9 +74,19 @@
  * Simplicity is more important than completeness. It was never a good idea to try to implement that unfold-differently thing.
  * 
  * Many of these options would be made easier by speeding up the algorithm, which you need to do anyway.
+ * 
+ * could limit edge lengths to a minimum size, like jeez, that breaks the angular defects
+ * it would be a size minimum based on the size of the longest edge, like you can't be less than about a twentieth of its length - that seems to hold for HIV.
  */
 
+/*	TODO frame-stagger. Notes on that:
+	Possibly, the only thing that is important in terms of preserving the illusion is that the angles be strictly decreasing.
+	Perhaps find some way to relate the angle that is used to epsilon and openness in a way that makes it so they're strictly decreasing?
+	or, only write to those dihedral angles that are less than what they were in the previous frame (which may be dependent on openness)
+	It's taking on the order of 300 steps. That can almost certainly be reduced by tweaking what you can tweak. But you can't have one step per frame if it's too many.
+*/
 
+//TODO You could graph number of step size reductions over a run. Major tweakables are stepsizemax, initial radii, and newton solver accuracy.
 
 function polyhedron_index(i) {
 	if(i<2)	   return i; //the two in the central crack
@@ -54,7 +100,7 @@ function polyhedron_index(i) {
 	if( i % 4 === 1) return 11;
 }
 
-function correct_minimum_angles() {
+function correct_minimum_angles(vertices_buffer_array) {
 	/*
 	 * So you actually need to first check whether the triangulation is delaunay. Yo, that might be enough to make sure the algorithm always converges
 	 * The thing that is seen may become convex.
@@ -62,7 +108,7 @@ function correct_minimum_angles() {
 	
 	var this_all_takes_place_in_one_frame = true;
 	
-	if(this_all_takes_place_in_one_frame) reset_net();
+	if(this_all_takes_place_in_one_frame) reset_net(vertices_buffer_array);
 	else console.log( "No, you need to reset the net");
 	
 	var stepsizemax = 0.75;
@@ -239,6 +285,7 @@ function print_ATVIs(){
 function get_curvatures(input_radii, failure_is_acceptable) {
 	var curvature_array = new Float32Array([-TAU,-TAU,-TAU,-TAU,-TAU,-TAU,-TAU,-TAU,-TAU,-TAU,-TAU,-TAU]);
 	for( var i = 0; i < 12; i++) {
+		var report_array = Array(5);
 		for( var j = 0; j < 12; j++) {
 			if(polyhedron_edge_length[i][j] === 666 )
 				continue;
@@ -252,9 +299,14 @@ function get_curvatures(input_radii, failure_is_acceptable) {
 
 			var cos_omega_ijk = ( cos_gamma_ijk - cos_rho_ij * cos_rho_ik ) / sin_rho_ij_TIMES_sin_rho_ik;
 			
-			curvature_array[i] += Math.acos(cos_omega_ijk);
+			if( cos_omega_ijk < -1)
+				curvature_array[i] += Math.PI;
+			else if( cos_omega_ijk < 1) //and if more than 1 (well slightly more anyway) then we're adding 0.
+				curvature_array[i] += Math.acos(cos_omega_ijk);
+			if(cos_omega_ijk > 1 || cos_omega_ijk < -1)
+				{report_array[0] = cos_gamma_ijk; report_array[1] = cos_rho_ij; report_array[2] = cos_rho_ik; report_array[3] = sin_rho_ij_TIMES_sin_rho_ik; report_array[4] = cos_omega_ijk;}
 			
-			if(!failure_is_acceptable && isNaN(Math.acos(cos_omega_ijk))){
+			if(!failure_is_acceptable && isNaN(Math.acos(cos_omega_ijk))){ //TODO remove from final thing
 				if(cos_gamma_ijk < -1 || 1 < cos_gamma_ijk){
 						if( polyhedron_edge_length[j][k] > polyhedron_edge_length[i][j] + polyhedron_edge_length[k][i]
 						 || polyhedron_edge_length[j][i] > polyhedron_edge_length[k][j] + polyhedron_edge_length[k][i]
@@ -276,8 +328,11 @@ function get_curvatures(input_radii, failure_is_acceptable) {
 			}
 		}
 		if(isNaN(curvature_array[i])) {
-			if(!failure_is_acceptable) 
+			if(!failure_is_acceptable) {
+				//this is probably just a "don't allow this" situation. How is it getting through other checks though?
 				console.error("crazy curvature");
+				console.log(report_array)
+			}
 			return 666;
 		}
 		curvature_array[i] *= -1;
@@ -381,7 +436,7 @@ function quadrance(vector_values) {
 }
 
 
-function reset_net(){
+function reset_net(vertices_buffer_array){
 	for(var i = 0; i< radii.length; i++)
 		radii[i] = 100;
 	for(var i = 0; i < polyhedron_edge_length.length; i++)
@@ -392,8 +447,8 @@ function reset_net(){
 			var a_index = polyhedron_index(net_triangle_vertex_indices[i*3 + j]);
 			var b_index = polyhedron_index(net_triangle_vertex_indices[i*3 + (j+1)%3]);
 			
-			polyhedron_edge_length[a_index][b_index] = Math.sqrt( Square(flatnet_vertices.array[3*net_triangle_vertex_indices[i*3 + j]  ]-flatnet_vertices.array[3*net_triangle_vertex_indices[i*3 + (j+1)%3]  ])
-																+ Square(flatnet_vertices.array[3*net_triangle_vertex_indices[i*3 + j]+1]-flatnet_vertices.array[3*net_triangle_vertex_indices[i*3 + (j+1)%3]+1]) );
+			polyhedron_edge_length[a_index][b_index] = Math.sqrt( Square(vertices_buffer_array[3*net_triangle_vertex_indices[i*3 + j]  ]-vertices_buffer_array[3*net_triangle_vertex_indices[i*3 + (j+1)%3]  ])
+																+ Square(vertices_buffer_array[3*net_triangle_vertex_indices[i*3 + j]+1]-vertices_buffer_array[3*net_triangle_vertex_indices[i*3 + (j+1)%3]+1]) );
 			polyhedron_edge_length[b_index][a_index] = polyhedron_edge_length[a_index][b_index]; 
 		}
 	}

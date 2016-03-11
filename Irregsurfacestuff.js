@@ -73,30 +73,44 @@ function irreg_deduce_surface(openness ){
 	deduce_most_of_surface(openness, varyingsurface.geometry.attributes.position);
 }
 
-function CheckButton() {
-	var mouse_dist_from_buttoncenter = Math.sqrt( (Button.position.x-MousePosition.x) * (Button.position.x-MousePosition.x) + (Button.position.y-MousePosition.y) * (Button.position.y-MousePosition.y) );  
+function CheckButton(index) {
+	var mouse_dist_from_buttoncenter = Math.sqrt( (Button[index].position.x-MousePosition.x) * (Button[index].position.x-MousePosition.x) + (Button[index].position.y-MousePosition.y) * (Button[index].position.y-MousePosition.y) );  
 	if( mouse_dist_from_buttoncenter < 0.3){
-		if( isMouseDown && !isMouseDown_previously ){
-			if(varyingsurface_openmode === true){
-				varyingsurface_openmode = false;
+		if(isMouseDown){
+			Button[index].scale.x = 0.8;
+			Button[index].scale.y = 0.8;
+			Button[index].scale.z = 0.8;
+		}
+		
+		if( !isMouseDown && isMouseDown_previously ){ //they might not necessarily have been over the button in the previous frame, but eh.
+			if(Button[index].ourboolean === true){
+				Button[index].ourboolean = false;
 			} else {
-				varyingsurface_openmode = true;
+				Button[index].ourboolean = true;
+				if(index==VARYINGSURFACE_OPENMODE_BUTTON)
+					settle_manipulationsurface_and_flatnet();
 			}
 		}
 	}
+
+	if(!isMouseDown || mouse_dist_from_buttoncenter >= 0.3 ){
+		Button[index].scale.x = 1;
+		Button[index].scale.y = 1;
+		Button[index].scale.z = 1;
+	}
 	
-	if(varyingsurface_openmode){
-		Button.material.color.r = 0;
-		Button.material.color.g = 1;
+	if(Button[index].ourboolean){
+		Button[index].material.color.r = 0;
+		Button[index].material.color.g = 1;
 	}
 	else{
-		Button.material.color.r = 1;
-		Button.material.color.g = 0;
+		Button[index].material.color.r = 1;
+		Button[index].material.color.g = 0;
 	}
 }
 
 function update_varyingsurface() {
-	if(varyingsurface_openmode)
+	if(Button[VARYINGSURFACE_OPENMODE_BUTTON].ourboolean)
 		capsidopeningspeed = 0.018;
 	else
 		capsidopeningspeed = -0.018;
@@ -112,13 +126,21 @@ function update_varyingsurface() {
 		capsidopeningspeed = 0;
 	}
 	
+	if( capsidopenness == 1){
+		scene.add(manipulation_surface);
+		scene.remove(varyingsurface);
+	}
+	else {
+		scene.add(varyingsurface);
+		scene.remove(manipulation_surface);
+	}
+
 	irreg_deduce_surface(capsidopenness, varyingsurface.geometry.attributes.position);
 	
 	//we rotate by a quaternion if user moves
 	if(capsidopenness == 0 ){
 		//we do mouse movement thing
-		var mouse_dist_from_buttoncenter = Math.sqrt( (Button.position.x-MousePosition.x) * (Button.position.x-MousePosition.x) + (Button.position.y-MousePosition.y) * (Button.position.y-MousePosition.y) );  
-		if( mouse_dist_from_buttoncenter >= 0.3 && isMouseDown) {			
+		if( isMouseDown) {			
 			var MovementAxis = new THREE.Vector3(-Mouse_delta.y, Mouse_delta.x, 0);
 			MovementAxis.normalize();
 			
@@ -150,14 +172,26 @@ function update_varyingsurface() {
 		var Aindex = surfperimeter_line_index_pairs[i*2];
 		var Bindex = surfperimeter_line_index_pairs[i*2+1];
 		
-		A = new THREE.Vector3(
-				varyingsurface.geometry.attributes.position.array[Aindex*3+0],
-				varyingsurface.geometry.attributes.position.array[Aindex*3+1],
-				varyingsurface.geometry.attributes.position.array[Aindex*3+2]);
-		B = new THREE.Vector3(
-				varyingsurface.geometry.attributes.position.array[Bindex*3+0],
-				varyingsurface.geometry.attributes.position.array[Bindex*3+1],
-				varyingsurface.geometry.attributes.position.array[Bindex*3+2]);
+		if(capsidopenness === 1 ){
+			A = new THREE.Vector3(
+					manipulation_surface.geometry.attributes.position.array[Aindex*3+0],
+					manipulation_surface.geometry.attributes.position.array[Aindex*3+1],
+					manipulation_surface.geometry.attributes.position.array[Aindex*3+2]);
+			B = new THREE.Vector3(
+					manipulation_surface.geometry.attributes.position.array[Bindex*3+0],
+					manipulation_surface.geometry.attributes.position.array[Bindex*3+1],
+					manipulation_surface.geometry.attributes.position.array[Bindex*3+2]);
+		}
+		else{
+			A = new THREE.Vector3(
+					varyingsurface.geometry.attributes.position.array[Aindex*3+0],
+					varyingsurface.geometry.attributes.position.array[Aindex*3+1],
+					varyingsurface.geometry.attributes.position.array[Aindex*3+2]);
+			B = new THREE.Vector3(
+					varyingsurface.geometry.attributes.position.array[Bindex*3+0],
+					varyingsurface.geometry.attributes.position.array[Bindex*3+1],
+					varyingsurface.geometry.attributes.position.array[Bindex*3+2]);
+		}
 		
 		surfperimeter_spheres[i].position.copy(A);
 		
@@ -168,14 +202,26 @@ function update_varyingsurface() {
 		var Aindex = surfinterior_line_index_pairs[i*2];
 		var Bindex = surfinterior_line_index_pairs[i*2+1];
 		
-		A = new THREE.Vector3(
-				varyingsurface.geometry.attributes.position.array[Aindex*3+0],
-				varyingsurface.geometry.attributes.position.array[Aindex*3+1],
-				varyingsurface.geometry.attributes.position.array[Aindex*3+2]);
-		B = new THREE.Vector3(
-				varyingsurface.geometry.attributes.position.array[Bindex*3+0],
-				varyingsurface.geometry.attributes.position.array[Bindex*3+1],
-				varyingsurface.geometry.attributes.position.array[Bindex*3+2]);
+		if(capsidopenness === 1 ){
+			A = new THREE.Vector3( //TODO when you're level there appears to be a divide by zero or something and the cylinder disappears
+					manipulation_surface.geometry.attributes.position.array[Aindex*3+0],
+					manipulation_surface.geometry.attributes.position.array[Aindex*3+1],
+					manipulation_surface.geometry.attributes.position.array[Aindex*3+2]);
+			B = new THREE.Vector3(
+					manipulation_surface.geometry.attributes.position.array[Bindex*3+0],
+					manipulation_surface.geometry.attributes.position.array[Bindex*3+1],
+					manipulation_surface.geometry.attributes.position.array[Bindex*3+2]);
+		}
+		else{
+			A = new THREE.Vector3(
+					varyingsurface.geometry.attributes.position.array[Aindex*3+0],
+					varyingsurface.geometry.attributes.position.array[Aindex*3+1],
+					varyingsurface.geometry.attributes.position.array[Aindex*3+2]);
+			B = new THREE.Vector3(
+					varyingsurface.geometry.attributes.position.array[Bindex*3+0],
+					varyingsurface.geometry.attributes.position.array[Bindex*3+1],
+					varyingsurface.geometry.attributes.position.array[Bindex*3+2]);
+		}
 		
 		//TODO radius appears to change??
 		put_tube_in_buffer(A,B, varyingsurface_cylinders[surfperimeter_line_index_pairs.length / 2 + i].geometry.attributes.position.array, varyingsurface_edges_default_radius);
@@ -202,7 +248,10 @@ function update_varyingsurface() {
 	}
 	
 	for(var i = 0; i<varyingsurface_spheres.length; i++){
-		varyingsurface_spheres[i].position.set(varyingsurface.geometry.attributes.position.array[i*3+0],varyingsurface.geometry.attributes.position.array[i*3+1],varyingsurface.geometry.attributes.position.array[i*3+2]);
+		if(capsidopenness !== 1 )
+			varyingsurface_spheres[i].position.set(varyingsurface.geometry.attributes.position.array[i*3+0],varyingsurface.geometry.attributes.position.array[i*3+1],varyingsurface.geometry.attributes.position.array[i*3+2]);
+		else
+			varyingsurface_spheres[i].position.set(manipulation_surface.geometry.attributes.position.array[i*3+0],manipulation_surface.geometry.attributes.position.array[i*3+1],manipulation_surface.geometry.attributes.position.array[i*3+2]);
 		varyingsurface.localToWorld(varyingsurface_spheres[i].position);
 	}
 

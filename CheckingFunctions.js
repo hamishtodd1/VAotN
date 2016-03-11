@@ -5,9 +5,9 @@ function check_triangle_inversion(){
 		var cornerCindex = net_triangle_vertex_indices[ i * 3 + 2 ];
 		
 		if( point_to_the_right_of_line(	
-				flatnet_vertices.array[ 0 + 3 * cornerAindex ],flatnet_vertices.array[ 1 + 3 * cornerAindex ],
-				flatnet_vertices.array[ 0 + 3 * cornerBindex ],flatnet_vertices.array[ 1 + 3 * cornerBindex ],
-				flatnet_vertices.array[ 0 + 3 * cornerCindex ],flatnet_vertices.array[ 1 + 3 * cornerCindex ]
+				manipulation_surface.geometry.attributes.position.array[ 0 + 3 * cornerAindex ],manipulation_surface.geometry.attributes.position.array[ 1 + 3 * cornerAindex ],
+				manipulation_surface.geometry.attributes.position.array[ 0 + 3 * cornerBindex ],manipulation_surface.geometry.attributes.position.array[ 1 + 3 * cornerBindex ],
+				manipulation_surface.geometry.attributes.position.array[ 0 + 3 * cornerCindex ],manipulation_surface.geometry.attributes.position.array[ 1 + 3 * cornerCindex ]
 			)){
 			console.log("triangle inverted");
 			return 0;
@@ -62,11 +62,11 @@ function corner_angle_from_indices(triangle_index, corner_vertex_index) {
 	}
 	
 	sideA = new THREE.Vector2(
-		flatnet_vertices.array[ 0 + 3 * cornerAindex ] - flatnet_vertices.array[ 0 + 3 * corner_vertex_index ],
-		flatnet_vertices.array[ 1 + 3 * cornerAindex ] - flatnet_vertices.array[ 1 + 3 * corner_vertex_index ] );
+		manipulation_surface.geometry.attributes.position.array[ 0 + 3 * cornerAindex ] - manipulation_surface.geometry.attributes.position.array[ 0 + 3 * corner_vertex_index ],
+		manipulation_surface.geometry.attributes.position.array[ 1 + 3 * cornerAindex ] - manipulation_surface.geometry.attributes.position.array[ 1 + 3 * corner_vertex_index ] );
 	sideB = new THREE.Vector2(
-		flatnet_vertices.array[ 0 + 3 * cornerBindex ] - flatnet_vertices.array[ 0 + 3 * corner_vertex_index ],
-		flatnet_vertices.array[ 1 + 3 * cornerBindex ] - flatnet_vertices.array[ 1 + 3 * corner_vertex_index ] );
+		manipulation_surface.geometry.attributes.position.array[ 0 + 3 * cornerBindex ] - manipulation_surface.geometry.attributes.position.array[ 0 + 3 * corner_vertex_index ],
+		manipulation_surface.geometry.attributes.position.array[ 1 + 3 * cornerBindex ] - manipulation_surface.geometry.attributes.position.array[ 1 + 3 * corner_vertex_index ] );
 		
 	return Math.acos(get_cos( sideA, sideB) );
 }
@@ -78,10 +78,10 @@ function check_edge_lengths(){
 			var central_vertex2_index = V_vertex_indices[0][i][(3*(j+1))%15+2];
 			var outer_vertex1_index = V_vertex_indices[0][i][3*j+1];
 			var outer_vertex2_index = V_vertex_indices[0][i][(3*(j+1))%15+0];
-			var central_vertex1 = new THREE.Vector3(flatnet_vertices.array[central_vertex1_index*3+0],flatnet_vertices.array[central_vertex1_index*3+1],flatnet_vertices.array[central_vertex1_index*3+2]);
-			var central_vertex2 = new THREE.Vector3(flatnet_vertices.array[central_vertex2_index*3+0],flatnet_vertices.array[central_vertex2_index*3+1],flatnet_vertices.array[central_vertex2_index*3+2]);
-			var outer_vertex1 = new THREE.Vector3(flatnet_vertices.array[outer_vertex1_index*3+0],flatnet_vertices.array[outer_vertex1_index*3+1],flatnet_vertices.array[outer_vertex1_index*3+2]);
-			var outer_vertex2 = new THREE.Vector3(flatnet_vertices.array[outer_vertex2_index*3+0],flatnet_vertices.array[outer_vertex2_index*3+1],flatnet_vertices.array[outer_vertex2_index*3+2]);
+			var central_vertex1 = new THREE.Vector3(manipulation_surface.geometry.attributes.position.array[central_vertex1_index*3+0],manipulation_surface.geometry.attributes.position.array[central_vertex1_index*3+1],manipulation_surface.geometry.attributes.position.array[central_vertex1_index*3+2]);
+			var central_vertex2 = new THREE.Vector3(manipulation_surface.geometry.attributes.position.array[central_vertex2_index*3+0],manipulation_surface.geometry.attributes.position.array[central_vertex2_index*3+1],manipulation_surface.geometry.attributes.position.array[central_vertex2_index*3+2]);
+			var outer_vertex1 = new THREE.Vector3(manipulation_surface.geometry.attributes.position.array[outer_vertex1_index*3+0],manipulation_surface.geometry.attributes.position.array[outer_vertex1_index*3+1],manipulation_surface.geometry.attributes.position.array[outer_vertex1_index*3+2]);
+			var outer_vertex2 = new THREE.Vector3(manipulation_surface.geometry.attributes.position.array[outer_vertex2_index*3+0],manipulation_surface.geometry.attributes.position.array[outer_vertex2_index*3+1],manipulation_surface.geometry.attributes.position.array[outer_vertex2_index*3+2]);
 			var length_difference = Math.abs(outer_vertex1.distanceTo(central_vertex1) - outer_vertex2.distanceTo(central_vertex2) );
 			if(length_difference > 0.01){
 				if(net_warnings)console.log("Error: edge length discrepency");
@@ -110,17 +110,17 @@ function compare_polyhedron_with_net() {
 			var c_index = net_triangle_vertex_indices[i*3 + (j+2)%3];
 			
 			var a_net = new THREE.Vector3(
-				flatnet_vertices.array[a_index * 3 + 0],
-				flatnet_vertices.array[a_index * 3 + 1],
-				flatnet_vertices.array[a_index * 3 + 2] );
+				manipulation_surface.geometry.attributes.position.array[a_index * 3 + 0],
+				manipulation_surface.geometry.attributes.position.array[a_index * 3 + 1],
+				manipulation_surface.geometry.attributes.position.array[a_index * 3 + 2] );
 			var b_net = new THREE.Vector3(
-				flatnet_vertices.array[b_index * 3 + 0],
-				flatnet_vertices.array[b_index * 3 + 1],
-				flatnet_vertices.array[b_index * 3 + 2] );
+				manipulation_surface.geometry.attributes.position.array[b_index * 3 + 0],
+				manipulation_surface.geometry.attributes.position.array[b_index * 3 + 1],
+				manipulation_surface.geometry.attributes.position.array[b_index * 3 + 2] );
 			var c_net = new THREE.Vector3(
-				flatnet_vertices.array[c_index * 3 + 0],
-				flatnet_vertices.array[c_index * 3 + 1],
-				flatnet_vertices.array[c_index * 3 + 2] );
+				manipulation_surface.geometry.attributes.position.array[c_index * 3 + 0],
+				manipulation_surface.geometry.attributes.position.array[c_index * 3 + 1],
+				manipulation_surface.geometry.attributes.position.array[c_index * 3 + 2] );
 				
 			var a_poly = new THREE.Vector3(
 				polyhedron_vertices.array[a_index * 3 + 0],
