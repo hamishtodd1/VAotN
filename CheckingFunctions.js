@@ -17,7 +17,7 @@ function check_triangle_inversion(){
 	return 1;
 }
 
-function check_defects() {
+function check_defects(coords_array) {
 	var wiggleroom = 0.00001;
 	for( var corner = 0; corner < 22; corner++) {
 		var corners_added = 0;
@@ -46,7 +46,7 @@ function check_defects() {
 	return 1;
 }
 
-function corner_angle_from_indices(triangle_index, corner_vertex_index) {
+function corner_angle_from_indices(triangle_index, corner_vertex_index,coords_array) {
 	var cornerAindex = 666, cornerBindex = 666;
 	for( var i = 0; i < 3; i++) {
 		if( corner_vertex_index === net_triangle_vertex_indices[ triangle_index * 3 + i ]) {
@@ -62,26 +62,26 @@ function corner_angle_from_indices(triangle_index, corner_vertex_index) {
 	}
 	
 	sideA = new THREE.Vector2(
-		manipulation_surface.geometry.attributes.position.array[ 0 + 3 * cornerAindex ] - manipulation_surface.geometry.attributes.position.array[ 0 + 3 * corner_vertex_index ],
-		manipulation_surface.geometry.attributes.position.array[ 1 + 3 * cornerAindex ] - manipulation_surface.geometry.attributes.position.array[ 1 + 3 * corner_vertex_index ] );
+		flatnet_vertices.array[ 0 + 3 * cornerAindex ] - flatnet_vertices.array[ 0 + 3 * corner_vertex_index ],
+		flatnet_vertices.array[ 1 + 3 * cornerAindex ] - flatnet_vertices.array[ 1 + 3 * corner_vertex_index ] );
 	sideB = new THREE.Vector2(
-		manipulation_surface.geometry.attributes.position.array[ 0 + 3 * cornerBindex ] - manipulation_surface.geometry.attributes.position.array[ 0 + 3 * corner_vertex_index ],
-		manipulation_surface.geometry.attributes.position.array[ 1 + 3 * cornerBindex ] - manipulation_surface.geometry.attributes.position.array[ 1 + 3 * corner_vertex_index ] );
+		flatnet_vertices.array[ 0 + 3 * cornerBindex ] - flatnet_vertices.array[ 0 + 3 * corner_vertex_index ],
+		flatnet_vertices.array[ 1 + 3 * cornerBindex ] - flatnet_vertices.array[ 1 + 3 * corner_vertex_index ] );
 		
 	return Math.acos(get_cos( sideA, sideB) );
 }
 
-function check_edge_lengths(){
+function check_edge_lengths(coords_array){
 	for(var i = 0; i < 20; i++){
 		for(var j = 0; j < 5; j++){
 			var central_vertex1_index = V_vertex_indices[0][i][3*j+2];
 			var central_vertex2_index = V_vertex_indices[0][i][(3*(j+1))%15+2];
 			var outer_vertex1_index = V_vertex_indices[0][i][3*j+1];
 			var outer_vertex2_index = V_vertex_indices[0][i][(3*(j+1))%15+0];
-			var central_vertex1 = new THREE.Vector3(manipulation_surface.geometry.attributes.position.array[central_vertex1_index*3+0],manipulation_surface.geometry.attributes.position.array[central_vertex1_index*3+1],manipulation_surface.geometry.attributes.position.array[central_vertex1_index*3+2]);
-			var central_vertex2 = new THREE.Vector3(manipulation_surface.geometry.attributes.position.array[central_vertex2_index*3+0],manipulation_surface.geometry.attributes.position.array[central_vertex2_index*3+1],manipulation_surface.geometry.attributes.position.array[central_vertex2_index*3+2]);
-			var outer_vertex1 = new THREE.Vector3(manipulation_surface.geometry.attributes.position.array[outer_vertex1_index*3+0],manipulation_surface.geometry.attributes.position.array[outer_vertex1_index*3+1],manipulation_surface.geometry.attributes.position.array[outer_vertex1_index*3+2]);
-			var outer_vertex2 = new THREE.Vector3(manipulation_surface.geometry.attributes.position.array[outer_vertex2_index*3+0],manipulation_surface.geometry.attributes.position.array[outer_vertex2_index*3+1],manipulation_surface.geometry.attributes.position.array[outer_vertex2_index*3+2]);
+			var central_vertex1 = new THREE.Vector3(coords_array[central_vertex1_index*3+0],coords_array[central_vertex1_index*3+1],coords_array[central_vertex1_index*3+2]);
+			var central_vertex2 = new THREE.Vector3(coords_array[central_vertex2_index*3+0],coords_array[central_vertex2_index*3+1],coords_array[central_vertex2_index*3+2]);
+			var outer_vertex1 = new THREE.Vector3(coords_array[outer_vertex1_index*3+0],coords_array[outer_vertex1_index*3+1],coords_array[outer_vertex1_index*3+2]);
+			var outer_vertex2 = new THREE.Vector3(coords_array[outer_vertex2_index*3+0],coords_array[outer_vertex2_index*3+1],coords_array[outer_vertex2_index*3+2]);
 			var length_difference = Math.abs(outer_vertex1.distanceTo(central_vertex1) - outer_vertex2.distanceTo(central_vertex2) );
 			if(length_difference > 0.01){
 				if(net_warnings)console.log("Error: edge length discrepency");

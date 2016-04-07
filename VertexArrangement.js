@@ -21,14 +21,14 @@ function move_vertices(vertex_tobechanged, starting_movement_vector, initial_cha
 {
 	var V_angles_subtraction = Array(0,0,0,0);
 	if(initial_changed_vertex === vertex_tobechanged) {
-		V_angles_subtraction[0] = corner_angle_from_indices( W_triangle_indices[initial_changed_vertex][ 5 ], W_vertex_indices[initial_changed_vertex][11] );
-		V_angles_subtraction[3] = corner_angle_from_indices( W_triangle_indices[initial_changed_vertex][ 3 ], W_vertex_indices[initial_changed_vertex][6] );
+		V_angles_subtraction[0] = corner_angle_from_indices( W_triangle_indices[initial_changed_vertex][ 5 ], W_vertex_indices[initial_changed_vertex][11],manipulation_surface.geometry.attributes.position.array );
+		V_angles_subtraction[3] = corner_angle_from_indices( W_triangle_indices[initial_changed_vertex][ 3 ], W_vertex_indices[initial_changed_vertex][6], manipulation_surface.geometry.attributes.position.array );
 		
 		Vmode = CORE;
 	}
 	else {
-		V_angles_subtraction[0]= corner_angle_from_indices( W_triangle_indices[initial_changed_vertex][ 2 ], W_vertex_indices[initial_changed_vertex][5] );
-		V_angles_subtraction[3] = corner_angle_from_indices( W_triangle_indices[initial_changed_vertex][ 0 ], W_vertex_indices[initial_changed_vertex][0] );
+		V_angles_subtraction[0]= corner_angle_from_indices( W_triangle_indices[initial_changed_vertex][ 2 ], W_vertex_indices[initial_changed_vertex][5], manipulation_surface.geometry.attributes.position.array );
+		V_angles_subtraction[3] = corner_angle_from_indices( W_triangle_indices[initial_changed_vertex][ 0 ], W_vertex_indices[initial_changed_vertex][0],manipulation_surface.geometry.attributes.position.array );
 		
 		Vmode = ASSOCIATED;
 	}
@@ -117,7 +117,7 @@ function move_vertices(vertex_tobechanged, starting_movement_vector, initial_cha
 		
 		identified_edge_to_use.subVectors(outside_vertex_to_use, vertex_to_use);
 		
-		var angle_to_use = corner_angle_from_indices( V_triangle_indices[Vmode][initial_changed_vertex][ triangle_to_use ], outside_vertex_to_use_index );
+		var angle_to_use = corner_angle_from_indices( V_triangle_indices[Vmode][initial_changed_vertex][ triangle_to_use ], outside_vertex_to_use_index,manipulation_surface.geometry.attributes.position.array );
 		var imposed_angle;
 		if( triangle_to_fix > triangle_to_use )
 			imposed_angle = angle_to_use - V_angles[vertex_tobechanged][ triangle_to_use ];
@@ -198,6 +198,7 @@ function manipulate_vertices() {
 			}
 		}
 		
+		//manipulation_surface wants to adjust itself to become the flatnet
 		for(var i = 0; i < flatnet_vertices.array.length / 3; i++){
 			var displacement_vector = new THREE.Vector3(
 					flatnet_vertices.array[i*3+0] - manipulation_surface.geometry.attributes.position.array[i*3+0],
@@ -212,6 +213,10 @@ function manipulate_vertices() {
 				manipulation_surface.geometry.attributes.position.array[i*3+2] += displacement_vector.z;
 				
 				manipulation_surface.geometry.attributes.position.needsUpdate = true;
+				
+				//you also want the minimum_angles to get there at the same rate. adjust the correction function to take an array, and pass it a "to be gotten to" one
+				
+				//Why only manipulation surface? Why not have the other surface slowly move to it too? Would allow a closed capsid to morph
 			}
 		}
 	}
@@ -253,7 +258,7 @@ function manipulate_vertices() {
 			}
 			
 			if( in_V_diagram && !in_W_diagram ) {
-				W_surrounding_angles[corner] += corner_angle_from_indices(triangle, subtracting_vertex_index);
+				W_surrounding_angles[corner] += corner_angle_from_indices(triangle, subtracting_vertex_index, manipulation_surface.geometry.attributes.position.array);
 			}
 		}
 	}
@@ -345,7 +350,11 @@ function manipulate_vertices() {
 	 * 	when we've tweaked the algorithm, 5 evaluations should be ok?
 	 */
 	
-	if(	check_triangle_inversion() /*&& check_edge_lengths() && check_defects() extra checks only worth using if you suspect the above has not done its job*/ ){
+	if(	!check_triangle_inversion() /*|| !check_edge_lengths(manipulation_surface.geometry.attributes.position.array) || !check_defects(manipulation_surface.geometry.attributes.position.array) extra checks only worth using if you suspect the above has not done its job*/ ) {
+		for( var i = 0; i < 66; i++)
+			manipulation_surface.geometry.attributes.position.array[i] = net_log[i];
+	}
+	else{
 		if(	correct_minimum_angles(manipulation_surface.geometry.attributes.position.array) ) { //Maybe you should be able to predict what won't work and put correct_minimum_angles, and resetter, in coreloop.
 			for( var i = 0; i < 66; i++)
 				flatnet_vertices.array[i] = manipulation_surface.geometry.attributes.position.array[i];
@@ -369,7 +378,4 @@ function manipulate_vertices() {
 			varyingsurface_spheres[vertex_tobechanged].material.color.b = 0;
 		}
 	}
-	else
-		for( var i = 0; i < 66; i++)
-			manipulation_surface.geometry.attributes.position.array[i] = net_log[i];
 }

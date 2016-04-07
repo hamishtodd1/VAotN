@@ -22,7 +22,7 @@ function irreg_deduce_surface(openness ){
 	var flatnet_midgap = vertex1.clone();
 	flatnet_midgap.applyAxisAngle(central_rotationaxis, -TAU/12 );
 	
-	var center = tetrahedron_top(
+	var center = tetrahedron_top( //new THREE.Vector3(0.5773502640084176, 0, 0.7544313421376697);
 			vertex0, vertex1, vertex2,
 			varyingsurface_orientingradius[0],varyingsurface_orientingradius[1],varyingsurface_orientingradius[2]);
 	if(center.z>0) center.z *= -1;
@@ -82,13 +82,19 @@ function CheckButton(index) {
 			Button[index].scale.z = 0.8;
 		}
 		
-		if( !isMouseDown && isMouseDown_previously ){ //they might not necessarily have been over the button in the previous frame, but eh.
+		if( !isMouseDown && isMouseDown_previously ){ //they might not necessarily have been over the button in the previous frame, but whatever
 			if(Button[index].ourboolean === true){
 				Button[index].ourboolean = false;
 			} else {
 				Button[index].ourboolean = true;
 				if(index==VARYINGSURFACE_OPENMODE_BUTTON)
 					settle_manipulationsurface_and_flatnet();
+			}
+			
+			if(index > 0){
+				for(var i = 0; i < flatnet_vertices.array.length; i++)
+					flatnet_vertices.array[i] = setvirus_flatnet_vertices[1][i];
+				console.log(correct_minimum_angles(flatnet_vertices.array));
 			}
 		}
 	}

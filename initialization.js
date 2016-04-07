@@ -11,8 +11,8 @@ function init() {
 	//------------------need this so there's something in there for the first frame
 	ourclock.getDelta();
 	
-	//must be kept at bottom
-	ChangeScene(MODE);
+	INITIALIZED = 1;
+	attempt_launch();
 }
 
 function init_CK_and_irreg(){
@@ -48,7 +48,7 @@ function init_CK_and_irreg(){
 	var default_minimum_angle = 2 * Math.atan(PHI/(PHI-1));
 	for( var i = 0; i < 22; i++ )
 		minimum_angles[i] = default_minimum_angle;
-		
+	
 	flatnet_vertices_numbers = new Float32Array([
 		0,0,0,
 		HS3,-0.5,0,
@@ -78,6 +78,45 @@ function init_CK_and_irreg(){
 		0,-2,0,
 		-HS3,-2.5,0]);
 	
+	setvirus_flatnet_vertices[0] = new Float32Array(66);
+	for(var i = 0; i < setvirus_flatnet_vertices.length; i++)
+		setvirus_flatnet_vertices[0][i] = flatnet_vertices_numbers[i];
+	
+	var S3 = Math.sqrt(3);
+	setvirus_flatnet_vertices[1] = new Float32Array([
+ 		0,0,0,
+ 		S3,-1,0,
+ 		
+ 		S3, 1, 0,
+ 		2*S3, 0,0,
+ 		4.5*S3,3.5,0,
+ 		5*S3,3,0,
+ 		
+ 		0,2,0,
+ 		1.5*S3,7.5,0,
+ 		S3,8,0,
+ 		1.5*S3,8.5,0,
+ 		
+ 		-S3,1,0,
+ 		-2.5*S3,6.5,0,
+ 		-3*S3,6,0,
+ 		-3*S3,7,0,
+ 		
+ 		-S3,-1,0,
+ 		-4.5*S3,0.5,0,
+ 		-4.5*S3,-0.5,0,
+ 		-5*S3,0,0,
+ 		
+ 		0,-2,0,
+ 		-3*S3,-6,0,
+ 		0,-4,0,
+ 		-3*S3,-7,0
+//0, 0, 0, 1.3727848529815674, -0.33573848009109497, 0, 0.8660253882408142, 0.5, 0, 1.620924949645996, -0.5209970474243164, 0, 1.7320507764816284, 1, 0, 2.598076105117798, 0.5, 0, 0, 1, 0, 0.8660253882408142, 1.5, 0, 0, 2, 0, 0.8660253882408142, 2.5, 0, -0.8660253882408142, 0.5, 0, -0.8660253882408142, 1.5, 0, -1.7320507764816284, 1, 0, -1.7320507764816284, 2, 0, -0.8660253882408142, -0.5, 0, -1.7320507764816284, 0, 0, -1.7320507764816284, -1, 0, -2.598076105117798, -0.5, 0, 0.43557775020599365, -1.3444443941116333, 0, -0.8660253882408142, -1.5, 0, 0.1253116875886917, -1.492771029472351, 0, -0.8660253882408142, -2.5, 0
+ 		]);
+	
+	for(var i = 0; i < setvirus_flatnet_vertices[1].length; i++)
+		setvirus_flatnet_vertices[1][i] *= 0.25;
+		
 	net_triangle_vertex_indices = new Uint32Array([
 		2,1,0,
 		1,2,3,
