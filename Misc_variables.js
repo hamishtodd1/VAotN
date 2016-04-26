@@ -200,6 +200,8 @@ var surface_triangle_side_unit_vectors = new Array();
 var shear_matrix = new Array(20);
 //top left, top right, bottom left, bottom right
 var SquareToHexMatrix = new Float32Array([-1 / Math.sqrt(3) / 2 /100, -1 / Math.sqrt(3) / 2 /100,1/2 /100, -1 / 2 /100]);
+//for(var i = 0; i < 4; i++)
+//	SquareToHexMatrix[i] *= Lattice_ring_density_factor;
 
 //initial values chosen rather randomly. Potential speedup by decreasing this? Does algorithm ever increase them? Probably easy to work out a better bound.
 var radii = new Float32Array([100,100,100, 100,100,100, 100,100,100, 100,100,100]);
@@ -215,7 +217,6 @@ var flatlattice_center = new THREE.Vector2(0,0);
 var flatlattice_vertices_numbers = new Float32Array(3 * number_of_lattice_points);
 
 var HexagonLattice;
-var HexagonLattice_defaultvertices;
 var squarelattice_hexagonvertices;
 
 var net_vertices_closest_lattice_vertex = Array(22);

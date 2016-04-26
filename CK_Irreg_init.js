@@ -653,26 +653,33 @@ function init_CK_and_irreg(){
 		
 	{
 		HexagonLattice = new THREE.Mesh(new THREE.Geometry(), new THREE.MeshBasicMaterial({color: 0xff0000}));
-		HexagonLattice_defaultvertices = Array(6 * 6 * number_of_lattice_points);
-		squarelattice_hexagonvertices = Array(6 * 6 * number_of_lattice_points);
+		squarelattice_hexagonvertices = Array(6 * 2 * number_of_lattice_points); //only 2 points per corner
+		for(var i = 0; i < squarelattice_hexagonvertices.length; i++ )
+			squarelattice_hexagonvertices[i] = new THREE.Vector3();
 		
-		HexagonLattice.geometry.vertices = Array(6 * 6 * number_of_lattice_points); //8 points per side, 6 sides per hexagon
-		for(var i = 0; i < HexagonLattice.geometry.vertices.length; i++){
+		HexagonLattice.geometry.vertices = Array(6 * 12 * number_of_lattice_points); //12 points per side, 6 sides per hexagon
+		for(var i = 0; i < HexagonLattice.geometry.vertices.length; i++)
 			HexagonLattice.geometry.vertices[i] = new THREE.Vector3();
+		
+		HexagonLattice.geometry.faces = Array(number_of_lattice_points * 6 * 4); //4 faces per side, 6 sides per hexagon
+		
+		for(var hexagon_i = 0; hexagon_i < number_of_lattice_points; hexagon_i++){
+			for(var side_i = 0; side_i < 6; side_i++){
+				for(var tri_i = 0; tri_i < 4; tri_i++){
+					var triangleindex = hexagon_i * 6 * 4 + side_i * 4 + tri_i;
+					HexagonLattice.geometry.faces[hexagon_i * 6 * 4 + side_i * 4 + tri_i] = new THREE.Face3(
+							triangleindex * 3 + 0,
+							triangleindex * 3 + 1,
+							triangleindex * 3 + 2,
+							new THREE.Vector3(1,0,0) //Face normal; unused
+						);
+				}
+			}
 		}
 		
-		HexagonLattice.geometry.faces = Array(number_of_lattice_points * 6 * 4);
-		
-		for(var i = 0; i < HexagonLattice.geometry.faces.length; i++)
-			HexagonLattice.geometry.faces[i] = new THREE.Face3(
-				0,
-				0,
-				0,
-				new THREE.Vector3(1,0,0) //Face normal; unused
-				);
-		
-		HexagonLattice.scale.x = LatticeScale;
-		HexagonLattice.scale.y = LatticeScale;
+		//not sure what this was supposed to do
+//		HexagonLattice.scale.x = LatticeScale;
+//		HexagonLattice.scale.y = LatticeScale;
 		
 		var square_lattice_generator = Array(6);
 		square_lattice_generator[0] = new THREE.Vector3(-1,  1,0);		//up
@@ -694,7 +701,7 @@ function init_CK_and_irreg(){
 		hexagon_generator[4] = new THREE.Vector3(-1, 0,0);		//BL
 		hexagon_generator[5] = new THREE.Vector3(0,  1,0);		//TL
 		
-		var hexagon_major_Scalar = 83;
+		var hexagon_major_Scalar = 83; //will get divided by 100.
 		var hexagon_minor_Scalar = 61;
 
 		var index = 0;
@@ -708,81 +715,36 @@ function init_CK_and_irreg(){
 					var ourpointsquare = square_lattice_generator[(slice + 2)%6].clone();
 					ourpointsquare.multiplyScalar(length_along);				
 					ourpointsquare.add(square_slice_rightmost_point );
+					squarelattice_vertices[index] = ourpointsquare.clone();
 					
 					var ourpoint = ourpointsquare.clone();
 					apply2Dmatrix(SquareToHexMatrix,ourpoint);
-					
-					//make it circular using a circle
 					
 					flatlattice_default_vertices[index*3+0] = ourpoint.x; flatlattice_default_vertices[index*3+1] = ourpoint.y; flatlattice_default_vertices[index*3+2] = (1-capsidopenness) * camera.position.z * 1.5;
 					surflattice_geometry.attributes.position.setXYZ(index, 0,0,0);
 					squarelattice_vertices[index] = ourpointsquare.clone();
 					
 					for(var i = 0; i < 6; i++){
-						//we'll have a square, static, hexagonlattice, and every frame its appearance will be derived
-						insert_Hexagon_corner(lowest_unused_HL_vertex,hexagon_generator[i],hexagon_major_Scalar,ourpointsquare);
+						insert_squareHexagon_corner(lowest_unused_HL_vertex,hexagon_generator[i],hexagon_major_Scalar,ourpointsquare);
+						lowest_unused_HL_vertex++;
 						
-						HexagonLattice.geometry.vertices[lowest_unused_HL_vertex+1].copy(HexagonLattice.geometry.vertices[lowest_unused_HL_vertex]);
-						HexagonLattice.geometry.vertices[lowest_unused_HL_vertex+2].copy(HexagonLattice.geometry.vertices[lowest_unused_HL_vertex]);
-						lowest_unused_HL_vertex += 3;
-						
-						insert_Hexagon_corner(lowest_unused_HL_vertex,hexagon_generator[i],hexagon_minor_Scalar,ourpointsquare);
-						
-						HexagonLattice.geometry.vertices[lowest_unused_HL_vertex+1].copy(HexagonLattice.geometry.vertices[lowest_unused_HL_vertex]);
-						HexagonLattice.geometry.vertices[lowest_unused_HL_vertex+2].copy(HexagonLattice.geometry.vertices[lowest_unused_HL_vertex]);
-						lowest_unused_HL_vertex += 3;
-						
-						HexagonLattice.geometry.faces[index * 6 * 4 + i * 4 + 0].a = 0 + i * 6    + index * 6 * 6;
-						HexagonLattice.geometry.faces[index * 6 * 4 + i * 4 + 0].b = 3 + i * 6    + index * 6 * 6;
-						HexagonLattice.geometry.faces[index * 6 * 4 + i * 4 + 0].c = 4 + i * 6    + index * 6 * 6;
-						
-						HexagonLattice.geometry.faces[index * 6 * 4 + i * 4 + 1].a = 0 + i * 6    + index * 6 * 6;
-						HexagonLattice.geometry.faces[index * 6 * 4 + i * 4 + 1].b = 4 + i * 6    +	index * 6 * 6;
-						HexagonLattice.geometry.faces[index * 6 * 4 + i * 4 + 1].c = 1 + i * 6    +	index * 6 * 6;
-						
-						HexagonLattice.geometry.faces[index * 6 * 4 + i * 4 + 2].a = 2 + i * 6    +	index * 6 * 6;
-						HexagonLattice.geometry.faces[index * 6 * 4 + i * 4 + 2].b = 5 + i * 6	  +	index * 6 * 6;
-						HexagonLattice.geometry.faces[index * 6 * 4 + i * 4 + 2].c =(9 + i * 6)%36+	index * 6 * 6;
-						
-						HexagonLattice.geometry.faces[index * 6 * 4 + i * 4 + 3].a = 2 + i * 6    +	index * 6 * 6;
-						HexagonLattice.geometry.faces[index * 6 * 4 + i * 4 + 3].b =(9 + i * 6)%36+	index * 6 * 6;
-						HexagonLattice.geometry.faces[index * 6 * 4 + i * 4 + 3].c =(6 + i * 6)%36+	index * 6 * 6;
-						
+						insert_squareHexagon_corner(lowest_unused_HL_vertex,hexagon_generator[i],hexagon_minor_Scalar,ourpointsquare);
+						lowest_unused_HL_vertex++;
 					}
-					
-//					if(hexagon_ring === 1)
-//						for(var i = 0; i < lowest_unused_HL_vertex; i++)
-//							console.log(HexagonLattice.geometry.vertices[i] );
 					
 					index++;
 				}
 			}
 		}
 		
-		var costheta = Math.cos(LatticeAngle);
-		var sintheta = Math.sin(LatticeAngle);
-		for(var i = 0; i < number_of_lattice_points; i++) {
-			flatlattice_vertices.setXYZ(i, 	(flatlattice_default_vertices[i*3+0] * costheta - flatlattice_default_vertices[i*3+1] * sintheta) * LatticeScale,
-											(flatlattice_default_vertices[i*3+0] * sintheta + flatlattice_default_vertices[i*3+1] * costheta) * LatticeScale,
-											(1-capsidopenness) * camera.position.z * 1.5);
-		}
-		
 		for(var i = 0; i<20; i++)
 			shear_matrix[i] = new Array(4);
 		Update_net_variables();
 	}
-	for(var i = 0; i < HexagonLattice.geometry.vertices.length; i++)
-		HexagonLattice_defaultvertices[i] = HexagonLattice.geometry.vertices[i].clone();
 }
 
-function insert_Hexagon_corner(ourindex,ourgenerator,ourScalar,hexagoncenter){
-	HexagonLattice.geometry.vertices[ourindex].copy(ourgenerator);
-	HexagonLattice.geometry.vertices[ourindex].multiplyScalar(ourScalar);
-	HexagonLattice.geometry.vertices[ourindex].add(hexagoncenter);
-//	if(ourindex % 36 === 18) console.log(hexagoncenter,HexagonLattice.geometry.vertices[ourindex]);
-	
-	squarelattice_hexagonvertices[ourindex] = HexagonLattice.geometry.vertices[ourindex].clone();
-	
-	HexagonLattice.geometry.vertices[ourindex].multiplyScalar(Lattice_ring_density_factor);
-	apply2Dmatrix(SquareToHexMatrix, HexagonLattice.geometry.vertices[ourindex]);
+function insert_squareHexagon_corner(ourindex,ourgenerator,ourScalar,hexagoncenter){
+	squarelattice_hexagonvertices[ourindex].copy(ourgenerator);
+	squarelattice_hexagonvertices[ourindex].multiplyScalar(ourScalar);
+	squarelattice_hexagonvertices[ourindex].add(hexagoncenter);
 }

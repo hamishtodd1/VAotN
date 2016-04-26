@@ -8,6 +8,7 @@
  * Could make the virus pictures 3D? urgh, maybe in VR
  * change angles of mouse movement such that rotation is slightly more probable than it currently is
  * get rid of weird flash
+ * some alpha for the circle
  * 
  * make the pentagons fade to a different color when surface closes?
  * 

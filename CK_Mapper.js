@@ -1,165 +1,215 @@
 //The argument for donuts on the vertices is pretty strong http://jvi.asm.org/content/82/21/10341/F4.expansion.html
 //Keep the points, virtually but not visually. When a point is on the surface, bring its whole donut onto it
 
-function map_mid_edge_points(LatticeRotationAndScaleMatrix,
-		HexagonLatticePosition,  hexagonlattice_vertexindex,
-		nettriangle){
-	HexagonLattice_defaultvertices[hexagonlattice_vertexindex  ].copy(HexagonLatticePosition);
-	
-	apply2Dmatrix( SquareToHexMatrix, HexagonLattice_defaultvertices[hexagonlattice_vertexindex  ] );
-	HexagonLattice_defaultvertices[hexagonlattice_vertexindex  ].multiplyScalar(Lattice_ring_density_factor);
-	
-	map_hex_point(hexagonlattice_vertexindex,   nettriangle, LatticeRotationAndScaleMatrix);
-}
+//function map_mid_edge_points(LatticeRotationAndScaleMatrix,
+//		HexagonLatticePosition,  hexagonlattice_vertexindex,
+//		nettriangle){
+//	HexagonLattice_defaultvertices[hexagonlattice_vertexindex  ].copy(HexagonLatticePosition);
+//	
+//	apply2Dmatrix( SquareToHexMatrix, HexagonLattice_defaultvertices[hexagonlattice_vertexindex  ] );
+//	
+//	map_hex_point(hexagonlattice_vertexindex,   nettriangle, LatticeRotationAndScaleMatrix);
+//}
+//
+//function map_hex_point(myindex, latticevertex_nettriangle, LatticeRotationAndScaleMatrix){
+//	HexagonLattice.geometry.vertices[myindex].copy(HexagonLattice_defaultvertices[myindex]);
+//	
+//	if(latticevertex_nettriangle !== 666){
+//		apply2Dmatrix(LatticeRotationAndScaleMatrix,HexagonLattice.geometry.vertices[myindex]);
+//		map_from_lattice_to_surface( HexagonLattice.geometry.vertices[myindex], latticevertex_nettriangle );
+//	}
+//}
 
-function map_hex_point(myindex, latticevertex_nettriangle, LatticeRotationAndScaleMatrix){
-	HexagonLattice.geometry.vertices[myindex].copy(HexagonLattice_defaultvertices[myindex]);
+function map_hex_point(squarelattice_position, nettriangle, hexagonlattice_index, LatticeRotationAndScaleMatrix){
+	HexagonLattice.geometry.vertices[hexagonlattice_index].copy(squarelattice_position);
 	
-	if(latticevertex_nettriangle !== 666){
-		apply2Dmatrix(LatticeRotationAndScaleMatrix,HexagonLattice.geometry.vertices[myindex]);
-		map_from_lattice_to_surface( HexagonLattice.geometry.vertices[myindex], latticevertex_nettriangle );
+	apply2Dmatrix( SquareToHexMatrix, 
+			HexagonLattice.geometry.vertices[hexagonlattice_index] );
+		
+	if( nettriangle === 666){
+		//because mapfromlatticetosurface has the effect of multiplying by density factor
+		HexagonLattice.geometry.vertices[hexagonlattice_index].multiplyScalar(Lattice_ring_density_factor);
+		return;
 	}
+	
+	apply2Dmatrix(LatticeRotationAndScaleMatrix,
+			HexagonLattice.geometry.vertices[hexagonlattice_index]);
+	map_from_lattice_to_surface( HexagonLattice.geometry.vertices[hexagonlattice_index], nettriangle );
 }
 
 function Map_lattice() {
-//	camera.position.z = 1;
-	var LatticeRotationAndScaleMatrix = new Float32Array([ //not quite sure why it needs to be divided by density factor.
-		 LatticeScale / Lattice_ring_density_factor * Math.cos(LatticeAngle),
-		-LatticeScale / Lattice_ring_density_factor * Math.sin(LatticeAngle),
-		 LatticeScale / Lattice_ring_density_factor * Math.sin(LatticeAngle),
-		 LatticeScale / Lattice_ring_density_factor * Math.cos(LatticeAngle)
-		]);
-	
-	/*
-	 * four triangles and no duplicated vertices. Optimize with copy - MAYBE
-	 * For each side of the hexagon
-	 * get its vertices. Get the triangles they are in.
-	 * 	case: all four in one triangle
-	 * 	case: two in one triangle, two in another
-	 * 	case: one in one triangle, other three in another. The opposite vertex
-	 * go around each of the four sides connecting them, get inte
-	 */
-	
-	var edgecorner_nettriangles = new Uint16Array(4);
-	
-	for(var i = 0; i < number_of_lattice_points; i++) {
-		//these should be separate from the vertices that you map!
-		for(var j = 0; j < 4; j++)
-			edgecorner_nettriangles[j] = locate_in_squarelattice_net(squarelattice_hexagonvertices[ SOMETHING ]);
-		
-		if(	edgecorner_nettriangles[0] === edgecorner_nettriangles[1] && 
-			edgecorner_nettriangles[0] === edgecorner_nettriangles[2] && 
-			edgecorner_nettriangles[0] === edgecorner_nettriangles[3] )
-		{
-			//all in one triangle, nicccce
-			
-		}
-		else if(edgecorner_nettriangles[0] === edgecorner_nettriangles[1] &&
-				edgecorner_nettriangles[2] === edgecorner_nettriangles[3])
-		{
-			//split lengthways
-		}
-		else if(edgecorner_nettriangles[0] === edgecorner_nettriangles[2] &&
-				edgecorner_nettriangles[1] === edgecorner_nettriangles[3])
-		{
-			//split widthways
-		}
-		else
-		{
-			var pariahvertex;
-			
-			for(var j = 0; j < 4; j++){
-				for(var k = 0; k < 4; k++){
-					if( k !== j && edgecorner_nettriangles[j] === edgecorner_nettriangles[k] )
-						break;
-					
-					if(k === 3)
-						pariahvertex = j;
-				}
-			}
-			
-			var countervertex = 3 - pariahvertex;
-			
-			//we get the intersections with each side
-			for(var j = 0; j < 4; j++){
-				
-			}
-			
-			//we then go through the four triangles, mapping their vertices separately.
-			//0 is pariah triangle: pariahvertex, then intersection, then other intersection
-			//countertriangle: countervertex, intersection, intersection
-			//then the two others, corner, countervertex, intersection.
-		}
-	}
-	
-	
+	var LatticeRotationAndScaleMatrix = new Float32Array([ 
+           //divided by density factor because mapfromlatticetosurface. Change this when rid off points.
+  		 LatticeScale * Math.cos(LatticeAngle),
+  		-LatticeScale * Math.sin(LatticeAngle),
+  		 LatticeScale * Math.sin(LatticeAngle),
+  		 LatticeScale * Math.cos(LatticeAngle)
+  		]);
 	
 	var hexcorner_nettriangles = new Uint16Array(12);
+	var edgecorner_nettriangles = new Uint16Array(4);
 	
-	for(var i = 0; i < number_of_lattice_points; i++) { //for each hexagon
-		for(var j = 0; j < 12; j++){
-			hexcorner_nettriangles[j] = locate_in_squarelattice_net(squarelattice_hexagonvertices[ i*6*6 + j * 3 ]);
+	var hexagonlattice_index = 0;
+	
+	var TL = new THREE.Vector3();
+	var TR = new THREE.Vector3();
+	var BL = new THREE.Vector3();
+	var BR = new THREE.Vector3();
+	
+	for(var hexagon_i = 0; hexagon_i < number_of_lattice_points; hexagon_i++) 
+	{		
+		var hexagon_first_squarelatticevertex_index = hexagon_i*12;
+		
+		for(var i = 0; i < hexcorner_nettriangles.length; i++){
+			hexcorner_nettriangles[i] =
+				locate_in_squarelattice_net(squarelattice_hexagonvertices[hexagon_first_squarelatticevertex_index + i]);
+			//speedup opportunity: map the points here, too.
 		}
 		
-		
-		
-		for(var j = 0; j < 12; j++){ //for each edge, inner or outer, of that hexagon
-			var edge_startpoint_index = i*3*12 + j * 3;
+		for(var side_i = 0; side_i < 6; side_i++)
+		{
+			for(var i = 0; i < 4; i++)
+				edgecorner_nettriangles[i] = hexcorner_nettriangles[(side_i * 2 + i) % 12];
 			
-			map_hex_point(edge_startpoint_index, hexcorner_nettriangles[j],LatticeRotationAndScaleMatrix);
-			
-			if(	hexcorner_nettriangles[ j ] === hexcorner_nettriangles[(j+2)%12])
+			if(	edgecorner_nettriangles[0] === edgecorner_nettriangles[1] && 
+				edgecorner_nettriangles[0] === edgecorner_nettriangles[2] && 
+				edgecorner_nettriangles[0] === edgecorner_nettriangles[3] )
 			{
-				map_hex_point(edge_startpoint_index + 1, hexcorner_nettriangles[j],LatticeRotationAndScaleMatrix);
-				map_hex_point(edge_startpoint_index + 2, hexcorner_nettriangles[j],LatticeRotationAndScaleMatrix);
-			}
-			else{
-				var triangle_for_side_intersection = hexcorner_nettriangles[j] === 666 ? hexcorner_nettriangles[(j+2)%12] : hexcorner_nettriangles[j];
-				var edge_endpoint_index = i*3*12 + ((j+2)%12) * 3;
-				
-				for(var k = 0; k < 3; k++){
-					var intersectionpoint = line_line_intersection(
-							squarelatticevertex_rounded_triangle_vertex(triangle_for_side_intersection, k),
-							squarelattice_hexagonvertices[edge_startpoint_index],
-							squarelatticevertex_rounded_triangle_vertex(triangle_for_side_intersection, (k+1)%3),
-							squarelattice_hexagonvertices[edge_endpoint_index  ]);
-					
-					if(intersectionpoint === 0)
-						continue;
-					
-					map_mid_edge_points(LatticeRotationAndScaleMatrix,
-							intersectionpoint,
-							edge_startpoint_index + 1,
-							hexcorner_nettriangles[   j   ]);
-					
-					var newintersectionpoint;
-					
-					//if they're both in triangles, they might be separated triangles, so we need a second intersection
-					if(hexcorner_nettriangles[(j+2)%12] !== 666)
-						triangle_for_side_intersection = hexcorner_nettriangles[(j+2)%12];
-					for(var m = 0; m < 3; m++){
-						newintersectionpoint = line_line_intersection(
-								squarelatticevertex_rounded_triangle_vertex(triangle_for_side_intersection, m),
-								squarelattice_hexagonvertices[edge_startpoint_index],
-								squarelatticevertex_rounded_triangle_vertex(triangle_for_side_intersection,(m+1)%3),
-								squarelattice_hexagonvertices[edge_endpoint_index  ] );
+				for(var tri_i = 0; tri_i < 4; tri_i++)
+				{
+					for(var corner_i = 0; corner_i < 3; corner_i++)
+					{
+						var corner;
+						if( tri_i < 2 ) //they just get the corner
+							corner = 0;
+						else {
+							if( tri_i === 2 ){
+								if(corner_i === 0 ) corner = 1;
+								if(corner_i === 1 ) corner = 3;
+								if(corner_i === 2 ) corner = 0;
+							}
+							else if( tri_i === 3) {
+								if(corner_i === 0 ) corner = 2;
+								if(corner_i === 1 ) corner = 0;
+								if(corner_i === 2 ) corner = 3;
+							}
+							
+							corner = ( side_i * 2 + corner ) % 12;
+						}
 						
-						if(newintersectionpoint !== 0)								
-							break;
-						else if(m === 2)
-							console.error("no intersection");
+						map_hex_point(squarelattice_hexagonvertices[hexagon_first_squarelatticevertex_index+corner], 
+								hexcorner_nettriangles[ corner],
+								hexagonlattice_index, LatticeRotationAndScaleMatrix);
+						
+						hexagonlattice_index++;
 					}
-					
-					map_mid_edge_points(LatticeRotationAndScaleMatrix,
-							intersectionpoint,
-							edge_startpoint_index + 2,
-							hexcorner_nettriangles[(j+2)%12]);
+				}
+				
+			}
+			else if(edgecorner_nettriangles[0] === edgecorner_nettriangles[2] &&
+					edgecorner_nettriangles[1] === edgecorner_nettriangles[3])
+			{
+				console.log("lengthways"); //plausible that this doesn't happen. Certainly the flaps are widthways
+			}
+			else if(edgecorner_nettriangles[0] === edgecorner_nettriangles[1] &&
+					edgecorner_nettriangles[2] === edgecorner_nettriangles[3])
+			{
+				//split widthways
+				for(var tri_i = 0; tri_i < 4; tri_i++)
+				{
+					for(var corner_i = 0; corner_i < 3; corner_i++)
+					{
+						var is_an_intersection = 0;
+						var corner;
+						if( tri_i === 0 ){
+							if(corner_i === 0 ) { is_an_intersection = 0; corner = 0; }
+							if(corner_i === 1 ) { is_an_intersection = 0; corner = 1; }
+							if(corner_i === 2 ) { is_an_intersection = 0; corner = 0; }
+						}
+						else 
+						if( tri_i === 1 ){
+							if(corner_i === 0 ) { is_an_intersection = 0; corner = ; }
+							if(corner_i === 1 ) { is_an_intersection = 0; corner = ; }
+							if(corner_i === 2 ) { is_an_intersection = 0; corner = ; }
+						}
+						else 
+						if( tri_i === 2 ){
+							if(corner_i === 0 ) { is_an_intersection = 0; corner = ; }
+							if(corner_i === 1 ) { is_an_intersection = 0; corner = ; }
+							if(corner_i === 2 ) { is_an_intersection = 0; corner = ; }
+						}
+						else 
+						if( tri_i === 3 ){
+							if(corner_i === 0 ) { is_an_intersection = 0; corner = ; }
+							if(corner_i === 1 ) { is_an_intersection = 0; corner = ; }
+							if(corner_i === 2 ) { is_an_intersection = 0; corner = ; }
+						}
+						
+						if(is_an_intersection){
+							map_hex_point(intersection[corner-12], 
+									hexcorner_nettriangles[ corner],
+									hexagonlattice_index, LatticeRotationAndScaleMatrix);
+						}
+						else{
+							corner = ( side_i * 2 + corner ) % 12;
+							
+							map_hex_point(squarelattice_hexagonvertices[hexagon_first_squarelatticevertex_index+corner], 
+									hexcorner_nettriangles[ corner],
+									hexagonlattice_index, LatticeRotationAndScaleMatrix);
+						}
+						
+						hexagonlattice_index++;
+					}
 				}
 			}
+			else
+			{
+				//one vertex separated
+				for(var tri_i = 0; tri_i < 4; tri_i++)
+				{
+					for(var corner_i = 0; corner_i < 3; corner_i++)
+					{
+						var corner = 0; //they just get the corner
+						
+						map_hex_point(squarelattice_hexagonvertices[hexagon_first_squarelatticevertex_index+corner], 
+								hexcorner_nettriangles[ corner],
+								hexagonlattice_index, LatticeRotationAndScaleMatrix);
+						
+						hexagonlattice_index++;
+					}
+				}
+				
+//				var pariahvertex;
+//				
+//				for(var j = 0; j < 4; j++){
+//					for(var k = 0; k < 4; k++){
+//						if( k !== j && edgecorner_nettriangles[j] === edgecorner_nettriangles[k] )
+//							break;
+//						
+//						if(k === 3)
+//							pariahvertex = j;
+//					}
+//				}
+//				
+//				var countervertex = 3 - pariahvertex;
+//				
+//				//we get the intersections with each side
+//				for(var j = 0; j < 4; j++){
+//					
+//				}
+				
+				//we then go through the four triangles, mapping their vertices separately.
+				//0 is pariah triangle: pariahvertex, then intersection, then other intersection
+				//countertriangle: countervertex, intersection, intersection
+				//then the two others, corner, countervertex, intersection.
+			}
+			
+			
+			
 		}
 	}
-	
-	
+		
+		
 	//potential optimisation: break out of the loop when you're past a certain radius. That only helps small capsids though.
 	//potential optimisation: just put one in each net triangle and extrapolate
 	for(var i = 0; i < number_of_lattice_points; i++) {
@@ -174,21 +224,15 @@ function Map_lattice() {
 			else //just as normal with extra z to appear above the edges
 				surflattice_geometry.attributes.position.setXYZ(i, mappedpoint.x, mappedpoint.y, mappedpoint.z + 0.01 );
 			
-//			for(var j = 0; j < 6*6; j++){
-//				HexagonLattice.geometry.vertices[i*6*6 + j].copy(HexagonLattice_defaultvertices[i*6*6 + j]);
-//				apply2Dmatrix(LatticeRotationAndScaleMatrix,HexagonLattice.geometry.vertices[i*6*6 + j]);
-//				map_from_lattice_to_surface( HexagonLattice.geometry.vertices[i*6*6 + j], latticevertex_nettriangle );
-//			}
-			
 			lattice_colors[i*3+0] = 1;
 			lattice_colors[i*3+1] = 0;
 			lattice_colors[i*3+2] = 0;
 		}
-		else {
-			surflattice_geometry.attributes.position.setXYZ(i, Lattice_ring_density_factor*flatlattice_default_vertices[ i*3+0 ],Lattice_ring_density_factor*flatlattice_default_vertices[ i*3+1 ],0);
-			
-			for(var j = 0; j < 6*6; j++)
-				HexagonLattice.geometry.vertices[i*6*6 + j].copy(HexagonLattice_defaultvertices[i*6*6 + j]);
+		else 
+		{
+			surflattice_geometry.attributes.position.setXYZ(i, 
+					Lattice_ring_density_factor*flatlattice_default_vertices[ i*3+0 ],
+					Lattice_ring_density_factor*flatlattice_default_vertices[ i*3+1 ],0);
 			
 			lattice_colors[i*3+0] = 1;
 			lattice_colors[i*3+1] = 0.682;
@@ -196,6 +240,88 @@ function Map_lattice() {
 		}
 	}
 	logged = 1;
+	
+	
+//	camera.position.z = 1;
+//	
+//	
+//	var edgecorner_nettriangles = new Uint16Array(4);
+//	
+//	for(var i = 0; i < number_of_lattice_points; i++) {
+//		//these should be separate from the vertices that you map!
+//		for(var j = 0; j < 4; j++)
+//			edgecorner_nettriangles[j] = locate_in_squarelattice_net(squarelattice_hexagonvertices[ SOMETHING ]);
+//		
+		
+//	}
+//	
+//	
+//	
+//	var hexcorner_nettriangles = new Uint16Array(12);
+//	
+//	for(var i = 0; i < number_of_lattice_points; i++) { //for each hexagon
+//		for(var j = 0; j < 12; j++){
+//			hexcorner_nettriangles[j] = locate_in_squarelattice_net(squarelattice_hexagonvertices[ i*6*6 + j * 3 ]);
+//		}
+//		
+//		
+//		
+//		for(var j = 0; j < 12; j++){ //for each edge, inner or outer, of that hexagon
+//			var edge_startpoint_index = i*3*12 + j * 3;
+//			
+//			map_hex_point(edge_startpoint_index, hexcorner_nettriangles[j],LatticeRotationAndScaleMatrix);
+//			
+//			if(	hexcorner_nettriangles[ j ] === hexcorner_nettriangles[(j+2)%12])
+//			{
+//				map_hex_point(edge_startpoint_index + 1, hexcorner_nettriangles[j],LatticeRotationAndScaleMatrix);
+//				map_hex_point(edge_startpoint_index + 2, hexcorner_nettriangles[j],LatticeRotationAndScaleMatrix);
+//			}
+//			else{
+//				var triangle_for_side_intersection = hexcorner_nettriangles[j] === 666 ? hexcorner_nettriangles[(j+2)%12] : hexcorner_nettriangles[j];
+//				var edge_endpoint_index = i*3*12 + ((j+2)%12) * 3;
+//				
+//				for(var k = 0; k < 3; k++){
+//					var intersectionpoint = line_line_intersection(
+//							squarelatticevertex_rounded_triangle_vertex(triangle_for_side_intersection, k),
+//							squarelattice_hexagonvertices[edge_startpoint_index],
+//							squarelatticevertex_rounded_triangle_vertex(triangle_for_side_intersection, (k+1)%3),
+//							squarelattice_hexagonvertices[edge_endpoint_index  ]);
+//					
+//					if(intersectionpoint === 0)
+//						continue;
+//					
+//					map_mid_edge_points(LatticeRotationAndScaleMatrix,
+//							intersectionpoint,
+//							edge_startpoint_index + 1,
+//							hexcorner_nettriangles[   j   ]);
+//					
+//					var newintersectionpoint;
+//					
+//					//if they're both in triangles, they might be separated triangles, so we need a second intersection
+//					if(hexcorner_nettriangles[(j+2)%12] !== 666)
+//						triangle_for_side_intersection = hexcorner_nettriangles[(j+2)%12];
+//					for(var m = 0; m < 3; m++){
+//						newintersectionpoint = line_line_intersection(
+//								squarelatticevertex_rounded_triangle_vertex(triangle_for_side_intersection, m),
+//								squarelattice_hexagonvertices[edge_startpoint_index],
+//								squarelatticevertex_rounded_triangle_vertex(triangle_for_side_intersection,(m+1)%3),
+//								squarelattice_hexagonvertices[edge_endpoint_index  ] );
+//						
+//						if(newintersectionpoint !== 0)								
+//							break;
+//						else if(m === 2)
+//							console.error("no intersection");
+//					}
+//					
+//					map_mid_edge_points(LatticeRotationAndScaleMatrix,
+//							intersectionpoint,
+//							edge_startpoint_index + 2,
+//							hexcorner_nettriangles[(j+2)%12]);
+//				}
+//			}
+//		}
+//	}
+	
 	
 	surflattice.geometry.attributes.position.needsUpdate = true;
 	surflattice.geometry.attributes.color.needsUpdate = true;
@@ -307,10 +433,7 @@ function locate_in_net() {
 	return 666;
 }
 
-function locate_in_squarelattice_net(vec) {	
-	//so this merits use when net vertices are close to lattice vertices
-	//when the capsid isn't closed, it doesn't really matter what lattice vertices are considered to be within it
-	//may as well continue using it for the whole lattice at all times, so it's easier.
+function locate_in_squarelattice_net(vec) {
 	for(var i = 0; i < net_triangle_vertex_indices.length / 3; i++ ) {
 		if( point_in_triangle_vecs(
 				vec.x,vec.y,
