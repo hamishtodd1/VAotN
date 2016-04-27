@@ -1,42 +1,3 @@
-//The argument for donuts on the vertices is pretty strong http://jvi.asm.org/content/82/21/10341/F4.expansion.html
-//Keep the points, virtually but not visually. When a point is on the surface, bring its whole donut onto it
-
-//function map_mid_edge_points(LatticeRotationAndScaleMatrix,
-//		HexagonLatticePosition,  hexagonlattice_vertexindex,
-//		nettriangle){
-//	HexagonLattice_defaultvertices[hexagonlattice_vertexindex  ].copy(HexagonLatticePosition);
-//	
-//	apply2Dmatrix( SquareToHexMatrix, HexagonLattice_defaultvertices[hexagonlattice_vertexindex  ] );
-//	
-//	map_hex_point(hexagonlattice_vertexindex,   nettriangle, LatticeRotationAndScaleMatrix);
-//}
-//
-//function map_hex_point(myindex, latticevertex_nettriangle, LatticeRotationAndScaleMatrix){
-//	HexagonLattice.geometry.vertices[myindex].copy(HexagonLattice_defaultvertices[myindex]);
-//	
-//	if(latticevertex_nettriangle !== 666){
-//		apply2Dmatrix(LatticeRotationAndScaleMatrix,HexagonLattice.geometry.vertices[myindex]);
-//		map_from_lattice_to_surface( HexagonLattice.geometry.vertices[myindex], latticevertex_nettriangle );
-//	}
-//}
-
-function map_hex_point(squarelattice_position, nettriangle, hexagonlattice_index, LatticeRotationAndScaleMatrix){
-	HexagonLattice.geometry.vertices[hexagonlattice_index].copy(squarelattice_position);
-	
-	apply2Dmatrix( SquareToHexMatrix, 
-			HexagonLattice.geometry.vertices[hexagonlattice_index] );
-		
-	if( nettriangle === 666){
-		//because mapfromlatticetosurface has the effect of multiplying by density factor
-		HexagonLattice.geometry.vertices[hexagonlattice_index].multiplyScalar(Lattice_ring_density_factor);
-		return;
-	}
-	
-	apply2Dmatrix(LatticeRotationAndScaleMatrix,
-			HexagonLattice.geometry.vertices[hexagonlattice_index]);
-	map_from_lattice_to_surface( HexagonLattice.geometry.vertices[hexagonlattice_index], nettriangle );
-}
-
 function Map_lattice() {
 //	camera.position.z = 2;
 	var LatticeRotationAndScaleMatrix = new Float32Array([ 
@@ -55,6 +16,16 @@ function Map_lattice() {
 	var intersections = Array(4);
 	for(var i = 0; i < intersections.length; i++)
 		intersections[i] = new THREE.Vector3();
+
+	var chipped_side_vertices = Array(6);
+	for(var i = 0; i < chipped_side_vertices.length; i++)
+		chipped_side_vertices[i] = new THREE.Vector3();
+	
+	var indices_clockwise_on_edge_from_pariahvertex = Array(4);
+	indices_clockwise_on_edge_from_pariahvertex[0] = new Uint16Array([0,2,3,1]);
+	indices_clockwise_on_edge_from_pariahvertex[1] = new Uint16Array([1,0,2,3]);
+	indices_clockwise_on_edge_from_pariahvertex[2] = new Uint16Array([2,3,1,0]);
+	indices_clockwise_on_edge_from_pariahvertex[3] = new Uint16Array([3,1,0,2]);
 	
 	for(var hexagon_i = 0; hexagon_i < number_of_lattice_points; hexagon_i++) 
 	{		
@@ -75,6 +46,7 @@ function Map_lattice() {
 				edgecorner_nettriangles[0] === edgecorner_nettriangles[2] && 
 				edgecorner_nettriangles[0] === edgecorner_nettriangles[3] )
 			{
+				//all in one triangle
 				for(var tri_i = 0; tri_i < 4; tri_i++)
 				{
 					for(var corner_i = 0; corner_i < 3; corner_i++)
@@ -109,7 +81,8 @@ function Map_lattice() {
 			else if(edgecorner_nettriangles[0] === edgecorner_nettriangles[2] &&
 					edgecorner_nettriangles[1] === edgecorner_nettriangles[3])
 			{
-				console.log("lengthways"); //yeah, this doesn't seem to happen. Maybe if the hexagons got thicker
+				//split lengthways. Apparently this doesn't happen
+				console.log("lengthways");
 			}
 			else if(edgecorner_nettriangles[0] === edgecorner_nettriangles[1] &&
 					edgecorner_nettriangles[2] === edgecorner_nettriangles[3])
@@ -121,16 +94,22 @@ function Map_lattice() {
 					var leftend;
 					var rightend;
 					if(i % 2 === 0){
-						leftend = squarelattice_hexagonvertices[hexagon_first_squarelatticevertex_index + (side_i * 2 + 0) % 12 ];
-						rightend= squarelattice_hexagonvertices[hexagon_first_squarelatticevertex_index + (side_i * 2 + 2) % 12 ];
+						leftend = 0;
+						rightend= 2;
 					}
 					else{						
-						leftend = squarelattice_hexagonvertices[hexagon_first_squarelatticevertex_index + (side_i * 2 + 1) % 12 ];
-						rightend= squarelattice_hexagonvertices[hexagon_first_squarelatticevertex_index + (side_i * 2 + 3) % 12 ];
+						leftend = 1;
+						rightend= 3;
 					}
-					for(var k = 0; k < 3; k++){
+					
+					leftend = squarelattice_hexagonvertices[hexagon_first_squarelatticevertex_index + (side_i * 2 + leftend) % 12 ];
+					rightend= squarelattice_hexagonvertices[hexagon_first_squarelatticevertex_index + (side_i * 2 +rightend) % 12 ];
+					
+					var ourtriangle = edgecorner_nettriangles[i] === 666 ? edgecorner_nettriangles[(i+2)%4] : edgecorner_nettriangles[i];
+					
+					for(var k = 0; k < 3; k++)
+					{
 						//speedup: also if you're 666, no need to get the intersection again
-						var ourtriangle = edgecorner_nettriangles[i] === 666 ? edgecorner_nettriangles[(i+2)%4] : edgecorner_nettriangles[i];
 						var potentialintersection = line_line_intersection(
 								squarelatticevertex_rounded_triangle_vertex(ourtriangle, k),
 								leftend,
@@ -141,7 +120,7 @@ function Map_lattice() {
 							intersections[i].copy(potentialintersection);
 							break;
 						}
-						else if(k === 2)console.log("no intersection")
+						else if(k === 2)console.error("no intersection")
 					}
 				}
 				
@@ -196,47 +175,111 @@ function Map_lattice() {
 			else
 			{
 				//one vertex separated
+				
+				var pariahvertex = 666;
+				
+				for(var potential_pariah = 0; potential_pariah < 4; potential_pariah++){
+					for(var k = 0; k < 4; k++){
+						if( k !== potential_pariah && edgecorner_nettriangles[potential_pariah] === edgecorner_nettriangles[k] )
+							break;
+						
+						if(k === 3)
+							pariahvertex = potential_pariah;
+					}
+					if( potential_pariah === 3 && pariahvertex === 666 ) console.error("no pariahvertex found");
+				}
+				
+				var regular_index_place = 0;
+				if(!logged) console.log( hexagon_first_squarelatticevertex_index)
+				for(var i = 0; i < chipped_side_vertices.length; i++){
+					if(i === 1 || i === 5)
+						continue;
+					
+					var hexagonvertexindex = (side_i * 2 + indices_clockwise_on_edge_from_pariahvertex[pariahvertex][regular_index_place]) % 12;
+					if(!logged)console.log(hexagonvertexindex)
+					chipped_side_vertices[i].copy( squarelattice_hexagonvertices[hexagon_first_squarelatticevertex_index + hexagonvertexindex] );
+					
+					regular_index_place++;
+				}
+				
+				for(var i = 0; i < chipped_side_vertices.length; i++){
+					if(i !== 1 && i !== 5)
+						continue;
+					
+					var checktriangle = edgecorner_nettriangles[pariahvertex] === 666 ? 
+							edgecorner_nettriangles[(pariahvertex+1)%4] : edgecorner_nettriangles[pariahvertex];
+							
+					if(!logged)console.log(edgecorner_nettriangles,
+							locate_in_squarelattice_net(chipped_side_vertices[0]),
+							locate_in_squarelattice_net(chipped_side_vertices[2]),
+							locate_in_squarelattice_net(chipped_side_vertices[3]),
+							locate_in_squarelattice_net(chipped_side_vertices[4]) );
+							
+					for(var k = 0; k < 3; k++)
+					{
+						if(!logged)console.log((i+5)%6,(i+1)%6)
+						
+						var potentialintersection = line_line_intersection(
+								squarelatticevertex_rounded_triangle_vertex(checktriangle, k),
+								chipped_side_vertices[(i+5)%6],
+								squarelatticevertex_rounded_triangle_vertex(checktriangle, (k+1)%3),
+								chipped_side_vertices[(i+1)%6]);
+					
+						if( potentialintersection ){
+							chipped_side_vertices[i].copy(potentialintersection);
+							break;
+						}
+						else if(k === 2 ){
+							console.error("no intersection", edgecorner_nettriangles,pariahvertex )
+								logged = 1
+						}
+					}
+				}
+				
 				for(var tri_i = 0; tri_i < 4; tri_i++)
 				{
 					for(var corner_i = 0; corner_i < 3; corner_i++)
 					{
-						var corner = 0; //they just get the corner
+						var chipped_vertex;
+						if( tri_i === 0 ){
+							if(corner_i === 0 ) chipped_vertex = 0;
+							if(corner_i === 1 ) chipped_vertex = 5;
+							if(corner_i === 2 ) chipped_vertex = 1;
+						}
+						else 
+						if( tri_i === 1 ){
+							if(corner_i === 0 ) chipped_vertex = 3;
+							if(corner_i === 1 ) chipped_vertex = 1;
+							if(corner_i === 2 ) chipped_vertex = 5;
+						}
+						else 
+						if( tri_i === 2 ){
+							if(corner_i === 0 ) chipped_vertex = 2;
+							if(corner_i === 1 ) chipped_vertex = 1;
+							if(corner_i === 2 ) chipped_vertex = 3;
+						}
+						else 
+						if( tri_i === 3 ){
+							if(corner_i === 0 ) chipped_vertex = 4;
+							if(corner_i === 1 ) chipped_vertex = 3;
+							if(corner_i === 2 ) chipped_vertex = 5;
+						}
 						
-						map_hex_point(squarelattice_hexagonvertices[hexagon_first_squarelatticevertex_index+corner], 
-								hexcorner_nettriangles[ corner],
+						//inspect tri's here next, they shouldn't be stretched from the lattice
+						
+						if(chipped_vertex < 2 || 4 < chipped_vertex ) //chipped triangle
+							map_hex_point(chipped_side_vertices[chipped_vertex], 
+								edgecorner_nettriangles[pariahvertex],
+								hexagonlattice_index, LatticeRotationAndScaleMatrix);
+						else
+							map_hex_point(chipped_side_vertices[chipped_vertex], 
+								edgecorner_nettriangles[ (pariahvertex+1) % 4],
 								hexagonlattice_index, LatticeRotationAndScaleMatrix);
 						
 						hexagonlattice_index++;
 					}
 				}
-				
-//				var pariahvertex;
-//				
-//				for(var j = 0; j < 4; j++){
-//					for(var k = 0; k < 4; k++){
-//						if( k !== j && edgecorner_nettriangles[j] === edgecorner_nettriangles[k] )
-//							break;
-//						
-//						if(k === 3)
-//							pariahvertex = j;
-//					}
-//				}
-//				
-//				var countervertex = 3 - pariahvertex;
-//				
-//				//we get the intersections with each side
-//				for(var j = 0; j < 4; j++){
-//					
-//				}
-				
-				//we then go through the four triangles, mapping their vertices separately.
-				//0 is pariah triangle: pariahvertex, then intersection, then other intersection
-				//countertriangle: countervertex, intersection, intersection
-				//then the two others, corner, countervertex, intersection.
 			}
-			
-			
-			
 		}
 	}
 		
@@ -270,6 +313,7 @@ function Map_lattice() {
 			lattice_colors[i*3+2] = 0.682;
 		}
 	}
+	
 	logged = 1;
 	
 	
@@ -357,127 +401,4 @@ function Map_lattice() {
 	surflattice.geometry.attributes.position.needsUpdate = true;
 	surflattice.geometry.attributes.color.needsUpdate = true;
 	HexagonLattice.geometry.verticesNeedUpdate = true;
-}
-
-function Update_net_variables() {
-	var old_net_vertices_closest_lattice_vertex = Array(net_vertices_closest_lattice_vertex.length);
-	for(var i = 0; i<net_vertices_closest_lattice_vertex.length; i++)
-		old_net_vertices_closest_lattice_vertex[i] = net_vertices_closest_lattice_vertex[i];
-	var centralaxis = new THREE.Vector3(0, 0, 1);
-	for( var i = 0; i < 22; i++) {
-		var netvertex = new THREE.Vector3(flatnet_vertices.array[ i*3+0 ],flatnet_vertices.array[ i*3+1 ],0);
-		netvertex.multiplyScalar(1/LatticeScale);
-		netvertex.applyAxisAngle(centralaxis,-LatticeAngle);
-
-		net_vertices_closest_lattice_vertex[i] = index_of_closest_default_lattice_vertex(netvertex.x,netvertex.y);
-	}
-	
-	//speedup opportunity: this part only exists for one situation, where LatticeScale is very low and such. Could be more specific
-	for(var i = 0; i<net_triangle_vertex_indices.length / 3; i++){
-		if(		net_vertices_closest_lattice_vertex[net_triangle_vertex_indices[i*3+0]] == net_vertices_closest_lattice_vertex[net_triangle_vertex_indices[i*3+1]]
-			 || net_vertices_closest_lattice_vertex[net_triangle_vertex_indices[i*3+0]] == net_vertices_closest_lattice_vertex[net_triangle_vertex_indices[i*3+2]]
-			 || net_vertices_closest_lattice_vertex[net_triangle_vertex_indices[i*3+1]] == net_vertices_closest_lattice_vertex[net_triangle_vertex_indices[i*3+2]] ) {
-			for(var i = 0; i<net_vertices_closest_lattice_vertex.length; i++)
-				net_vertices_closest_lattice_vertex[i] = old_net_vertices_closest_lattice_vertex[i];
-			break;
-		}
-	}
-	
-	for(var i = 0; i < 20; i++) {
-		var side0vertex_index = vertices_derivations[i+2][0];
-		var side1vertex_index = vertices_derivations[i+2][1]; //always counter-clockwise
-		
-		var origincorner = get_vector(i+2,SURFACE);
-		var corner0 = get_vector(side0vertex_index,SURFACE);
-		var corner1 = get_vector(side1vertex_index,SURFACE);
-		
-		surface.localToWorld(origincorner);
-		surface.localToWorld(corner0);
-		surface.localToWorld(corner1);
-		
-		surface_triangle_side_unit_vectors[i][0].subVectors(corner0,origincorner);
-		surface_triangle_side_unit_vectors[i][1].subVectors(corner1,origincorner);
-		surface_triangle_side_unit_vectors[i][0].normalize();
-		surface_triangle_side_unit_vectors[i][1].normalize();
-		
-		var flatnet_triangle_side_unit_vector0 = new THREE.Vector2(
-				flatnet_vertices.array[side0vertex_index*3 + 0] - flatnet_vertices.array[(i+2)*3 + 0],
-				flatnet_vertices.array[side0vertex_index*3 + 1] - flatnet_vertices.array[(i+2)*3 + 1]			
-			);
-		var flatnet_triangle_side_unit_vector1 = new THREE.Vector2(
-				flatnet_vertices.array[side1vertex_index*3 + 0] - flatnet_vertices.array[(i+2)*3 + 0],
-				flatnet_vertices.array[side1vertex_index*3 + 1] - flatnet_vertices.array[(i+2)*3 + 1]
-			);
-		flatnet_triangle_side_unit_vector0.normalize();
-		flatnet_triangle_side_unit_vector1.normalize();
-		
-		var factor = flatnet_triangle_side_unit_vector1.y * flatnet_triangle_side_unit_vector0.x - flatnet_triangle_side_unit_vector1.x * flatnet_triangle_side_unit_vector0.y;
-		shear_matrix[i][0] = flatnet_triangle_side_unit_vector1.y / factor;
-		shear_matrix[i][1] = flatnet_triangle_side_unit_vector1.x /-factor;
-		shear_matrix[i][2] = flatnet_triangle_side_unit_vector0.y /-factor;
-		shear_matrix[i][3] = flatnet_triangle_side_unit_vector0.x / factor;
-	}
-}
-
-function map_XY_from_lattice_to_surface(x,y, net_triangle_index) {
-	var mappedpoint = new THREE.Vector3(x,y,0);
-	map_from_lattice_to_surface(mappedpoint, net_triangle_index);	
-	return mappedpoint;
-}
-
-function map_from_lattice_to_surface(vec, net_triangle_index) {
-	//you could have an "if net_triangle_index === 666 return x y"?
-	vec.x -= flatnet_vertices.array[(net_triangle_index+2)*3 + 0];
-	vec.y -= flatnet_vertices.array[(net_triangle_index+2)*3 + 1];
-	
-	var side0_component_length = vec.x * shear_matrix[net_triangle_index][0] + vec.y * shear_matrix[net_triangle_index][1];
-	var side1_component_length = vec.x * shear_matrix[net_triangle_index][2] + vec.y * shear_matrix[net_triangle_index][3];
-	
-	var side0_component = surface_triangle_side_unit_vectors[net_triangle_index][0].clone();
-	var side1_component = surface_triangle_side_unit_vectors[net_triangle_index][1].clone();
-	side0_component.multiplyScalar(side0_component_length);
-	side1_component.multiplyScalar(side1_component_length);
-	
-	side0_component.multiplyScalar(Lattice_ring_density_factor/LatticeScale);
-	side1_component.multiplyScalar(Lattice_ring_density_factor/LatticeScale);
-	
-	vec.addVectors(side0_component,side1_component);
-	vec.x += surface_vertices.array[(net_triangle_index+2) * 3 + 0];
-	vec.y += surface_vertices.array[(net_triangle_index+2) * 3 + 1];
-	vec.z += surface_vertices.array[(net_triangle_index+2) * 3 + 2];
-}
-
-//obviously, much speedup opportunities
-function locate_in_net() {
-	//potential optimization: put these in a tree so you only need to make like 5 checks, not 20.
-	//Would need reconciliation with irregularity. Though in that situation you'd probably have a smaller lattice
-	for(var i = 0; i < 20; i++ ) {			
-		if( point_in_triangle(
-				x,y,
-				flatnet_vertices.array[net_triangle_vertex_indices[i*3+0] * 3 + 0], flatnet_vertices.array[net_triangle_vertex_indices[i*3+0] * 3 + 1],
-				flatnet_vertices.array[net_triangle_vertex_indices[i*3+1] * 3 + 0], flatnet_vertices.array[net_triangle_vertex_indices[i*3+1] * 3 + 1],
-				flatnet_vertices.array[net_triangle_vertex_indices[i*3+2] * 3 + 0], flatnet_vertices.array[net_triangle_vertex_indices[i*3+2] * 3 + 1],
-				true) )
-			return i;
-	}
-	
-	return 666;
-}
-
-function locate_in_squarelattice_net(vec) {
-	for(var i = 0; i < net_triangle_vertex_indices.length / 3; i++ ) {
-		if( point_in_triangle_vecs(
-				vec.x,vec.y,
-				squarelatticevertex_rounded_triangle_vertex(i, 0),
-				squarelatticevertex_rounded_triangle_vertex(i, 1),
-				squarelatticevertex_rounded_triangle_vertex(i, 2),
-				true) )
-			return i;
-	}
-	
-	return 666;
-}
-
-function squarelatticevertex_rounded_triangle_vertex(triangleindex, corner){
-	return squarelattice_vertices[  net_vertices_closest_lattice_vertex[  net_triangle_vertex_indices[triangleindex*3+corner]  ] ];
 }
