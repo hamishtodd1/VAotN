@@ -38,6 +38,7 @@ function map_hex_point(squarelattice_position, nettriangle, hexagonlattice_index
 }
 
 function Map_lattice() {
+//	camera.position.z = 2;
 	var LatticeRotationAndScaleMatrix = new Float32Array([ 
            //divided by density factor because mapfromlatticetosurface. Change this when rid off points.
   		 LatticeScale * Math.cos(LatticeAngle),
@@ -51,10 +52,9 @@ function Map_lattice() {
 	
 	var hexagonlattice_index = 0;
 	
-	var TL = new THREE.Vector3();
-	var TR = new THREE.Vector3();
-	var BL = new THREE.Vector3();
-	var BR = new THREE.Vector3();
+	var intersections = Array(4);
+	for(var i = 0; i < intersections.length; i++)
+		intersections[i] = new THREE.Vector3();
 	
 	for(var hexagon_i = 0; hexagon_i < number_of_lattice_points; hexagon_i++) 
 	{		
@@ -109,12 +109,43 @@ function Map_lattice() {
 			else if(edgecorner_nettriangles[0] === edgecorner_nettriangles[2] &&
 					edgecorner_nettriangles[1] === edgecorner_nettriangles[3])
 			{
-				console.log("lengthways"); //plausible that this doesn't happen. Certainly the flaps are widthways
+				console.log("lengthways"); //yeah, this doesn't seem to happen. Maybe if the hexagons got thicker
 			}
 			else if(edgecorner_nettriangles[0] === edgecorner_nettriangles[1] &&
 					edgecorner_nettriangles[2] === edgecorner_nettriangles[3])
 			{
 				//split widthways
+				
+				//there is an "equivalence" between intersections and the actual corners
+				for(var i = 0; i < 4; i++){
+					var leftend;
+					var rightend;
+					if(i % 2 === 0){
+						leftend = squarelattice_hexagonvertices[hexagon_first_squarelatticevertex_index + (side_i * 2 + 0) % 12 ];
+						rightend= squarelattice_hexagonvertices[hexagon_first_squarelatticevertex_index + (side_i * 2 + 2) % 12 ];
+					}
+					else{						
+						leftend = squarelattice_hexagonvertices[hexagon_first_squarelatticevertex_index + (side_i * 2 + 1) % 12 ];
+						rightend= squarelattice_hexagonvertices[hexagon_first_squarelatticevertex_index + (side_i * 2 + 3) % 12 ];
+					}
+					for(var k = 0; k < 3; k++){
+						//speedup: also if you're 666, no need to get the intersection again
+						var ourtriangle = edgecorner_nettriangles[i] === 666 ? edgecorner_nettriangles[(i+2)%4] : edgecorner_nettriangles[i];
+						var potentialintersection = line_line_intersection(
+								squarelatticevertex_rounded_triangle_vertex(ourtriangle, k),
+								leftend,
+								squarelatticevertex_rounded_triangle_vertex(ourtriangle, (k+1)%3),
+								rightend);
+					
+						if(potentialintersection !== 0){
+							intersections[i].copy(potentialintersection);
+							break;
+						}
+						else if(k === 2)console.log("no intersection")
+					}
+				}
+				
+				
 				for(var tri_i = 0; tri_i < 4; tri_i++)
 				{
 					for(var corner_i = 0; corner_i < 3; corner_i++)
@@ -122,32 +153,32 @@ function Map_lattice() {
 						var is_an_intersection = 0;
 						var corner;
 						if( tri_i === 0 ){
-							if(corner_i === 0 ) { is_an_intersection = 0; corner = 0; }
-							if(corner_i === 1 ) { is_an_intersection = 0; corner = 1; }
+							if(corner_i === 0 ) { is_an_intersection = 0; corner = 1; }
+							if(corner_i === 1 ) { is_an_intersection = 1; corner = 1; }
 							if(corner_i === 2 ) { is_an_intersection = 0; corner = 0; }
 						}
 						else 
 						if( tri_i === 1 ){
-							if(corner_i === 0 ) { is_an_intersection = 0; corner = ; }
-							if(corner_i === 1 ) { is_an_intersection = 0; corner = ; }
-							if(corner_i === 2 ) { is_an_intersection = 0; corner = ; }
+							if(corner_i === 0 ) { is_an_intersection = 1; corner = 0; }
+							if(corner_i === 1 ) { is_an_intersection = 0; corner = 0; }
+							if(corner_i === 2 ) { is_an_intersection = 1; corner = 1; }
 						}
 						else 
 						if( tri_i === 2 ){
-							if(corner_i === 0 ) { is_an_intersection = 0; corner = ; }
-							if(corner_i === 1 ) { is_an_intersection = 0; corner = ; }
-							if(corner_i === 2 ) { is_an_intersection = 0; corner = ; }
+							if(corner_i === 0 ) { is_an_intersection = 1; corner = 3; }
+							if(corner_i === 1 ) { is_an_intersection = 0; corner = 3; }
+							if(corner_i === 2 ) { is_an_intersection = 1; corner = 2; }
 						}
 						else 
 						if( tri_i === 3 ){
-							if(corner_i === 0 ) { is_an_intersection = 0; corner = ; }
-							if(corner_i === 1 ) { is_an_intersection = 0; corner = ; }
-							if(corner_i === 2 ) { is_an_intersection = 0; corner = ; }
+							if(corner_i === 0 ) { is_an_intersection = 0; corner = 2; }
+							if(corner_i === 1 ) { is_an_intersection = 1; corner = 2; }
+							if(corner_i === 2 ) { is_an_intersection = 0; corner = 3; }
 						}
 						
 						if(is_an_intersection){
-							map_hex_point(intersection[corner-12], 
-									hexcorner_nettriangles[ corner],
+							map_hex_point(intersections[corner], 
+									hexcorner_nettriangles[ ( side_i * 2 + corner ) % 12],
 									hexagonlattice_index, LatticeRotationAndScaleMatrix);
 						}
 						else{
@@ -242,7 +273,7 @@ function Map_lattice() {
 	logged = 1;
 	
 	
-//	camera.position.z = 1;
+	
 //	
 //	
 //	var edgecorner_nettriangles = new Uint16Array(4);
