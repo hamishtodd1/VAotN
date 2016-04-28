@@ -37,10 +37,23 @@ function Map_lattice() {
 			//speedup opportunity: map the points here, too.
 		}
 		
+		/*
+		 * mkay some edges are disappearing because of "hogging" by net triangles.
+		 * could make a more nuanced decision in the locating function
+		 *   it comes about because the points are taken by triangles on either side of where they should be
+		 *   or, make it sensetive to the point being on a line
+		 * could bring back the "points created by a cut will come from the same vertex". What was wrong with that again?
+		 */
+		
+		if(hexagon_i===0 && !isMouseDown && isMouseDown_previously) console.log("new")
+		
 		for(var side_i = 0; side_i < 6; side_i++)
 		{
 			for(var i = 0; i < 4; i++)
 				edgecorner_nettriangles[i] = hexcorner_nettriangles[(side_i * 2 + i) % 12];
+			
+			//it's the 0,16 one.
+			if(hexagon_i===0 && !isMouseDown && isMouseDown_previously)console.log(edgecorner_nettriangles)
 			
 			if(	edgecorner_nettriangles[0] === edgecorner_nettriangles[1] && 
 				edgecorner_nettriangles[0] === edgecorner_nettriangles[2] && 
@@ -81,8 +94,88 @@ function Map_lattice() {
 			else if(edgecorner_nettriangles[0] === edgecorner_nettriangles[2] &&
 					edgecorner_nettriangles[1] === edgecorner_nettriangles[3])
 			{
-				//split lengthways. Apparently this doesn't happen
-				console.log("lengthways");
+				//split lengthways
+				for(var i = 0; i < 4; i++){ //intersection point
+					var topend;
+					var bottomend;
+					if(i % 2 === 0){
+						topend = 0;
+						bottomend= 1;
+					}
+					else{						
+						topend = 2;
+						bottomend= 3;
+					}
+					
+					topend = squarelattice_hexagonvertices[hexagon_first_squarelatticevertex_index + (side_i * 2 + topend) % 12 ];
+					bottomend= squarelattice_hexagonvertices[hexagon_first_squarelatticevertex_index + (side_i * 2 +bottomend) % 12 ];
+					
+					var ourtriangle = edgecorner_nettriangles[i] === 666 ? edgecorner_nettriangles[(5-i)%4] : edgecorner_nettriangles[i];
+					
+					for(var k = 0; k < 3; k++)
+					{
+						//speedup: also if you're 666, no need to get the intersection again
+						var potentialintersection = line_line_intersection(
+								squarelatticevertex_rounded_triangle_vertex(ourtriangle, k),
+								topend,
+								squarelatticevertex_rounded_triangle_vertex(ourtriangle, (k+1)%3),
+								bottomend);
+					
+						if(potentialintersection !== 0){
+							intersections[i].copy(potentialintersection);
+							break;
+						}
+						else if(k === 2)console.error("no intersection")
+					}
+				}
+				
+				
+				for(var tri_i = 0; tri_i < 4; tri_i++)
+				{
+					for(var corner_i = 0; corner_i < 3; corner_i++)
+					{
+						var is_an_intersection = 0;
+						var corner;
+						if( tri_i === 0 ){
+							if(corner_i === 0 ) { is_an_intersection = 1; corner = 0; }
+							if(corner_i === 1 ) { is_an_intersection = 1; corner = 2; }
+							if(corner_i === 2 ) { is_an_intersection = 0; corner = 0; }
+						}
+						else 
+						if( tri_i === 1 ){
+							if(corner_i === 0 ) { is_an_intersection = 0; corner = 2; }
+							if(corner_i === 1 ) { is_an_intersection = 0; corner = 0; }
+							if(corner_i === 2 ) { is_an_intersection = 1; corner = 2; }
+						}
+						else 
+						if( tri_i === 2 ){
+							if(corner_i === 0 ) { is_an_intersection = 0; corner = 1; }
+							if(corner_i === 1 ) { is_an_intersection = 0; corner = 3; }
+							if(corner_i === 2 ) { is_an_intersection = 1; corner = 1; }
+						}
+						else 
+						if( tri_i === 3 ){
+							if(corner_i === 0 ) { is_an_intersection = 1; corner = 3; }
+							if(corner_i === 1 ) { is_an_intersection = 1; corner = 1; }
+							if(corner_i === 2 ) { is_an_intersection = 0; corner = 3; }
+						}
+						
+						if(is_an_intersection){
+							map_hex_point(intersections[corner], 
+									hexcorner_nettriangles[ ( side_i * 2 + corner ) % 12],
+									hexagonlattice_index, LatticeRotationAndScaleMatrix);
+						}
+						else{
+							corner = ( side_i * 2 + corner ) % 12;
+							
+							map_hex_point(squarelattice_hexagonvertices[hexagon_first_squarelatticevertex_index+corner], 
+									hexcorner_nettriangles[ corner],
+									hexagonlattice_index, LatticeRotationAndScaleMatrix);
+						}
+						
+						hexagonlattice_index++;
+					}
+				}
 			}
 			else if(edgecorner_nettriangles[0] === edgecorner_nettriangles[1] &&
 					edgecorner_nettriangles[2] === edgecorner_nettriangles[3])
@@ -267,7 +360,7 @@ function Map_lattice() {
 						
 						//inspect tri's here next, they shouldn't be stretched from the lattice
 						
-						if(chipped_vertex < 2 || 4 < chipped_vertex ) //chipped triangle
+						if( tri_i === 0 ) //chipped triangle
 							map_hex_point(chipped_side_vertices[chipped_vertex], 
 								edgecorner_nettriangles[pariahvertex],
 								hexagonlattice_index, LatticeRotationAndScaleMatrix);
