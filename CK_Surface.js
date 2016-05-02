@@ -18,10 +18,12 @@
 function UpdateCapsid() {
 	var oldcapsidopenness = capsidopenness;
 	
+	var magnitudespeed = 0.018;
+	
 	if(isMouseDown)
-		capsidopeningspeed = 0.018;
+		capsidopeningspeed = magnitudespeed;
 	else
-		capsidopeningspeed = -0.018;
+		capsidopeningspeed = -magnitudespeed;
 	
 	capsidopenness += capsidopeningspeed;
 	

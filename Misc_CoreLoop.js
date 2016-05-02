@@ -2,13 +2,16 @@
  * Long term To Do
  *  -everything listed in CKsurfacestuff, bocavirus, alexandrov, quasisphere
  *  -get new form of video in (?)
- *  -your tuned round-off error compensators might be different on different CPUs.
+ *  -your tuned round-off error compensators might be different on different CPUs?
  *  -get a person with a sense of color to look at everything
- *  -sure you want things to be rotating in the way they are? Quasisphere, and perhaps CK as well, might feel better with buttons
+ *  -how about everything rotates to face your mouse when you're not clicking. But touchscreens? :( two fingers maybe?
+ *  -lighting on everything?
+ *  -no 666s, you don't want pearl-clutchers
  *  
  *  -make it feel good
  *  	-reduce latency
  *  	-all the effects in camerastuff
+ *  	-optimize
  *  	-test on different setups
  *  	-make work in different resolutions
  */

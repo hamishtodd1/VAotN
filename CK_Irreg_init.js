@@ -650,9 +650,26 @@ function init_CK_and_irreg(){
 		[17,	18,19,	19,19,	19,18,666],
 		[1,		2,3,	3,3,	3,666,18],
 		[21,	19,3,	7,5,	9,21,20]);
+	
+	IsRoundedVertex = new Uint16Array(number_of_lattice_points);
+	IsProblemVertex = new Uint16Array(number_of_lattice_points);
+	ProblemClosests = Array(12);
+	ProblemClosests[0] = new Uint16Array([0, 16, 14, 31, 51, 80, 12, 28, 47, 75, 10, 25, 43, 70, 8, 22, 39, 65, 18, 19, 59, 90]);
+	ProblemClosests[1] = new Uint16Array([0, 14, 12, 28, 47, 75, 10, 25, 43, 70, 8, 22, 39, 65, 18, 19, 59, 90, 16, 34, 55, 85]);
+	ProblemClosests[2] = new Uint16Array([0, 12, 10, 25, 43, 70, 8, 22, 39, 65, 18, 19, 59, 90, 16, 34, 55, 85, 14, 31, 51, 80]);
+	ProblemClosests[3] = new Uint16Array([0, 10, 8, 22, 39, 65, 18, 19, 59, 90, 16, 34, 55, 85, 14, 31, 51, 80, 12, 28, 47, 75]);
+	ProblemClosests[4] = new Uint16Array([0, 8, 18, 19, 59, 90, 16, 34, 55, 85, 14, 31, 51, 80, 12, 28, 47, 75, 10, 25, 43, 70]);
+	ProblemClosests[5] = new Uint16Array([0, 18, 16, 34, 55, 85, 14, 31, 51, 80, 12, 28, 47, 75, 10, 25, 43, 70, 8, 22, 39, 65]);
+	
+	ProblemClosests[ 6] = new Uint16Array([0, 55, 51, 115, 197, 309, 47, 109, 189, 299, 43, 103, 181, 289, 39, 97, 173, 279, 59, 91, 213, 329]);
+	ProblemClosests[ 7] = new Uint16Array([0, 51, 47, 109, 189, 299, 43, 103, 181, 289, 39, 97, 173, 279, 59, 91, 213, 329, 55, 121, 205, 319]);
+	ProblemClosests[ 8] = new Uint16Array([0, 47, 43, 103, 181, 289, 39, 97, 173, 279, 59, 91, 213, 329, 55, 121, 205, 319, 51, 115, 197, 309]);
+	ProblemClosests[ 9] = new Uint16Array([0, 43, 39, 97, 173, 279, 59, 91, 213, 329, 55, 121, 205, 319, 51, 115, 197, 309, 47, 109, 189, 299]);
+	ProblemClosests[10] = new Uint16Array([0, 39, 59, 91, 213, 329, 55, 121, 205, 319, 51, 115, 197, 309, 47, 109, 189, 299, 43, 103, 181, 289]);
+	ProblemClosests[11] = new Uint16Array([0, 59, 55, 121, 205, 319, 51, 115, 197, 309, 47, 109, 189, 299, 43, 103, 181, 289, 39, 97, 173, 279]);
 		
 	{
-		HexagonLattice = new THREE.Mesh(new THREE.Geometry(), new THREE.MeshBasicMaterial({color: 0xff0000}));
+		HexagonLattice = new THREE.Mesh(new THREE.Geometry(), new THREE.MeshBasicMaterial({vertexColors:THREE.FaceColors}));
 		squarelattice_hexagonvertices = Array(6 * 2 * number_of_lattice_points); //only 2 points per corner
 		for(var i = 0; i < squarelattice_hexagonvertices.length; i++ )
 			squarelattice_hexagonvertices[i] = new THREE.Vector3();
@@ -671,7 +688,8 @@ function init_CK_and_irreg(){
 							triangleindex * 3 + 0,
 							triangleindex * 3 + 1,
 							triangleindex * 3 + 2,
-							new THREE.Vector3(1,0,0) //Face normal; unused
+							new THREE.Vector3(1,0,0),//Face normal; unused
+							new THREE.Color( 0xff0000 )
 						);
 				}
 			}
@@ -703,6 +721,8 @@ function init_CK_and_irreg(){
 		
 		var hexagon_major_Scalar = 83; //will get divided by 100.
 		var hexagon_minor_Scalar = 61;
+		
+		
 
 		var index = 0;
 		var lowest_unused_HL_vertex = 0;
@@ -720,7 +740,7 @@ function init_CK_and_irreg(){
 					var ourpoint = ourpointsquare.clone();
 					apply2Dmatrix(SquareToHexMatrix,ourpoint);
 					
-					flatlattice_default_vertices[index*3+0] = ourpoint.x; flatlattice_default_vertices[index*3+1] = ourpoint.y; flatlattice_default_vertices[index*3+2] = (1-capsidopenness) * camera.position.z * 1.5;
+					flatlattice_default_vertices[index*3+0] = ourpoint.x; flatlattice_default_vertices[index*3+1] = ourpoint.y; flatlattice_default_vertices[index*3+2] = 0;
 					surflattice_geometry.attributes.position.setXYZ(index, 0,0,0);
 					squarelattice_vertices[index] = ourpointsquare.clone();
 					

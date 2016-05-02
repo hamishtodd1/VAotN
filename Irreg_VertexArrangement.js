@@ -4,6 +4,8 @@
  * -label the button
  * -change associations?
  * 
+ * -you slide against the edges around your W, but you can freeze against the ones around your V, because damn that's hard
+ * 
  * if the player has clicked on the button 8 times,  the capsid appears?
  * 
  * New associations:

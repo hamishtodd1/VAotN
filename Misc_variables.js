@@ -220,6 +220,7 @@ var HexagonLattice;
 var squarelattice_hexagonvertices;
 
 var net_vertices_closest_lattice_vertex = Array(22);
+var ProblemClosests;
 
 var surflattice;
 var surflattice_vertices_numbers = new Float32Array(3 * number_of_lattice_points);
@@ -234,6 +235,11 @@ var vertices_derivations;
 var minimum_angles = new Array(22); //between these two, we derive the polyhedron and surface
 
 var circle;
+
+var IsRoundedVertex;
+var IsProblemVertex;
+var problemArrays;
+var solutionArrays;
 
 //-----------------------Buttons
 var VARYINGSURFACE_OPENMODE_BUTTON = 0;

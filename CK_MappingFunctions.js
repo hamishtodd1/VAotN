@@ -1,26 +1,5 @@
-//The argument for donuts on the vertices is pretty strong http://jvi.asm.org/content/82/21/10341/F4.expansion.html
-//Keep the points, virtually but not visually. When a point is on the surface, bring its whole donut onto it
-
-//function map_mid_edge_points(LatticeRotationAndScaleMatrix,
-//		HexagonLatticePosition,  hexagonlattice_vertexindex,
-//		nettriangle){
-//	HexagonLattice_defaultvertices[hexagonlattice_vertexindex  ].copy(HexagonLatticePosition);
-//	
-//	apply2Dmatrix( SquareToHexMatrix, HexagonLattice_defaultvertices[hexagonlattice_vertexindex  ] );
-//	
-//	map_hex_point(hexagonlattice_vertexindex,   nettriangle, LatticeRotationAndScaleMatrix);
-//}
-//
-//function map_hex_point(myindex, latticevertex_nettriangle, LatticeRotationAndScaleMatrix){
-//	HexagonLattice.geometry.vertices[myindex].copy(HexagonLattice_defaultvertices[myindex]);
-//	
-//	if(latticevertex_nettriangle !== 666){
-//		apply2Dmatrix(LatticeRotationAndScaleMatrix,HexagonLattice.geometry.vertices[myindex]);
-//		map_from_lattice_to_surface( HexagonLattice.geometry.vertices[myindex], latticevertex_nettriangle );
-//	}
-//}
-
-function map_hex_point(squarelattice_position, nettriangle, hexagonlattice_index, LatticeRotationAndScaleMatrix){
+function map_hex_point(squarelattice_position, nettriangle, hexagonlattice_index, LatticeRotationAndScaleMatrix)
+{	
 	HexagonLattice.geometry.vertices[hexagonlattice_index].copy(squarelattice_position);
 	
 	apply2Dmatrix( SquareToHexMatrix, 
@@ -156,6 +135,27 @@ function locate_in_squarelattice_net(vec) {
 	}
 	
 	return 666;
+}
+
+function double_locate_in_squarelattice_net(vec, ourArray, startingindex) {
+	var num_found_so_far = 0;
+	for(var i = 0; i < net_triangle_vertex_indices.length / 3; i++ ) {
+		if( point_in_triangle_vecs(
+				vec.x,vec.y,
+				squarelatticevertex_rounded_triangle_vertex(i, 0),
+				squarelatticevertex_rounded_triangle_vertex(i, 1),
+				squarelatticevertex_rounded_triangle_vertex(i, 2),
+				true) )
+		{
+			ourArray[startingindex + num_found_so_far] = i;
+			num_found_so_far++;
+		}
+	}
+	
+	while(num_found_so_far < 2){ //note that putting 666 in the last one when it might just be in a normal triangle means this is ONLY for points on net edges
+		ourArray[startingindex + num_found_so_far] = 666;
+		num_found_so_far++;
+	}
 }
 
 function squarelatticevertex_rounded_triangle_vertex(triangleindex, corner){
