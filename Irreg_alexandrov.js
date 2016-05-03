@@ -1,6 +1,4 @@
-/* 
- * You do want that "drag against the limit of triangle" thing, because people randomly moving it around do make it go places fast
- */
+
 
 /*  Newest plan:
  * 
@@ -373,7 +371,7 @@ function get_curvatures(input_radii, failure_is_acceptable) {
 		if(isNaN(curvature_array[i])) {
 			if(!failure_is_acceptable) {
 				//this is probably just a "don't allow this" situation
-				console.error("crazy curvature");
+				if(net_warnings)console.error("crazy curvature");
 			}
 			return 666;
 		}

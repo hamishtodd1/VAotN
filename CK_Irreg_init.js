@@ -271,9 +271,9 @@ function init_CK_and_irreg(){
 		
 		for(var i = 0; i<varyingsurface_spheres.length;i++){
 			if( (i == 0 || i % 4 == 1) && i != 1)
-				varyingsurface_spheres[i] = new THREE.Mesh( (new THREE.BufferGeometry).fromGeometry(new THREE.SphereGeometry(varyingsurface_edges_default_radius,8,4)),varyingsurface_edgesmaterial);
+				varyingsurface_spheres[i] = new THREE.Mesh( new THREE.SphereGeometry(varyingsurface_edges_default_radius,  8,4),varyingsurface_edgesmaterial);
 			else
-				varyingsurface_spheres[i] = new THREE.Mesh( (new THREE.BufferGeometry).fromGeometry(new THREE.SphereGeometry(varyingsurface_edges_default_radius*4.5,8,4)),spherehandles_material.clone());
+				varyingsurface_spheres[i] = new THREE.Mesh( new THREE.SphereGeometry(varyingsurface_edges_default_radius*7,8,4),spherehandles_material.clone());
 		}
 		varyingsurface = new THREE.Mesh( flatnet_geometry.clone(), surfacematerial );
 		
@@ -400,13 +400,6 @@ function init_CK_and_irreg(){
 		backwardbutton = new THREE.Mesh( backwardbutton_geometry, new THREE.MeshBasicMaterial({color: 0x0000ff}) );
 		backwardbutton.position.x -= 2.8;
 		backwardbutton.position.y -= 2.8;
-		
-		for(var i = 0; i< Button.length; i++){
-			Button[i] = new THREE.Mesh( new THREE.CircleGeometry( 0.3 ), new THREE.MeshBasicMaterial({color: 0x00ff00}) );
-			Button[i].ourboolean = 0;
-		}
-		Button[0].position.x = 1.9;
-		Button[0].position.y =-0.7;
 		
 		var indicatorblobmaterial = new THREE.MeshBasicMaterial({color: 0xf0f00f});
 		for( var i = 0; i<indicatorblobs.length; i++){

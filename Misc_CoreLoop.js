@@ -40,7 +40,7 @@ function UpdateWorld() {
 			break;
 			
 		case IRREGULAR_MODE:
-			CheckButton(0);
+			CheckIrregButton();
 			Update_pictures_in_scene();
 			manipulate_vertices();
 			update_varyingsurface();
@@ -136,7 +136,7 @@ function ChangeScene(new_mode) {
 		case IRREGULAR_MODE:
 			scene.add(manipulation_surface);
 //			scene.add(varyingsurface);
-			scene.add(Button[0]);
+//			scene.add(Button[0]);
 			for( var i = 0; i < varyingsurface_cylinders.length; i++)
 				scene.add(varyingsurface_cylinders[i]);
 			for( var i = 0; i < varyingsurface_spheres.length; i++)
@@ -144,6 +144,7 @@ function ChangeScene(new_mode) {
 			
 			for(var i = 12; i < 16; i++)
 				scene.add(picture_objects[i]);
+			scene.add(picture_objects[18]);
 			break;
 			
 		case QC_SPHERE_MODE:

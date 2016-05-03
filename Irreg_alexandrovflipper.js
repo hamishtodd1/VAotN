@@ -118,7 +118,7 @@ function get_third_corner(corner1,corner2,clockwise){
 			}	
 		}
 	}
-	console.error("couldn't find third corner",corner1,corner2);
+	if(net_warnings)console.error("couldn't find third corner",corner1,corner2);
 	print_ATVIs();
 }
 
@@ -211,6 +211,8 @@ function polyhedron_index(i) {
 }
 
 function print_ATVIs(){
+	if(!net_warnings)
+		return;
 	for(var i = 0; i <20; i++)
 		console.log(alexandrov_triangle_vertex_indices[i*3+0],
 					alexandrov_triangle_vertex_indices[i*3+1],

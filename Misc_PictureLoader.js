@@ -36,7 +36,7 @@
  */
 
 var texture_loader = new THREE.TextureLoader();
-var picture_objects = Array(17);
+var picture_objects = Array(19);
 
 var pictures_loaded = 0;
 
@@ -49,6 +49,9 @@ function loadpics(){
 		} else if( i === 16 ){
 			ourwidth = playing_field_width * 1.144; // 1.176;
 			ourheight = ourwidth;
+		} else if( i === 17 || i === 18 ){
+			ourwidth = 0.6;
+			ourheight = 0.6;
 		} else if( i < 3){
 			ourwidth = 3;
 			ourheight = 3;
@@ -85,6 +88,9 @@ function loadpics(){
 	
 	picture_objects[16].name = "http://hamishtodd1.github.io/Data/CKhider.png";
 	
+	picture_objects[17].name = "http://hamishtodd1.github.io/Data/open.png";
+	picture_objects[18].name = "http://hamishtodd1.github.io/Data/close.png";
+	
 	for(var i = 1; i < picture_objects.length; i++){ //all except the first
 		picture_objects[i].enabled = 0; //switch to 1 when clicked, switch all to 0 when player changes anything
 		picture_objects[i].TimeThroughMovement = 100; //start at a place where you're settled
@@ -107,6 +113,11 @@ function loadpics(){
 			picture_objects[i].enabled_position = picture_objects[i].default_position.clone();
 			picture_objects[i].enabled_position.y += 0.4; //maybe too much
 			picture_objects[i].position.copy(picture_objects[i].default_position);
+		}
+		
+		if(i === 17 || i === 18){
+			picture_objects[i].position.set(1.9,-0.7,0.0001);
+			picture_objects[i].capsidopen = 0;
 		}
 		
 		if(i === 16)

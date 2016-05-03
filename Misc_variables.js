@@ -16,7 +16,7 @@ var QC_SPHERE_MODE = 5;
 var CUBIC_LATTICE_MODE = 6;
 var FINAL_FORMATION_MODE = 7;
 	
-var MODE = 3;
+var MODE = 4;
 
 //--------------Technologically fundamental
 var playing_field_width = 7*HS3;
@@ -49,7 +49,7 @@ var SURFACE = 1;
 var POLYHEDRON = 2;
 
 var showdebugstuff = 1;
-var net_warnings = 1;
+var net_warnings = 0;
 
 var z_central_axis = new THREE.Vector3(0,0,1);
 
@@ -245,7 +245,6 @@ var solutionArrays;
 var VARYINGSURFACE_OPENMODE_BUTTON = 0;
 var BOCAVIRUS_BUTTON = 1;
 var T4_BUTTON = 2;
-var Button = Array(1);
 var setvirus_flatnet_vertices = Array(4);
 
 //---------------------------buttons no more
