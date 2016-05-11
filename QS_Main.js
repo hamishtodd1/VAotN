@@ -2,26 +2,21 @@
  * Every quasicutout has a set of lines that "grow" over to its partner.
  * Hopefully you can deduce which ones based on the shapes.
  * For every edge the numbers are worked out in realtime
+ * When virus is clicked, move to that state slowly
  * 
  * Is there some way you could change the way you spherically project so that the fat rhombs on the smallest ones aren't so squashed?
  * The ones where you inserted something aren't so hot either. Could have special cases.
  * 
- * One virus in each corner. Boca, Zika, LA, HPV. There are a few more pics like HPV, there was some pdf you saved. Or google "density map" virus, there are one or two
+ * There are a few more pics like HPV, there was some pdf you saved. Or google "density map" virus, there are one or two
  * Might be hard to have a nice transition to them, so could just flash or something
  * 
- * Remove stitchup, quasicutouts, and everything that uses them, when you know there's no work left to be done on this.
+ * There may still be things happenning that you don't need
  * 
  * Fix that problem where you can't change while the deflation is occurring. Might be you start within that small non-responsive part?
- * 
- * Clearly, you should be able to click viruses and see them, and also drag the lattice to make them yourself and have it indicated that you've got it
- * 
- * So probably ALL should have the four viruses along the bottom
- * 
  */
 
 //Bug in web version: quasisphere didn't appear initially
 //Make pentagons flash when you say "based on pentagonal symmetry"
-//separate out scaling and rotation like on CK
 
 //HMMMM COULD JUST HAVE BLOCKERS AROUND THE PENTAGON. When you fade back, is there any way for them to continue obscure, but not obscure the parts that are fading in?
 
@@ -29,23 +24,6 @@
  * 
  * You don't need to deduce the dodecahedron any more...
  */
-
-//TODO make the points on quasiquasilattice larger
-//TODO shapes fill the whole pentagon. Wouldn't need the guidequasilattice!
-
-/*
- * So what's Konevtsova's logic? He certainly can't argue for that trimer on the corner without a trimer on HPV. He could try to find a virus with no trimer there
- * At the very least he needs a "no crossings allowed" thing
- * The simple thing to say is "edgelengths are all the same, angles are all divisible by TAU/10"
- * If it's that, there may be some proof to do to see if we got everything. There could be very funny shaped topological defects.
- * He claims that there aren't quite trimers on the T=4 and T=3 too! "Idealized", he's full of shit!
- */
-
-/* Shouldn't there be a stable point allowing for the fat rhomb and pentagon to rest on the top?
- * Should points on the corners be in stable points?
- */
-
-
 
 function UpdateQuasiSurface(){
 	var atanphi = Math.atan(PHI);
@@ -151,54 +129,66 @@ function MoveQuasiLattice(){
 	if( isMouseDown) {
 		var Mousedist = MousePosition.length();
 		var OldMousedist = OldMousePosition.length(); //unless the center is going to change?
-//		if(	Mousedist > 0.47 &&
-//			OldMousePosition.x != MousePosition.x && OldMousePosition.y != MousePosition.y)
 		{
-			var scalefactor = Mousedist / OldMousedist;
-			scalefactor = (scalefactor - 1) * 0.685 +1; //0.685 is the drag
+			var oldmouse_to_center = new THREE.Vector3(0 - OldMousePosition.x,0 - OldMousePosition.y,0);
+			var oldmouse_to_newmouse = new THREE.Vector3(   MousePosition.x - OldMousePosition.x,     MousePosition.y - OldMousePosition.y,0);
+			var ourangle = oldmouse_to_center.angleTo(oldmouse_to_newmouse);
 			
-			if(scalefactor !== 1 )
-				Disable_pictures();
+			var veclength;
 			
-			cutout_vector0_player.multiplyScalar(scalefactor);
-			cutout_vector1_player.multiplyScalar(scalefactor);
-			var veclength = cutout_vector0_player.length();
-			
-			var maxlength = 3.53; // 3.48 is minimum but that makes it hard to get to HPV
-			if(veclength > maxlength) {
-				veclength -= 0.028;
-				if(veclength < maxlength)
-					veclength = maxlength;
+			if(Math.abs(ourangle) < TAU / 8 || Math.abs(ourangle) > TAU / 8 * 3 )
+			{
+				var scalefactor = Mousedist / OldMousedist;
+				scalefactor = (scalefactor - 1) * 0.685 +1; //0.685 is the drag
 				
-				cutout_vector0_player.setLength(veclength);
-				cutout_vector1_player.setLength(veclength);
-			}
-			var minlength = 1.313;
-			if(veclength < minlength) {
-				veclength += 0.02;
-				if(veclength > minlength)
-					veclength = minlength;
+				if(scalefactor !== 1 )
+					Disable_pictures();
 				
-				cutout_vector0_player.setLength(veclength);
-				cutout_vector1_player.setLength(veclength);
+				cutout_vector0_player.multiplyScalar(scalefactor);
+				cutout_vector1_player.multiplyScalar(scalefactor);
+				veclength = cutout_vector0_player.length();
+				
+				var maxlength = 3.53; // 3.48 is minimum but that makes it hard to get to HPV
+				if(veclength > maxlength) {
+					veclength -= 0.028;
+					if(veclength < maxlength)
+						veclength = maxlength;
+					
+					cutout_vector0_player.setLength(veclength);
+					cutout_vector1_player.setLength(veclength);
+				}
+				var minlength = 1.313;
+				if(veclength < minlength) {
+					veclength += 0.02;
+					if(veclength > minlength)
+						veclength = minlength;
+					
+					cutout_vector0_player.setLength(veclength);
+					cutout_vector1_player.setLength(veclength);
+				}
 			}
-			
-			var MouseAngle = Math.atan2(MousePosition.y, MousePosition.x );
-			if(MousePosition.x === 0 && MousePosition.y === 0)
-				MouseAngle = 0; //well, undefined
-			
-			var OldMouseAngle = Math.atan2( OldMousePosition.y, OldMousePosition.x );
-			if(OldMousePosition.x === 0 && OldMousePosition.y === 0)
-				OldMouseAngle = 0;
-			
-			var LatticeAngleChange = OldMouseAngle - MouseAngle;
-			
-			var QuasiLatticeAngle = Math.atan2(cutout_vector0_player.y, cutout_vector0_player.x);
-			var newQuasiLatticeAngle = QuasiLatticeAngle - LatticeAngleChange;
-			cutout_vector0_player.x = veclength * Math.cos(newQuasiLatticeAngle);
-			cutout_vector0_player.y = veclength * Math.sin(newQuasiLatticeAngle);
-			cutout_vector1_player.x = veclength * Math.cos(newQuasiLatticeAngle - TAU / 5);
-			cutout_vector1_player.y = veclength * Math.sin(newQuasiLatticeAngle - TAU / 5);
+			else
+			{
+				veclength = cutout_vector0_player.length();
+				
+				var MouseAngle = Math.atan2(MousePosition.y, MousePosition.x );
+				if(MousePosition.x === 0 && MousePosition.y === 0)
+					MouseAngle = 0; //well, undefined
+				
+				var OldMouseAngle = Math.atan2( OldMousePosition.y, OldMousePosition.x );
+				if(OldMousePosition.x === 0 && OldMousePosition.y === 0)
+					OldMouseAngle = 0;
+				
+				var LatticeAngleChange = OldMouseAngle - MouseAngle;
+				
+				var QuasiLatticeAngle = Math.atan2(cutout_vector0_player.y, cutout_vector0_player.x);
+				var newQuasiLatticeAngle = QuasiLatticeAngle - LatticeAngleChange;
+
+				cutout_vector0_player.x = veclength * Math.cos(newQuasiLatticeAngle);
+				cutout_vector0_player.y = veclength * Math.sin(newQuasiLatticeAngle);
+				cutout_vector1_player.x = veclength * Math.cos(newQuasiLatticeAngle - TAU / 5);
+				cutout_vector1_player.y = veclength * Math.sin(newQuasiLatticeAngle - TAU / 5);
+			}
 		}
 	}
 	
@@ -265,22 +255,16 @@ function MoveQuasiLattice(){
 		stable_point_of_meshes_currently_in_scene = modulated_CSP;
 	}
 	
-	var cameraquaternion = new THREE.Quaternion();
-	cameraquaternion.setFromAxisAngle(z_central_axis,Math.atan2(cutout_vector0_displayed.y,cutout_vector0_displayed.x) -  0.9424777960769378);
-	quasicutout_meshes[stable_point_of_meshes_currently_in_scene].quaternion.copy(cameraquaternion);
-	dodeca.quaternion.copy(cameraquaternion);
+	//TODO no dependence on camera! This is the one black sheep.
+	var compensatory_quaternion = new THREE.Quaternion();
+	compensatory_quaternion.setFromAxisAngle(z_central_axis,Math.atan2(cutout_vector0_displayed.y,cutout_vector0_displayed.x) - 0.9424777960769378);
+	quasicutout_meshes[stable_point_of_meshes_currently_in_scene].quaternion.copy(compensatory_quaternion);
+	dodeca.quaternion.copy(compensatory_quaternion);
 	
-	var old_version_camera_dist = 20 / cutout_vector0_displayed.length() + 0.5*Math.sqrt(5/2+11/10*Math.sqrt(5));
-	dodeca.position.z = -old_version_camera_dist + camera.position.z;
-	quasicutout_meshes[stable_point_of_meshes_currently_in_scene].position.z = -old_version_camera_dist + camera.position.z;
-	Guide_quasilattice.position.z = -old_version_camera_dist + 1.1134163644116069 + camera.position.z;
-	
-	Guide_quasilattice.scale.x = 0.85 / cutout_vector0_displayed.length();
-	Guide_quasilattice.scale.y = Guide_quasilattice.scale.x;
-	Guide_quasilattice.scale.z = Guide_quasilattice.scale.x;
-	if(dodeca_angle < Math.atan(PHI) - TAU/4)
-		Guide_quasilattice.rotateOnAxis(z_central_axis,Math.PI);
-	Guide_quasilattice.material.opacity = dodeca_openness;
+	//the 10 part used to be camera.z
+	var contrived_dist = 10 - 20 / cutout_vector0_displayed.length() - 0.5*Math.sqrt(5/2+11/10*Math.sqrt(5));
+	dodeca.position.z = contrived_dist;
+	quasicutout_meshes[stable_point_of_meshes_currently_in_scene].position.z = contrived_dist;
 }
 
 function deduce_dodecahedron(openness) {	

@@ -16,22 +16,19 @@ var QC_SPHERE_MODE = 5;
 var CUBIC_LATTICE_MODE = 6;
 var FINAL_FORMATION_MODE = 7;
 	
-var MODE = 4;
+var MODE = 5;
 
 //--------------Technologically fundamental
 var playing_field_width = 7*HS3;
-var playing_field_height = 6;
-var window_height = 540;
-var window_width = window_height * playing_field_width / playing_field_height;
+var playing_field_height = 6 * playing_field_width / (7*HS3);
 var min_cameradist = 10; //get any closer and the perspective is weird
 var vertical_fov = 2 * Math.atan(playing_field_height/(2*min_cameradist));
 
 var camera = new THREE.CombinedCamera(playing_field_width, playing_field_height, vertical_fov * 360 / TAU, 0.1, 1000, 0.1, 1000);
-//var camera = new THREE.PerspectiveCamera( vertical_fov * 360 / TAU, window_width / window_height, 0.1, 1000 );
-camera.position.z = MODE == CUBIC_LATTICE_MODE ? 3*min_cameradist : min_cameradist;
-var camera_comparing_position = -1.56;
-
 var scene = new THREE.Scene();
+
+var window_height = 540;
+var window_width = window_height * playing_field_width / playing_field_height;
 var renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize( window_width, window_height );
 renderer.setClearColor( 0xffffff, 1);
@@ -49,7 +46,7 @@ var SURFACE = 1;
 var POLYHEDRON = 2;
 
 var showdebugstuff = 1;
-var net_warnings = 0;
+var net_warnings = 1;
 
 var z_central_axis = new THREE.Vector3(0,0,1);
 
@@ -120,7 +117,6 @@ var cutout_vector1_player;
 var quasi_shear_matrix = Array(4);
 var quasicutout_intermediate_vertices = Array(quasilattice_default_vertices.length* 2 );
 var quasicutouts_vertices_components = Array(quasilattice_default_vertices.length * 2 * 3 );
-var quasicutout_line_pairs = new Uint16Array(quasilattice_default_vertices.length * 2 * 2 * 2); //TODO work out how many there should be in here really.
 var quasicutout_meshes; //TODO MASSIVE speedup opportunity: merge
 var stable_points = Array(345);
 var triangleindices_for_stablepoints = Array(stable_points.length);
@@ -128,11 +124,13 @@ var lowest_unused_stablepoint = 0;
 var quasiquasilattice;
 var stablepointslattice;
 var nearby_quasicutouts;
-var set_stable_point = 666;
-var Guide_quasilattice;
+var set_stable_point = 0;
 var stable_point_of_meshes_currently_in_scene = 666;
 var modulated_CSP;
-var NUM_QS_VERTICES_FOR_EDGES = 180; //reserved for edges. Must be divisible by 6
+
+//Potential edges in a quasicutout (so sixty of them in a whole mesh), many will just have their vertices put at 0. Dunno how many there should be?
+//Our first indication was that you needed 144 extras, we're being safe. Can reduce duplications to reduce this by a half.
+var NUM_QUASICUTOUT_EDGES = 30; 
 
 //------------3D penrose stuff
 var animation_playing_automatically = true;

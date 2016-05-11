@@ -9,10 +9,10 @@
  * change angles of mouse movement such that rotation is slightly more probable than it currently is
  * get rid of weird flash
  * some alpha for the circle
+ * click on lattice, little flash and explosion. Bigger flash when they let go
+ * remove flatlattice crap
  * 
  * make the pentagons fade to a different color when surface closes?
- * 
- * Could have a solid circle (might be better as a dodecagon so you can see it spin), out of which the surface is "cut"
  */
 
 function UpdateCapsid() {

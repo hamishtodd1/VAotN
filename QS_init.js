@@ -14,10 +14,6 @@ function initialize_QS_stuff() {
  		transparent: true
  	});
  	
-// 	assign_stablepoint_triangles(0,new Uint16Array([0,2,6]));
-// 	for(var i = 1; i < stable_points.length; i++)
-// 		assign_stablepoint_triangles(i);
- 	
  	var materialy = new THREE.LineBasicMaterial({
  		color: 0x00ffff,
  		transparent: true,
@@ -160,32 +156,7 @@ function initialize_QS_stuff() {
 	}
 	quasilattice_default_vertices[quasilattice_default_vertices.length - 1] = new THREE.Vector3(0,0,0);
 	
-	Guide_quasilattice = new THREE.Points( new THREE.BufferGeometry(), 
-			new THREE.PointsMaterial({color: 0xf0000f,transparent: true, size: 0.9,sizeAttenuation:false})
-//			,THREE.LineSegmentsPieces
-			);
-	Guide_quasilattice.geometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array((quasilattice_default_vertices.length-6) * 3), 3 ) );
-	lowest_unset_GQ_vertex = 0;
-	for(var i = 0; i < quasilattice_default_vertices.length; i++){
-		if(i%num_points==num_points-1 || i == quasilattice_default_vertices.length-1)
-			continue;
-		Guide_quasilattice.geometry.attributes.position.array[lowest_unset_GQ_vertex*3+0] = quasilattice_default_vertices[i].x;
-		Guide_quasilattice.geometry.attributes.position.array[lowest_unset_GQ_vertex*3+1] = quasilattice_default_vertices[i].y;
-		Guide_quasilattice.geometry.attributes.position.array[lowest_unset_GQ_vertex*3+2] = quasilattice_default_vertices[i].z;
-		lowest_unset_GQ_vertex++;
-	}
-	Guide_quasilattice.rotateOnAxis(z_central_axis, Math.PI);
-//	Guide_quasilattice.geometry.setIndex( new THREE.BufferAttribute( new Uint16Array(11 * 5 * 2), 1 ) );
-//	var lowest_unused_pair = 0;
-//	for(var i = 0 ; i<quasilattice_default_vertices.length; i++){
-//		for(var j = i+1; j<quasilattice_default_vertices.length; j++){
-//			if(Math.abs(quasilattice_default_vertices[i].distanceTo(quasilattice_default_vertices[j]) - 1) < 0.001){
-//				 Guide_quasilattice.geometry.index.array[lowest_unused_pair * 2 + 0] = i;
-//				 Guide_quasilattice.geometry.index.array[lowest_unused_pair * 2 + 1] = j;
-//				 lowest_unused_pair++;
-//			}
-//		}
-//	})
+	
 	
 	var spoke_to_side_angle = 3 * TAU / 20;
 	
@@ -353,36 +324,26 @@ function initialize_QS_stuff() {
 	
 	var EdgesColor = new THREE.Color(0,0,0);
 	
-	var one_quasicutout_vertices = quasilattice_default_vertices.length * 2 + NUM_QS_VERTICES_FOR_EDGES;
+	var one_quasicutout_vertices = quasilattice_default_vertices.length * 2 + NUM_QUASICUTOUT_EDGES * 6;
 	
 	var QM_materials = Array(2);
 	QM_materials[0] = new THREE.MeshBasicMaterial({vertexColors:THREE.FaceColors});
 	QM_materials[1] = new THREE.MeshBasicMaterial({vertexColors:THREE.FaceColors,transparent: true});
 	var ourmultimaterial = new THREE.MultiMaterial(QM_materials);
-	for(var i = 0; i < quasicutout_meshes.length; i++){
+	
+	var theirfaceindices = new Uint16Array(3);
+	var ourfaceindices = new Uint16Array(3);
+	
+	for(var i = 0; i < quasicutout_meshes.length; i++)
+	{ //one of these for each stable point
 		quasicutout_meshes[i] = new THREE.Mesh( new THREE.Geometry(), ourmultimaterial );
-		for(var j = 0; j < 60; j++){
+		for(var j = 0; j < 60; j++)
+		{ //each quasicutout
 			for(var k = 0; k < quasilattice_default_vertices.length * 2; k++ ) //TODO memory save opportunity, and probably speedup: you do NOT need the maximum in all of them!
 				quasicutout_meshes[i].geometry.vertices.push(new THREE.Vector3(0,0,0));
 			
-			//this is the edges
-			for(var k = 0; k < NUM_QS_VERTICES_FOR_EDGES; k++) //Our first indication was that you needed 144 extras, we're being safe. Can reduce duplications to reduce this by a half.
-				quasicutout_meshes[i].geometry.vertices.push(new THREE.Vector3(0,0,0));
-			for(var k = 0; k < NUM_QS_VERTICES_FOR_EDGES / 6; k++){
-				for(var m = 0; m < prism_triangle_indices.length / 3; m++ ){
-					var lowest_used_vertex_in_this_quasicutout_vertex_bunch = one_quasicutout_vertices - NUM_QS_VERTICES_FOR_EDGES + 6 * k;
-					quasicutout_meshes[i].geometry.faces.push( new THREE.Face3(
-							j * one_quasicutout_vertices + lowest_used_vertex_in_this_quasicutout_vertex_bunch + prism_triangle_indices[m*3+0], 
-							j * one_quasicutout_vertices + lowest_used_vertex_in_this_quasicutout_vertex_bunch + prism_triangle_indices[m*3+1], 
-							j * one_quasicutout_vertices + lowest_used_vertex_in_this_quasicutout_vertex_bunch + prism_triangle_indices[m*3+2],
-		 					new THREE.Vector3(1,0,0), //Face normal; unused
-		 					EdgesColor,
-		 					1 ) ); // change to 0 to stop disappearance.
-				}
-			}
-			
-			
-			for(var k = 0; k < num_quasi_mesh_triangles; k++){ //TODO speedup(?): clone
+			for(var k = 0; k < num_quasi_mesh_triangles; k++)
+			{ //TODO speedup(?): clone
 				var indexA = 0;
 				var indexB = 0;
 				var indexC = 0;
@@ -763,6 +724,63 @@ function initialize_QS_stuff() {
  					new THREE.Vector3(1,0,0), //Face normal; unused
  					color_selection[k],
  					ourmaterialindex ) );
+			}
+			
+			//this is the edges
+			for(var k = 0; k < NUM_QUASICUTOUT_EDGES * 6; k++)
+				quasicutout_meshes[i].geometry.vertices.push(new THREE.Vector3(0,0,0));
+			
+			for(var k = 0; k < NUM_QUASICUTOUT_EDGES; k++)
+			{
+				for(var m = 0; m < prism_triangle_indices.length / 3; m++ ) //each triangle of the prism
+				{
+					var lowest_edge_vertex_index = quasilattice_default_vertices.length * 2 + 6 * k;
+					quasicutout_meshes[i].geometry.faces.push( new THREE.Face3(
+							j * one_quasicutout_vertices + lowest_edge_vertex_index + prism_triangle_indices[m*3+0], 
+							j * one_quasicutout_vertices + lowest_edge_vertex_index + prism_triangle_indices[m*3+1], 
+							j * one_quasicutout_vertices + lowest_edge_vertex_index + prism_triangle_indices[m*3+2],
+		 					new THREE.Vector3(1,0,0), //Face normal; unused
+		 					EdgesColor,
+		 					1 ) ); // change to 0 to stop disappearance.
+				}
+			}
+		}
+		
+//		var evenedge = 0;
+//		for(var j = 0; j < quasicutout_meshes[i].geometry.faces.length; j++){
+//			ourfaceindices[0] = quasicutout_meshes[i].geometry.faces[j].a;
+//			ourfaceindices[1] = quasicutout_meshes[i].geometry.faces[j].b;
+//			ourfaceindices[2] = quasicutout_meshes[i].geometry.faces[j].c;
+//			for(var k = 0; k < 3; k++){
+//				var v1 = ourfaceindices[k];
+//				var v2 = ourfaceindices[( k+1 ) % 3];
+//				
+//				for(var l = 0; l < quasicutout_meshes[i].geometry.faces.length; l++){
+//					theirfaceindices[0] = quasicutout_meshes[i].geometry.faces[l].a;
+//					theirfaceindices[1] = quasicutout_meshes[i].geometry.faces[l].b;
+//					theirfaceindices[2] = quasicutout_meshes[i].geometry.faces[l].c;
+////					for(var m = 0; m < 3; m++){
+////						var u1 = theirfaceindices[m];
+////						var u2 = theirfaceindices[( m+1 ) % 3];
+////						
+////						if( (v1 === u1 && v2 === u2) || (v1 === u2 && v2 === u1))
+////							if(v1 % 2 === 0 && v2 % 2 === 0)
+////								evenedge = 1;
+////					}
+//				}
+//			}
+//		}
+//		console.log(evenedge)
+	}
+	
+	for(var i = 0; i < num_quasi_mesh_triangles; i++)
+	{
+		var resultarray = new Uint16Array(17);
+		for(var j = 0; j < num_quasi_mesh_triangles; j++)
+		{
+			if( triangle_in_same_shape(i,j) )
+			{
+				
 			}
 		}
 	}

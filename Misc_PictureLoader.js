@@ -1,24 +1,10 @@
-/* Name of virus, then in brackets the living thing it affects
+/* "Playing field width/height" appears in here, and we want to get rid of that.
+ * It just means the area that the camera can see on the plane z = 0.
+ * So update it, and update the pictures, if the window is resized.
+ * Actually we certainly don't want dependence on window size. State a size for the window. Give a certain number of pixels.
+ * Orthographic projection may simplify you walking around.
  * 
- * Candidates for pictures: 
- * irreg
- *   http://www.ncbi.nlm.nih.gov/pmc/articles/PMC110407/pdf/jv006024.pdf
- *   the one in the video is on your "old" computer
- *   https://news.uns.purdue.edu/images/+2005/Rossmann-phage.jpg - phi29
- *   because the lovely T4 is quite short, really you'd like a long one. AMV http://www.dpvweb.net/dpvfigs/d046f02.jpg
- *   
- * CK
- * https://www.rbvi.ucsf.edu/Research/projects/virus/capsids/viruses.html
- * Do the circle thing, and you won't have to do the points thing. Just replace points with line segments
- * Is there a crystal of caulimoviridae?
- * Caulimoviridae is a necessity. You could try to turn them all black and white.
  * 
- * Polio - 3
- * Sindbis/semiliki - 4
- * Cauliomaviridae (chiral) - 7. 
- * 		http://viperdb.scripps.edu/info_page.php?VDB=3izg or
- * 		http://viperdb.scripps.edu/info_page.php?VDB=3j1a
- * 		http://viperdb.scripps.edu/info_page.php?VDB=3iyi
  * Rift Valley Fever (big one) - 12
  * may want to aim to have the t=1 CK arrangment look like the QS version
  * 
@@ -30,7 +16,7 @@
  * 
  * So we have bocavirus on all of them? Four each is nice.
  * 
- * TODO they highlight when mouse is over them
+ * TODO they highlight somehow when mouse is over them
  * 
  * When do they pop up? When you get them? When you've been playing a while?
  */
@@ -41,27 +27,22 @@ var picture_objects = Array(19);
 var pictures_loaded = 0;
 
 function loadpics(){
+	var picturepanel_width = playing_field_width; //7*HS3
+	var y_of_picturepanel_bottom = -0.5 * playing_field_height;
+	
 	for(var i = 0; i < picture_objects.length; i++){
-		var ourwidth, ourheight;
-		if(i === 0 ){
-			ourwidth = playing_field_width;
-			ourheight = playing_field_width;
-		} else if( i === 16 ){
-			ourwidth = playing_field_width * 1.144; // 1.176;
-			ourheight = ourwidth;
-		} else if( i === 17 || i === 18 ){
-			ourwidth = 0.6;
-			ourheight = 0.6;
-		} else if( i < 3){
-			ourwidth = 3;
-			ourheight = 3;
-		} else {
-			ourwidth = playing_field_width / 4;
-			ourheight = playing_field_width / 4;
-		}
+		var ourdimension; //width and height are the same
+		if(i === 0 ) //WIP warning
+			ourdimension = 7*HS3;
+		else if( i === 16 ) //CKhider
+			ourdimension = 6.93513143351; // this is how big you need to be to cover the hexagonlattice
+		else if( i === 17 || i === 18 )
+			ourdimension = 0.6;
+		else
+			ourdimension = picturepanel_width / 4;
 		
 		picture_objects[i] = new THREE.Mesh(
-				new THREE.CubeGeometry(ourwidth, ourheight, 0),
+				new THREE.CubeGeometry(ourdimension, ourdimension, 0),
 				new THREE.MeshBasicMaterial({ transparent:true}) );
 	}
 	
@@ -99,14 +80,13 @@ function loadpics(){
 		if(16 > i && i > 11)
 			picture_objects[i].default_position.z *= -1;
 		if(i > 3 && i < 16){
-			picture_objects[i].default_position.x = -3/8 * playing_field_width;
-			picture_objects[i].default_position.x += (i%4) * playing_field_width / 4;
+			picture_objects[i].default_position.x = -3/8 * picturepanel_width;
+			picture_objects[i].default_position.x += (i%4) * picturepanel_width / 4;
 			
 			var virus_pixels = 414;
 			var entire_picture_pixels = 512;
 			
-			picture_objects[i].default_position.y = -0.5 * playing_field_height + (1 - (entire_picture_pixels - virus_pixels) / entire_picture_pixels - 0.5)
-				* playing_field_width / 4; //the picture's height
+			picture_objects[i].default_position.y = y_of_picturepanel_bottom + 0.5 * picturepanel_width / 4; //the picture's height
 		}
 		
 		if( 0 < i && i < 16){ //virus pics
@@ -129,6 +109,14 @@ function loadpics(){
 }
 
 function loadpic(i) {
+	//these lines are for if you have no internet
+//	picture_objects[i].material.color = 0x000000;
+//	pictures_loaded++;
+//	if(pictures_loaded === picture_objects.length ) {
+//		PICTURES_LOADED = 1;
+//		attempt_launch();
+//	}
+	
 	texture_loader.load(
 		picture_objects[i].name,
 		function(texture) {
@@ -141,7 +129,9 @@ function loadpic(i) {
 				attempt_launch();
 			}
 		},
-		function ( xhr ) {}, function ( xhr ) {console.log( 'texture loading error' );}
+		function ( xhr ) {}, function ( xhr ) {
+			console.log( 'texture loading error, switch to using the other code in this function' );
+		}
 	);
 }
 
@@ -164,6 +154,9 @@ function Disable_pictures(){
 function Update_picture(index){
 	var MouseRelative = MousePosition.clone();
 	MouseRelative.sub(picture_objects[index].position);
+	/*
+	 * Bluetongue is 8, boca is 2, zika is 9, hpv is 7.
+	 */
 	
 	if( isMouseDown && !isMouseDown_previously ){
 		var ClickWasInPicture = 0;
@@ -201,6 +194,16 @@ function Update_picture(index){
 				}
 			}
 		}
+	}
+	else if( picture_objects[index].enabled === 0 && !isMouseDown && //pics can also be turned on by us being in the right place
+	   ((stable_point_of_meshes_currently_in_scene === 2 && index === 8) ||
+		(stable_point_of_meshes_currently_in_scene === 8 && index === 9) ||
+		(stable_point_of_meshes_currently_in_scene === 9 && index === 10)||
+		(stable_point_of_meshes_currently_in_scene === 7 && index === 11)) )
+	{
+		Disable_pictures();
+		picture_objects[index].enabled = 1;
+		picture_objects[index].TimeThroughMovement = 0;
 	}
 	
 	picture_objects[index].TimeThroughMovement += delta_t;	

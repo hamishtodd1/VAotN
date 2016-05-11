@@ -2,18 +2,19 @@
  * Long term To Do
  *  -everything listed in CKsurfacestuff, bocavirus, alexandrov, quasisphere
  *  -get new form of video in (?)
- *  -your tuned round-off error compensators might be different on different CPUs?
  *  -get a person with a sense of color to look at everything
- *  -how about everything rotates to face your mouse when you're not clicking. But touchscreens? :( two fingers maybe?
+ *  -how about everything rotates to face your mouse when you're not clicking. 
+ *  	But touchscreens? How about there's a little object they can grab to make the mouse follow them? Could train them on the bocavirus part
  *  -lighting on everything?
- *  -no 666s, you don't want pearl-clutchers
+ *  -no 666s, you don't want pearl-clutchers. Easiest is change it to 665.
+ *  -Framerate independence, and maybe the detection of speed that makes things nicer or simpler
+ *  -loading. You may need to stagger inits.
  *  
  *  -make it feel good
- *  	-reduce latency
+ *  	-optimize (and reduce latency?) loops should not evaluate length every time
  *  	-all the effects in camerastuff
- *  	-optimize
  *  	-test on different setups
- *  	-make work in different resolutions
+ *  	-make work in different resolutions/respond to resize.
  */
 
 function UpdateWorld() {
@@ -129,8 +130,8 @@ function ChangeScene(new_mode) {
 			for( var i = 0; i < blast_cylinders.length; i++)
 				scene.add(blast_cylinders[i]);
 			
-//			for(var i = 4; i < 8; i++)
-//				scene.add(picture_objects[i]);
+			for(var i = 4; i < 8; i++)
+				scene.add(picture_objects[i]);
 			break;
 			
 		case IRREGULAR_MODE:
@@ -149,7 +150,6 @@ function ChangeScene(new_mode) {
 			
 		case QC_SPHERE_MODE:
 			scene.add(dodeca);
-			scene.add(Guide_quasilattice);
 			for(var i = 8; i < 12; i++)
 				scene.add(picture_objects[i]);
 //			scene.add(quasiquasilattice);
