@@ -15,7 +15,6 @@
  * Fix that problem where you can't change while the deflation is occurring. Might be you start within that small non-responsive part?
  */
 
-//Bug in web version: quasisphere didn't appear initially
 //Make pentagons flash when you say "based on pentagonal symmetry"
 
 //HMMMM COULD JUST HAVE BLOCKERS AROUND THE PENTAGON. When you fade back, is there any way for them to continue obscure, but not obscure the parts that are fading in?
@@ -32,35 +31,27 @@ function UpdateQuasiSurface(){
 	var dodeca_squashingspeed = 0.022;
 	if(isMouseDown) {
 		if(dodeca_angle === 0 || dodeca_angle === 2*atanphi-TAU/2 ) 
-//		if(dodeca_faceflatness == 1) //TODO change to this at some point, the stitchup can look nasty
-			dodeca_openness += dodeca_openingspeed;
 		dodeca_faceflatness += dodeca_squashingspeed; //should really be determined by the difference between dodeca_angle and 0 or
 	}
 	else {
-		dodeca_openness -= dodeca_openingspeed;
 		dodeca_faceflatness -= dodeca_squashingspeed;
 	}
 	
-	if(dodeca_openness > 1)
-		dodeca_openness = 1;
-	if(dodeca_openness < 0)
-		dodeca_openness = 0;
 	if(dodeca_faceflatness > 1)
 		dodeca_faceflatness = 1;
 	if(dodeca_faceflatness < 0)
 		dodeca_faceflatness = 0;
 	
-	dodeca.material.opacity = dodeca_faceflatness; //(dodeca_faceflatness + dodeca_openness) / 2;
+	dodeca.material.opacity = 0;
 	if(dodeca.material.opacity === 0)
 		scene.remove(dodeca);
 	else
 		scene.add(dodeca)
-	var quasicutout_opacity = 1 - dodeca.material.opacity;
-	
-	if(stable_point_of_meshes_currently_in_scene !== 666){
-		//done one, done all
-		quasicutout_meshes[stable_point_of_meshes_currently_in_scene].material.materials[1].opacity = quasicutout_opacity;
-	}
+//	var quasicutout_opacity = 1 - dodeca.material.opacity;
+//	
+//	if(stable_point_of_meshes_currently_in_scene !== 666){
+//		quasicutout_meshes[stable_point_of_meshes_currently_in_scene].material.materials[1].opacity = quasicutout_opacity;
+//	}
 	
 	deduce_dodecahedron(0);
 	
@@ -68,7 +59,7 @@ function UpdateQuasiSurface(){
 		var normalturningspeed = TAU/5/2; //this is the amount you want to do in a second
 		normalturningspeed *= delta_t;
 		
-		if( !isMouseDown && dodeca_openness === 0) {
+		if( !isMouseDown && dodeca_faceflatness === 0) {
 			dodeca_angle += normalturningspeed;
 		}
 		else {
@@ -125,8 +116,7 @@ function UpdateQuasiSurface(){
 
 function MoveQuasiLattice(){
 	//might do rotation whatevers here
-	//bug: by stretching it and then putting your mouse in the deadzone, you can freeze it in a crazy place
-	if( isMouseDown) {
+	if( isMouseDown ) {
 		var Mousedist = MousePosition.length();
 		var OldMousedist = OldMousePosition.length(); //unless the center is going to change?
 		{
@@ -148,24 +138,24 @@ function MoveQuasiLattice(){
 				cutout_vector1_player.multiplyScalar(scalefactor);
 				veclength = cutout_vector0_player.length();
 				
-				var maxlength = 3.53; // 3.48 is minimum but that makes it hard to get to HPV
-				if(veclength > maxlength) {
+				var hardmaxlength = 4;
+				if(veclength > hardmaxlength) {
+					veclength = hardmaxlength;
+				}
+				var softmaxlength = 3.53; // 3.48 is minimum but that makes it hard to get to HPV
+				if(veclength > softmaxlength) {
 					veclength -= 0.028;
-					if(veclength < maxlength)
-						veclength = maxlength;
-					
-					cutout_vector0_player.setLength(veclength);
-					cutout_vector1_player.setLength(veclength);
+					if(veclength < softmaxlength)
+						veclength = softmaxlength;
 				}
 				var minlength = 1.313;
 				if(veclength < minlength) {
 					veclength += 0.02;
 					if(veclength > minlength)
 						veclength = minlength;
-					
-					cutout_vector0_player.setLength(veclength);
-					cutout_vector1_player.setLength(veclength);
 				}
+				cutout_vector0_player.setLength(veclength);
+				cutout_vector1_player.setLength(veclength);
 			}
 			else
 			{
@@ -192,11 +182,6 @@ function MoveQuasiLattice(){
 		}
 	}
 	
-	//Quite a few speedup opportunities here
-	//to do it generatively it is a question of either... 
-	//find every possible two-fold symmetry on the lattice that gets any kind of rhomb...
-	//or make things attract each other? Yeah, right. Might be interesting offline.
-	
 	var closest_stable_point_dist = 666;
 	var closest_stable_point_index = 666;
 	for( var i = 0; i < stable_points.length; i++){
@@ -208,11 +193,26 @@ function MoveQuasiLattice(){
 	}
 	
 	var modulated_CSP = closest_stable_point_index % (stable_points.length / 5);
-	var anglechange = stable_points[closest_stable_point_index].angleTo(stable_points[modulated_CSP]);
-	cutout_vector0_player.applyAxisAngle(z_central_axis, anglechange);
-	cutout_vector1_player.applyAxisAngle(z_central_axis, anglechange);
+	var closest_i = 666;
+	var closest_dist = 1000;
+	var testcutout = new THREE.Vector3();
+	for(var i = 0; i < 5; i++)
+	{
+		testcutout.copy(cutout_vector0_player);
+		testcutout.applyAxisAngle(z_central_axis, i * TAU/5);
+		if(	testcutout.distanceTo(stable_points[modulated_CSP]) < closest_dist )
+		{
+			closest_i = i;
+			closest_dist = testcutout.distanceTo(stable_points[modulated_CSP]);
+		}
+	}
+	console.log(closest_i)
+	cutout_vector0_player.applyAxisAngle(z_central_axis, closest_i * TAU/5);
+	cutout_vector1_player.copy(cutout_vector0_player);
+	cutout_vector1_player.applyAxisAngle(z_central_axis, -TAU/5);
 	
-	if( set_stable_point !== 666 ){
+	if( set_stable_point !== 666 )
+	{
 		if(!isMouseDown && isMouseDown_previously){
 			set_stable_point++;
 			if(set_stable_point >= stable_points.length / 5)
@@ -223,14 +223,15 @@ function MoveQuasiLattice(){
 	}
 	
 	cutout_vector0.copy(stable_points[modulated_CSP]);
-	cutout_vector1.copy(stable_points[modulated_CSP]);
-	
+	cutout_vector1.copy(cutout_vector0);
 	cutout_vector1.applyAxisAngle(z_central_axis, -TAU/5);
 	
 //	console.log("current stable point: " + set_stable_point);
 	
-	var interpolation_factor = (1-dodeca_openness);
-	if(interpolation_factor == 1){ //if they've allowed it to close up, it's now officially snapped
+	console.log(stable_point_of_meshes_currently_in_scene, cutout_vector0_player.distanceTo(cutout_vector0) );
+	
+	var interpolation_factor = 1 - dodeca_faceflatness;
+	if(interpolation_factor == 1){ //if they've allowed it to expand, it's now officially snapped
 		cutout_vector0_player.copy(cutout_vector0);
 		cutout_vector1_player.copy(cutout_vector1);
 	}
@@ -245,6 +246,11 @@ function MoveQuasiLattice(){
 	quasi_shear_matrix[2] = cutout_vector0_displayed.y /-factor;
 	quasi_shear_matrix[3] = cutout_vector0_displayed.x / factor;
 	
+	//bug is that when you move, the faces seem to be switched to in one frame, THEN the vertices go.
+	//have you got the twisted around version?
+	
+//	console.log() //was gonna show cutout vectors
+	
 	//we want to remove the one that was previously in there, and add
 	if(stable_point_of_meshes_currently_in_scene != modulated_CSP ){
 		dodeca_faceflatness = 1; //skip to the faces being gone
@@ -255,7 +261,6 @@ function MoveQuasiLattice(){
 		stable_point_of_meshes_currently_in_scene = modulated_CSP;
 	}
 	
-	//TODO no dependence on camera! This is the one black sheep.
 	var compensatory_quaternion = new THREE.Quaternion();
 	compensatory_quaternion.setFromAxisAngle(z_central_axis,Math.atan2(cutout_vector0_displayed.y,cutout_vector0_displayed.x) - 0.9424777960769378);
 	quasicutout_meshes[stable_point_of_meshes_currently_in_scene].quaternion.copy(compensatory_quaternion);

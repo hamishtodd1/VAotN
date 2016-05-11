@@ -263,26 +263,6 @@ function initialize_QS_stuff() {
 //	remove_stable_point_and_its_rotations(5); //ugly
 	remove_stable_point_and_its_rotations(3); //ugly
 	
-//	var quasiquasilattice_geometry = new THREE.Geometry();
-//	quasiquasilattice = new THREE.Points( quasiquasilattice_geometry,new THREE.PointsMaterial({size: 0.2, color: 0x000000}));
-//	quasiquasilattice.scale.set(0.6,0.6,0.6);
-//	for(var i = 0; i < quasilattice_default_vertices.length; i++)
-//		quasiquasilattice.geometry.vertices.push(quasilattice_default_vertices[i]);
-//	var stablepointslattice_geometry = new THREE.Geometry();
-//	stablepointslattice = new THREE.Points( stablepointslattice_geometry,new THREE.PointsMaterial({size: 0.1, color: 0xf00f00}));
-//	stablepointslattice.scale.copy(quasiquasilattice.scale);
-//	stablepointslattice.position.z += 0.01;
-//	for(var i = 0; i < stable_points.length; i++)
-//		stablepointslattice.geometry.vertices.push(stable_points[i]);
-	
-	
-	//Next thing to try would be gravitating you to the circle around each point 
-//	stable_points[0] = quasilattice_default_vertices[2].clone(); stable_points[0].add(quasilattice_default_vertices[0]); stable_points[0].multiplyScalar(0.5);
-//	stable_points[1] = quasilattice_default_vertices[5].clone(); stable_points[1].add(quasilattice_default_vertices[6]); stable_points[1].multiplyScalar(0.5);
-//	stable_points[0] = quasilattice_default_vertices[2].clone(); stable_points[0].add(quasilattice_default_vertices[num_points]); stable_points[0].multiplyScalar(0.5);
-//	stable_points[0] = quasilattice_default_vertices[2].clone(); stable_points[0].add(quasilattice_default_vertices[num_points]); stable_points[0].multiplyScalar(0.5);
-//	stable_points[0] = quasilattice_default_vertices[2].clone(); stable_points[0].add(quasilattice_default_vertices[num_points]); stable_points[0].multiplyScalar(0.5);
-	
 	//TODO change the color of the random rhombus to the color of the wide rhombus, once you have edges in
 	quasicutout_meshes = Array(stable_points.length / 5);
 	var num_quasi_mesh_triangles = 18;
@@ -326,9 +306,34 @@ function initialize_QS_stuff() {
 	
 	var one_quasicutout_vertices = quasilattice_default_vertices.length * 2 + NUM_QUASICUTOUT_EDGES * 6;
 	
+	Forced_edges = Array(quasicutout_meshes.length);
+	Forced_edges[0] = new Uint16Array([1,2]);
+	Forced_edges[1] = new Uint16Array([1,2]);
+	Forced_edges[2] = new Uint16Array([1,2]);
+	Forced_edges[3] = new Uint16Array([]);
+	Forced_edges[4] = new Uint16Array([14,15]);
+	Forced_edges[5] = new Uint16Array([1,2, 3,4]);
+	Forced_edges[6] = new Uint16Array([1,2, 3,4]);
+	Forced_edges[7] = new Uint16Array([1,2, 3,4, 7,8, 16,17]);
+	Forced_edges[8] = new Uint16Array([3,4]);
+	Forced_edges[9] = new Uint16Array([16,17]);
+	Forced_edges[10] = new Uint16Array([7,8, 4,3]);
+	Forced_edges[11] = new Uint16Array([3,4]); //a very crazy one
+	Forced_edges[12] = new Uint16Array([7,8]);
+	Forced_edges[13] = new Uint16Array([7,8]);
+	Forced_edges[14] = new Uint16Array([]);
+	Forced_edges[15] = new Uint16Array([14,15]);
+	Forced_edges[16] = new Uint16Array([7,8, 9,10,11]);
+	Forced_edges[17] = new Uint16Array([7,8, 9,10,11]);
+	Forced_edges[18] = new Uint16Array([5,6]);
+	Forced_edges[19] = new Uint16Array([]);
+	Forced_edges[20] = new Uint16Array([5,6]); //this one needs overhauling too
+	Forced_edges[21] = new Uint16Array([14,15, 5,6]);
+	Forced_edges[22] = new Uint16Array([14,15, 7,8]);
+	
 	var QM_materials = Array(2);
 	QM_materials[0] = new THREE.MeshBasicMaterial({vertexColors:THREE.FaceColors});
-	QM_materials[1] = new THREE.MeshBasicMaterial({vertexColors:THREE.FaceColors,transparent: true});
+	QM_materials[1] = new THREE.MeshBasicMaterial({vertexColors:THREE.FaceColors});
 	var ourmultimaterial = new THREE.MultiMaterial(QM_materials);
 	
 	var theirfaceindices = new Uint16Array(3);
@@ -375,8 +380,8 @@ function initialize_QS_stuff() {
 					if(k===3){	indexA = 24;		indexB = 6;		indexC = 0;		}
 					if(k===4){	indexA = 12;		indexB = 0;		indexC = 6;		}
 					
-					if(k===5){	indexA = 14;		indexB =  8;	indexC = 32;		}
-					if(k===6){	indexA = 32;		indexB = 15;	indexC = 14;		}
+					if(k===16){	indexA = 14;		indexB =  8;	indexC = 32;		}
+					if(k===17){	indexA = 32;		indexB = 15;	indexC = 14;		}
 					
 					if(k===7){	indexA = 35;		indexB = 34;	indexC = 33;		}
 					
@@ -392,8 +397,8 @@ function initialize_QS_stuff() {
 					if(k===3){	indexA =  0;		indexB = 30;	indexC = 6;		}
 					if(k===4){	indexA = 12;		indexB = 0;		indexC = 6;		}
 					
-					if(k===5){	indexA = 14;		indexB =  8;	indexC = 15;		}
-					if(k===6){	indexA = 15;		indexB =  8;	indexC = 21;		}
+					if(k===16){	indexA = 14;		indexB =  8;	indexC = 15;		}
+					if(k===17){	indexA = 15;		indexB =  8;	indexC = 21;		}
 					
 					if(k===7){	indexA = 40;		indexB = 39;	indexC = 41;		}
 					
@@ -452,15 +457,15 @@ function initialize_QS_stuff() {
 					if(k===3){	indexA = 20;		indexB = 26;	indexC = 0;		}
 					if(k===4){	indexA = 16;		indexB = 2;		indexC = 28;	}
 					
-					if(k===5){	indexA = 20;		indexB = 6;		indexC = 26;		}
-					if(k===6){	indexA = 9;			indexB = 26;	indexC = 6;		}
+					if(k===16){	indexA = 20;		indexB = 6;		indexC = 26;		}
+					if(k===17){	indexA = 9;			indexB = 26;	indexC = 6;		}
 					
 					if(k===7){	indexA = 9;			indexB =  6;	indexC = 7;		}
 
 					if(k===9){	indexA = 22;		indexB = 14;	indexC = 26;	}
 					if(k===10){	indexA = 22;		indexB = 26;	indexC =  8;	}
 					if(k===11){	indexA = 26;		indexB = 27;	indexC =  8;	}
-				} else if(i===7){
+				} else if(i===7){ //this requires third fat rhomb
 					if(k===0){	indexA = 2;			indexB = 60;	indexC = 0;			}
 					
 					if(k===1){	indexA = 12;		indexB = 20;	indexC = 0;		}
@@ -498,7 +503,7 @@ function initialize_QS_stuff() {
 					if(k===3){	indexA = 14;		indexB = 6;		indexC = 0;		}
 					if(k===4){	indexA = 14;		indexB = 0;		indexC = 3;		}
 					
-					if(k===5){	indexA = 14;		indexB = 3;		indexC = 2;		}
+					if(k===16){	indexA = 14;		indexB = 3;		indexC = 2;		}
 					
 					if(k===7){	indexA =  3;		indexB = 0;		indexC = 1;		}
 				} else if(i===10){

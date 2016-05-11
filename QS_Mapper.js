@@ -113,18 +113,15 @@ function Map_To_Quasisphere()
 	}
 	
 	//----------------Edge stuff
+	//smaller ones get smaller edges because they're further away. Could make orthographic
+	//really the silly holes and jutty ness show you need a different kind of edge. Rectangles, with end centers on the vertices
 	//both these arrays can have initialized lengths
 	var EdgesToBeAdded = Array(); //two vertex indices and a triangle index per edge. Check the max lengths and initialize this with that
 	var NullTriangles = Array();
-	var edgeradius = 0.03;
 	
 	var lowest_prism_vertex = one_quasicutout_vertices - NUM_QUASICUTOUT_EDGES * 6;
 	
 	var ourprism = 0;
-	
-	var ourpeak = new THREE.Vector3();
-	var StartToEndNorm = new THREE.Vector3();
-	var StartingVertex_AdjacentVertex_index;
 	
 //	if(!isMouseDown && isMouseDown_previously)logged = 0;
 //	else logged = 1;
@@ -173,32 +170,7 @@ function Map_To_Quasisphere()
 //						&& ( v1 % 2 === 0 && v2 % 2 === 0 ) ) //right now only looking at those fully in
 						&& ( v1 % 2 + v2 % 2 !== 2 ) ) //if they were both odd this would be an edge outside of our quasicutout, to be handled by another
 					{
-						for(var q = 0; q < 60; q++)
-						{
-							//We have an edge to draw
-							var startingvertex=quasicutout_meshes[stable_point_of_meshes_currently_in_scene].geometry.vertices[one_quasicutout_vertices * q + v1];
-							var endingvertex = quasicutout_meshes[stable_point_of_meshes_currently_in_scene].geometry.vertices[one_quasicutout_vertices * q + v2];
-							
-							ourpeak.addVectors(startingvertex,endingvertex); //is it still the same distance from the origin when "flat"?
-							ourpeak.setLength(edgeradius);
-							
-							StartToEndNorm.copy(endingvertex );
-							StartToEndNorm.sub(startingvertex);
-							StartToEndNorm.normalize();
-							
-							ourpeak.applyAxisAngle(StartToEndNorm,-TAU/3); //speedup opportunity, be a bit smarter to get rid of this. Also this might be the wrong direction
-							for( var c = 0; c < 3; c++) {
-								StartingVertex_AdjacentVertex_index = one_quasicutout_vertices * q + lowest_prism_vertex + ourprism * 6 + c * 2;
-								
-								quasicutout_meshes[stable_point_of_meshes_currently_in_scene].geometry.vertices[StartingVertex_AdjacentVertex_index + 0].copy(startingvertex);
-								quasicutout_meshes[stable_point_of_meshes_currently_in_scene].geometry.vertices[StartingVertex_AdjacentVertex_index + 0].add(ourpeak);
-								
-								quasicutout_meshes[stable_point_of_meshes_currently_in_scene].geometry.vertices[StartingVertex_AdjacentVertex_index + 1].copy(endingvertex);
-								quasicutout_meshes[stable_point_of_meshes_currently_in_scene].geometry.vertices[StartingVertex_AdjacentVertex_index + 1].add(ourpeak);
-								
-								ourpeak.applyAxisAngle(StartToEndNorm, TAU/3);
-							}
-						}
+						put_edge_in_quasicutouts(ourprism, one_quasicutout_vertices, lowest_prism_vertex, v1,v2);
 						ourprism++;
 					}
 					
@@ -209,29 +181,29 @@ function Map_To_Quasisphere()
 		}
 	}
 	
-	for(var i = 0; i < EdgesToBeAdded.length / 3; i++){
-		if(EdgesToBeAdded[i*3+2] === 0 )
-			continue; //central pentagon
+	//TODO color changes are needed and then the above should be changed too
+	
+	for(var i = 0; i < EdgesToBeAdded.length / 3; i++)
+	{
+		var draw_edge = 1;
 		
-		var shape_cut = 0;
+		if( EdgesToBeAdded[i*3+2] === 0  ) //central pentagon, add "&& !something" to this
+			draw_edge = 0;
 		
-		for( var j = 0; j < NullTriangles.length; j++){
-	    	if( triangle_in_same_shape(NullTriangles[j], EdgesToBeAdded[i*3+2]) ){
-	    		shape_cut = 1;
-	    		
-	    		NullTriangles.splice(j,1); //may actually make things slower :(
-	    		
-	    		break; //the shape we're in has been cut, so at least ONE of the sides of this triangle should NOT get an edge, therefore let's not give it any 
-		    	//Though it may still be the case that THIS side should =( will probably need to work out which.
-	    		//But there are situations in which you should hold back on the line drawing, such as the pointed hexagon 
-	    	}
-		}
+		for(var j = 0; j < Forced_edges[stable_point_of_meshes_currently_in_scene].length; j++)
+			if(Forced_edges[stable_point_of_meshes_currently_in_scene][j] === EdgesToBeAdded[i*3+2])
+				draw_edge = 0;
 	      
-//    	if( shape_cut === 0 )
-//    		new_vertices_in_quasicutout += 6;
-      		//So this shape IS completed within the quasicutout - so we DEFINITELY SHOULD draw a growing line. There's other situations for this too though
-    		//unless it's that pointy hexagon for example :/ eg we are probably going to have an array
+    	if( draw_edge === 1 )
+    	{
+    		put_edge_in_quasicutouts(ourprism, one_quasicutout_vertices, lowest_prism_vertex, EdgesToBeAdded[i*3+0], EdgesToBeAdded[i*3+1]);
+			ourprism++;
+    	}
+  		//So this shape IS completed within the quasicutout - so we DEFINITELY SHOULD draw a line. There's other situations for this too though
+		//Need to make sure that shapes that get built into bigger shapes are of a multiple color
 	}
+	
+	quasicutout_meshes[stable_point_of_meshes_currently_in_scene].geometry.verticesNeedUpdate = true;
 	
 	/* You can tell from the color what kind of thing it's in. You won't have an incomplete fat rhomb
 	 * 
@@ -246,14 +218,46 @@ function Map_To_Quasisphere()
 	 * One thing you could do would be look at the category of shape and if it's an incomplete category (i.e. there's half a thin rhomb) don't touch it, otherwise do
 	 *   If you have that drawing lines on the non-ordinary shapes, you could easily disable them by pretend-drawing an extra triangle to "finish" that shape
 	 * 
-	 * 
 	 * The conflict: 
-	 *   want like shapes to be like colors
+	 *   want like shapes to be like colors (could give up on this in the name of expediency. Same color on HPV, not otherwise)
+	 *   Could change to black and white when flattened
 	 *	 want shapes to not change color when mouse is held down (could easily hide more of them though)
-	 * 
+	 *	 could have the "default" colors, probably the HPV stable point, and then fade to whatever one it is
 	 */
+}
+
+function put_edge_in_quasicutouts(ourprism, one_quasicutout_vertices, lowest_prism_vertex, v1,v2)
+{
+	var ourpeak = new THREE.Vector3();
+	var StartToEndNorm = new THREE.Vector3();
+	var StartingVertex_AdjacentVertex_index;
 	
-	
+	for(var q = 0; q < 60; q++)
+	{
+		//We have an edge to draw
+		var startingvertex = quasicutout_meshes[stable_point_of_meshes_currently_in_scene].geometry.vertices[one_quasicutout_vertices * q + v1];
+		var endingvertex   = quasicutout_meshes[stable_point_of_meshes_currently_in_scene].geometry.vertices[one_quasicutout_vertices * q + v2];
+		
+		ourpeak.addVectors(startingvertex,endingvertex); //is it still the same distance from the origin when "flat"?
+		ourpeak.multiplyScalar(0.01);
+		
+		StartToEndNorm.copy(endingvertex );
+		StartToEndNorm.sub(startingvertex);
+		StartToEndNorm.normalize();
+		
+		ourpeak.applyAxisAngle(StartToEndNorm,-TAU/3); //speedup opportunity, be a bit smarter to get rid of this. Also this might be the wrong direction
+		for( var c = 0; c < 3; c++) {
+			StartingVertex_AdjacentVertex_index = one_quasicutout_vertices * q + lowest_prism_vertex + ourprism * 6 + c * 2;
+			
+			quasicutout_meshes[stable_point_of_meshes_currently_in_scene].geometry.vertices[StartingVertex_AdjacentVertex_index + 0].copy(startingvertex);
+			quasicutout_meshes[stable_point_of_meshes_currently_in_scene].geometry.vertices[StartingVertex_AdjacentVertex_index + 0].add(ourpeak);
+			
+			quasicutout_meshes[stable_point_of_meshes_currently_in_scene].geometry.vertices[StartingVertex_AdjacentVertex_index + 1].copy(endingvertex);
+			quasicutout_meshes[stable_point_of_meshes_currently_in_scene].geometry.vertices[StartingVertex_AdjacentVertex_index + 1].add(ourpeak);
+			
+			ourpeak.applyAxisAngle(StartToEndNorm, TAU/3);
+		}
+	}
 }
 
 function triangle_in_same_shape(triangle, othertriangle)

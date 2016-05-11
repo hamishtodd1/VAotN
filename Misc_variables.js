@@ -104,7 +104,6 @@ var surfaceangle = 0.63;
 var dodeca;
 var dodeca_vertices_numbers = new Float32Array(47 * 3);
 var dodeca_geometry;
-var dodeca_openness = 0;
 var dodeca_faceflatness = 0;
 var dodeca_angle = 0;
 var dodeca_triangle_vertex_indices;
@@ -124,9 +123,10 @@ var lowest_unused_stablepoint = 0;
 var quasiquasilattice;
 var stablepointslattice;
 var nearby_quasicutouts;
-var set_stable_point = 0;
+var set_stable_point = 666;
 var stable_point_of_meshes_currently_in_scene = 666;
 var modulated_CSP;
+var Forced_edges;
 
 //Potential edges in a quasicutout (so sixty of them in a whole mesh), many will just have their vertices put at 0. Dunno how many there should be?
 //Our first indication was that you needed 144 extras, we're being safe. Can reduce duplications to reduce this by a half.

@@ -46,6 +46,12 @@ function camera_changes_for_mode_switch(){
 			break;
 	}
 	
+	//was trying to get pictures on top
+//	if(MODE === QC_SPHERE_MODE)
+//		renderer.sortObjects = false;
+//	else
+//		renderer.sortObjects = true;
+	
 	//this is for just in case we've just left CK
 	camera.position.x = 0;
 	camera.updateProjectionMatrix();
@@ -62,6 +68,7 @@ function UpdateCamera()
 	//weird visual touches will improve it too, like Bret's tiny shadows. Shadows/shininess in general... could try to detect speed... :(
 	//things fade in, that's not so hard, just have a white surface that changes alpha
 	
+	//A lot of these might not necessarily be good ideas, since the player only spends small amounts of time on the demos :/
 	//things should be drawn towards the mouse a little bit. No need for that if you're rotating Finger?
 	//take distance of mouse from center of screen, square root that, and move the camera towards the mouse by a multiple of that amount
 	//maybe have screenshake "energy"? like things can cause it to vibrate until it stops.

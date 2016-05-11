@@ -11,7 +11,10 @@
  *  -loading. You may need to stagger inits.
  *  
  *  -make it feel good
- *  	-optimize (and reduce latency?) loops should not evaluate length every time
+ *  	-optimize
+ *  		-reduce latency?
+ *  		-loops should not evaluate array lengths every time
+ *  		-could generate some things once, then not again
  *  	-all the effects in camerastuff
  *  	-test on different setups
  *  	-make work in different resolutions/respond to resize.
@@ -69,15 +72,17 @@ function UpdateWorld() {
 
 function render() {
 	delta_t = ourclock.getDelta();
-	if(delta_t > 0.1) delta_t = 0.1;
+//	if(delta_t > 0.1) delta_t = 0.1;
 	//delta_t = 0.01;
 	
 	ReadInput();
 	UpdateWorld();
 	UpdateCamera();
 	
-//	if(delta_t < 1 / 60 )
-//		setTimeout( function() { requestAnimationFrame( render ); }, 100 );
+//	if(logged ){
+////		setTimeout( function() { requestAnimationFrame( render ); }, 1000 );
+//		logged = 0;
+//	}
 	requestAnimationFrame( render );
 	renderer.render( scene, camera );
 }
@@ -149,9 +154,11 @@ function ChangeScene(new_mode) {
 			break;
 			
 		case QC_SPHERE_MODE:
-			scene.add(dodeca);
 			for(var i = 8; i < 12; i++)
 				scene.add(picture_objects[i]);
+			scene.add(dodeca);
+			if(stable_point_of_meshes_currently_in_scene !== 666) //if it is equal to this, it has yet to be derived from the cutout vectors
+				scene.add(quasicutout_meshes[stable_point_of_meshes_currently_in_scene]);
 //			scene.add(quasiquasilattice);
 //			scene.add(stablepointslattice);
 			break;

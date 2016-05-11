@@ -43,7 +43,11 @@ function loadpics(){
 		
 		picture_objects[i] = new THREE.Mesh(
 				new THREE.CubeGeometry(ourdimension, ourdimension, 0),
-				new THREE.MeshBasicMaterial({ transparent:true}) );
+				new THREE.MeshBasicMaterial({ transparent:true
+//					, depthTest: false, depthWrite: false, transparent: true //trying to put them on top stuff
+					}) );
+		
+		picture_objects[i].renderOrder = 0;
 	}
 	
 	picture_objects[0].name = "http://hamishtodd1.github.io/Data/warning.png";
