@@ -60,7 +60,7 @@ function UpdateQuasiSurface(){
 		normalturningspeed *= delta_t;
 		
 		if( !isMouseDown && dodeca_faceflatness === 0) {
-			dodeca_angle += normalturningspeed;
+//			dodeca_angle += normalturningspeed;
 		}
 		else {
 			var dist_from_desired_angle = 666;
@@ -185,6 +185,8 @@ function MoveQuasiLattice(){
 	var closest_stable_point_dist = 666;
 	var closest_stable_point_index = 666;
 	for( var i = 0; i < stable_points.length; i++){
+		if( i < 2)
+			continue; //you can have them back, but they are distorted
 		if(	stable_points[i].distanceTo(cutout_vector0_player) < closest_stable_point_dist ) //so you sort of need to make sure that the one in the array is as low as possible
 		{
 			closest_stable_point_index = i;
@@ -206,7 +208,6 @@ function MoveQuasiLattice(){
 			closest_dist = testcutout.distanceTo(stable_points[modulated_CSP]);
 		}
 	}
-	console.log(closest_i)
 	cutout_vector0_player.applyAxisAngle(z_central_axis, closest_i * TAU/5);
 	cutout_vector1_player.copy(cutout_vector0_player);
 	cutout_vector1_player.applyAxisAngle(z_central_axis, -TAU/5);
@@ -227,8 +228,6 @@ function MoveQuasiLattice(){
 	cutout_vector1.applyAxisAngle(z_central_axis, -TAU/5);
 	
 //	console.log("current stable point: " + set_stable_point);
-	
-	console.log(stable_point_of_meshes_currently_in_scene, cutout_vector0_player.distanceTo(cutout_vector0) );
 	
 	var interpolation_factor = 1 - dodeca_faceflatness;
 	if(interpolation_factor == 1){ //if they've allowed it to expand, it's now officially snapped

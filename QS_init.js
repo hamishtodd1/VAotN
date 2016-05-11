@@ -314,7 +314,7 @@ function initialize_QS_stuff() {
 	Forced_edges[4] = new Uint16Array([14,15]);
 	Forced_edges[5] = new Uint16Array([1,2, 3,4]);
 	Forced_edges[6] = new Uint16Array([1,2, 3,4]);
-	Forced_edges[7] = new Uint16Array([1,2, 3,4, 7,8, 16,17]);
+	Forced_edges[7] = new Uint16Array([1, 3,4, 7,8, 16,17]);
 	Forced_edges[8] = new Uint16Array([3,4]);
 	Forced_edges[9] = new Uint16Array([16,17]);
 	Forced_edges[10] = new Uint16Array([7,8, 4,3]);
@@ -327,7 +327,7 @@ function initialize_QS_stuff() {
 	Forced_edges[17] = new Uint16Array([7,8, 9,10,11]);
 	Forced_edges[18] = new Uint16Array([5,6]);
 	Forced_edges[19] = new Uint16Array([]);
-	Forced_edges[20] = new Uint16Array([5,6]); //this one needs overhauling too
+	Forced_edges[20] = new Uint16Array([5]); //this one needs overhauling too
 	Forced_edges[21] = new Uint16Array([14,15, 5,6]);
 	Forced_edges[22] = new Uint16Array([14,15, 7,8]);
 	

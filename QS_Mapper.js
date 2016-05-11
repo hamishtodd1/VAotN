@@ -193,6 +193,18 @@ function Map_To_Quasisphere()
 		for(var j = 0; j < Forced_edges[stable_point_of_meshes_currently_in_scene].length; j++)
 			if(Forced_edges[stable_point_of_meshes_currently_in_scene][j] === EdgesToBeAdded[i*3+2])
 				draw_edge = 0;
+		
+		if((stable_point_of_meshes_currently_in_scene === 7 && EdgesToBeAdded[i*3+2] === 2 
+				&& ( EdgesToBeAdded[i*3+0] === 16 && EdgesToBeAdded[i*3+1] ===  4 ) )
+		|| (stable_point_of_meshes_currently_in_scene === 11 && EdgesToBeAdded[i*3+2] === 10 
+				&& ( EdgesToBeAdded[i*3+0] === 26 && EdgesToBeAdded[i*3+1] === 46 ) ||
+				   ( EdgesToBeAdded[i*3+0] === 47 && EdgesToBeAdded[i*3+1] === 28 ) )
+		|| (stable_point_of_meshes_currently_in_scene === 20 && EdgesToBeAdded[i*3+2] === 6 
+				&& ( EdgesToBeAdded[i*3+0] === 8  && EdgesToBeAdded[i*3+1] === 20 ) ) )
+		{
+			draw_edge = 0;
+		}
+		//stable point 20 is a problem
 	      
     	if( draw_edge === 1 )
     	{
@@ -202,6 +214,8 @@ function Map_To_Quasisphere()
   		//So this shape IS completed within the quasicutout - so we DEFINITELY SHOULD draw a line. There's other situations for this too though
 		//Need to make sure that shapes that get built into bigger shapes are of a multiple color
 	}
+	if(stable_point_of_meshes_currently_in_scene === 20)
+		logged = 1;
 	
 	quasicutout_meshes[stable_point_of_meshes_currently_in_scene].geometry.verticesNeedUpdate = true;
 	

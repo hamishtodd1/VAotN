@@ -9,6 +9,7 @@
  *  -no 666s, you don't want pearl-clutchers. Easiest is change it to 665.
  *  -Framerate independence, and maybe the detection of speed that makes things nicer or simpler
  *  -loading. You may need to stagger inits.
+ *  -watch people a lot and tweak the zooming and rotating code, just because it is simple doesn't mean that it is good
  *  
  *  -make it feel good
  *  	-optimize
