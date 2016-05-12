@@ -60,7 +60,7 @@ function UpdateQuasiSurface(){
 		normalturningspeed *= delta_t;
 		
 		if( !isMouseDown && dodeca_faceflatness === 0) {
-//			dodeca_angle += normalturningspeed;
+			dodeca_angle += normalturningspeed;
 		}
 		else {
 			var dist_from_desired_angle = 666;
