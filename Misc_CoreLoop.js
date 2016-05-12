@@ -66,7 +66,7 @@ function UpdateWorld() {
 			
 		case FINAL_FORMATION_MODE:
 			update_3DLattice();
-			update_formation_atom();
+//			update_formation_atom();
 			update_Pariacoto();
 	}
 }
@@ -170,6 +170,7 @@ function ChangeScene(new_mode) {
 			break;
 			
 		case FINAL_FORMATION_MODE:
+			paria_animation_progress = 0;
 			animation_progress = 1;
 			for(var i = 0; i< lights.length; i++)
 				scene.add( lights[i] );

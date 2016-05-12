@@ -107,7 +107,7 @@ function rotate_Parialayer(index,MovementAxis,movementangle){
 
 function update_Pariacoto(){
 	//sigh, we probably need all that progress bar stuff again
-//	paria_animation_progress += 0.001;
+	paria_animation_progress += 0.001;
 	if(paria_animation_progress > 1)
 		paria_animation_progress = 1;
 	
