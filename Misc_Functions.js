@@ -408,6 +408,18 @@ function point_in_triangle( ourpointx,ourpointy,
 	return false;
 }
 
+function point_on_triangle_boundaries(ourpointx,ourpointy,
+		cornerA,cornerB,cornerC, 
+		clockwise)
+{
+	if( 2 === point_to_the_right_of_line(ourpointx, ourpointy, cornerA.x, cornerA.y, cornerB.x, cornerB.y) ||
+		2 === point_to_the_right_of_line(ourpointx, ourpointy, cornerB.x, cornerB.y, cornerC.x, cornerC.y) ||
+		2 === point_to_the_right_of_line(ourpointx, ourpointy, cornerC.x, cornerC.y, cornerA.x, cornerA.y))
+		return true;
+		
+	return false;
+}
+
 function point_in_inflated_triangle( 
 		ourpointx,ourpointy,
 		cornerAx, cornerAy,cornerBx, cornerBy, cornerCx,cornerCy, 

@@ -1,20 +1,3 @@
-function init() {
-	init_CK_and_irreg();
-	init_cubicLattice_stuff();
-	initialize_QS_stuff();	
-	initialize_protein();
-	init_DNA_cage();
-	init_static_capsid();
-	initialize_formation_atom();
-	init_pariacoto();
-	
-	//------------------need this so there's something in there for the first frame
-	ourclock.getDelta();
-	
-	INITIALIZED = 1;
-	attempt_launch();
-}
-
 function init_CK_and_irreg(){
 	vertices_derivations = new Array(
 		[666,666,666],
@@ -662,6 +645,36 @@ function init_CK_and_irreg(){
 	ProblemClosests[ 9] = new Uint16Array([0, 43, 39, 97, 173, 279, 59, 91, 213, 329, 55, 121, 205, 319, 51, 115, 197, 309, 47, 109, 189, 299]);
 	ProblemClosests[10] = new Uint16Array([0, 39, 59, 91, 213, 329, 55, 121, 205, 319, 51, 115, 197, 309, 47, 109, 189, 299, 43, 103, 181, 289]);
 	ProblemClosests[11] = new Uint16Array([0, 59, 55, 121, 205, 319, 51, 115, 197, 309, 47, 109, 189, 299, 43, 103, 181, 289, 39, 97, 173, 279]);
+	
+	//speedup opportunity there are probably a bunch of places you could use this
+	triangle_adjacent_triangles = Array(20);
+	for(var i = 0; i < triangle_adjacent_triangles.length; i++)
+	{
+		triangle_adjacent_triangles[i] = new Uint16Array(3);
+		
+		for(var ic = 0; ic < 3; ic++)
+		{
+			triangle_adjacent_triangles[i][ic] = 666;
+			
+			for(var j = 0; j < 20; j++)
+			{
+				if(j === i) continue;
+				
+				for(var jc = 0; jc < 3; jc++)
+				{
+					if(( net_triangle_vertex_indices[i*3+   ic   ] === net_triangle_vertex_indices[j*3+   jc   ] &&
+						 net_triangle_vertex_indices[i*3+(ic+1)%3] === net_triangle_vertex_indices[j*3+(jc+1)%3] ) ||
+					   ( net_triangle_vertex_indices[i*3+   ic   ] === net_triangle_vertex_indices[j*3+(jc+1)%3] &&
+						 net_triangle_vertex_indices[i*3+(ic+1)%3] === net_triangle_vertex_indices[j*3+   jc   ] ) )
+					{
+						triangle_adjacent_triangles[i][ic] = j;
+						break;
+					}
+				}
+			}
+		}
+	}
+	console.log(triangle_adjacent_triangles);
 		
 	{
 		HexagonLattice = new THREE.Mesh(new THREE.Geometry(), new THREE.MeshBasicMaterial({vertexColors:THREE.FaceColors}));

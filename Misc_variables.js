@@ -171,6 +171,8 @@ var flatnet_vertices_numbers;
 var flatnet_vertices;
 var flatnet_geometry;
 
+var rounded_net = new THREE.BufferAttribute( new Float32Array(22*3), 3 );
+
 var varyingsurface;
 var varyingsurface_orientingradius = new Float32Array([0.95,0.95,0.95]);
 var manipulation_surface;
@@ -219,6 +221,7 @@ var squarelattice_hexagonvertices;
 
 var net_vertices_closest_lattice_vertex = Array(22);
 var ProblemClosests;
+var triangle_adjacent_triangles;
 
 var surflattice;
 var surflattice_vertices_numbers = new Float32Array(3 * number_of_lattice_points);

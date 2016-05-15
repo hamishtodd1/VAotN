@@ -19,14 +19,23 @@ function Map_lattice() {
 	
 	got_a_problem = 0;
 	for(var j = 0; j < ProblemClosests.length; j++){
-		for(var i = 0; i < net_vertices_closest_lattice_vertex.length; i++){
-			if(net_vertices_closest_lattice_vertex[i] !== ProblemClosests[j][i])
+		for(var i = 0; i < net_vertices_closest_lattice_vertex.length; i++)
+		{
+			if(i === 0)
+				continue;
+//			if(!(i === 0 || (i % 4 === 2 && i !== 18) || i % 4 === 3 ))
+//				continue; //if the outermost ones differ we still have a problem
+				
+			if(net_vertices_closest_lattice_vertex[i] === ProblemClosests[j][i])
+			{
+				got_a_problem = 1; //we have one of the arrays
 				break;
-			
-			if(i === net_vertices_closest_lattice_vertex.length - 1)
-				got_a_problem = 1;
+			}
 		}
+		if(got_a_problem)
+			break;
 	}
+
 	for(var i = 0; i < number_of_lattice_points; i++){
 		IsRoundedVertex[i] = 0;
 		IsProblemVertex[i] = 0;
@@ -44,7 +53,7 @@ function Map_lattice() {
 	{
 		if(IsRoundedVertex[i] ) //TODO move this down so it only appears on the capsid
 			for(var tri_i = 0; tri_i < 4 * 6; tri_i++ )
-				HexagonLattice.geometry.faces[i * 4 * 6 + tri_i].color.setRGB(capsidopenness,0,1-capsidopenness);
+				HexagonLattice.geometry.faces[i * 4 * 6 + tri_i].color.setRGB(0,0,1);
 		else
 			for(var tri_i = 0; tri_i < 4 * 6; tri_i++ )
 				HexagonLattice.geometry.faces[i * 4 * 6 + tri_i].color.setRGB(1,0,0);
@@ -62,7 +71,9 @@ function Map_lattice() {
 	indices_clockwise_on_edge_from_pariahvertex[1] = new Uint16Array([1,0,2,3]);
 	indices_clockwise_on_edge_from_pariahvertex[2] = new Uint16Array([2,3,1,0]);
 	indices_clockwise_on_edge_from_pariahvertex[3] = new Uint16Array([3,1,0,2]);
-	var beenthere = 0;
+
+	var vertex_resolved = new Uint8Array(4);
+
 	for(var hexagon_i = 0; hexagon_i < number_of_lattice_points; hexagon_i++) 
 	{		
 		var hexagon_first_squarelatticevertex_index = hexagon_i*12;
@@ -75,7 +86,9 @@ function Map_lattice() {
 		
 		for(var side_i = 0; side_i < 6; side_i++)
 		{
-			if(IsProblemVertex[hexagon_i]) //we're more precise, because they are all on edges
+			//if they're not blue, they're not being handled
+			//TODO revert back to the simple version, probably
+			if(IsRoundedVertex[hexagon_i]) //we're more precise, because they might all be on edges
 			{
 				for(var i = 0; i < potential_nettriangles.length; i++)
 					potential_nettriangles[i] = 667;
@@ -85,35 +98,70 @@ function Map_lattice() {
 							potential_nettriangles, i*2 );
 				}
 				
-				if(!isMouseDown && isMouseDown_previously){
-					for(var i = 0; i < potential_nettriangles.length; i++)
-						if(potential_nettriangles[i] === 667 && i%2===0)
-							console.log(squarelattice_hexagonvertices[hexagon_first_squarelatticevertex_index + (side_i * 2 + i) % 12])
-				}
+				//remember, you can always use the closest_snapping idea
 				
-				
-				var foundit = 0;
+				//Each triangle we just got has the opportunity to be the "basis" - every point is either in it, or in its neighbours.
+				//Nothing to do with "side_i"
 				for(var i = 0; i < potential_nettriangles.length; i++)
 				{
-					if(potential_nettriangles[i] === 667)
+					if(potential_nettriangles[ i ] === 667)
 						continue;
-					for( var j = 0; j < 4; j++)
-					{
-						if(	potential_nettriangles[i] !== potential_nettriangles[j*2+0] &&
-							potential_nettriangles[i] !== potential_nettriangles[j*2+1] )
-						{
-							break; //there's no potential for this triangle to contain every corner
-						}
+					
+					for(var j = 0; j < vertex_resolved.length; j++)
+						vertex_resolved[j] = 0;
+					
+					for(var j = 0; j < 4; j++)
+					{						
+						var corner_index = ( side_i * 2 + j ) % 12;
 						
-						if( j === 3) { //every edgecorner is either in here or on the edge
-							for(var k = 0; k < 4; k++)
-								hexcorner_nettriangles[( side_i * 2 + k ) % 12] = potential_nettriangles[i]; 
-							foundit = 1;
-							break;
+						for(var n = 0; n < 2; n++) //the two triangles vertex j can be mapped to
+						{
+							if( potential_nettriangles[j*2+n] === 667)
+								continue;
+							
+							if( potential_nettriangles[j*2+n] === potential_nettriangles[i] )
+							{
+								hexcorner_nettriangles[ corner_index ] = potential_nettriangles[j*2+n];
+								vertex_resolved[j] = 1;
+							}
+							
+							if( potential_nettriangles[i+1] === 667 && i%2 === 0)
+							{
+								//need to check its neighbours
+								if( potential_nettriangles[i] === 666)
+								{
+									if( triangle_bordering_exterior(potential_nettriangles[j*2+n]) )
+									{
+										hexcorner_nettriangles[ corner_index ] = potential_nettriangles[j*2+n];
+										vertex_resolved[j] = 1;
+									}
+								}
+								else
+								{
+									for(var m = 0; m < 3; m++) //each neighbour
+									{
+										if( potential_nettriangles[j*2+n] === triangle_adjacent_triangles[ potential_nettriangles[i] ][ m ] )
+										{
+											hexcorner_nettriangles[ corner_index ] = potential_nettriangles[j*2+n];
+											vertex_resolved[j] = 1;
+											break;
+										}
+									}
+								}
+							}
+							
+							if( vertex_resolved[j] === 1 ) //no point checking the other triangle. Probably... might we have a preference?
+								break;
 						}
 					}
-					if(foundit)
+					//finished checking the idea of having this potential_nettriangle as the basis
+					if( vertex_resolved[0] && vertex_resolved[1] && vertex_resolved[2] && vertex_resolved[3] )
 						break;
+					
+//					if( potential_nettriangles[i+1] === 667 && i%2 === 0) //for one of our vertices, potential_nettriangles[i] is all there is. We NEED to use it
+//					{
+//						console.log("this should have worked")
+//					}
 				}
 			}
 
@@ -566,8 +614,6 @@ function Map_lattice() {
 //			}
 //		}
 //	}
-	
-	if(beenthere) logged = 1;
 	
 	surflattice.geometry.attributes.position.needsUpdate = true;
 	surflattice.geometry.attributes.color.needsUpdate = true;

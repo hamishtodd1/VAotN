@@ -16,19 +16,41 @@ function map_hex_point(squarelattice_position, nettriangle, hexagonlattice_index
 	map_from_lattice_to_surface( HexagonLattice.geometry.vertices[hexagonlattice_index], nettriangle );
 }
 
-
+var rounded_net = new THREE.BufferAttribute( new Float32Array(22*3), 3 );
 
 function Update_net_variables() {
 	var old_net_vertices_closest_lattice_vertex = Array(net_vertices_closest_lattice_vertex.length);
-	for(var i = 0; i<net_vertices_closest_lattice_vertex.length; i++)
+	for(var i = 0; i < net_vertices_closest_lattice_vertex.length; i++)
 		old_net_vertices_closest_lattice_vertex[i] = net_vertices_closest_lattice_vertex[i];
-	var centralaxis = new THREE.Vector3(0, 0, 1);
-	for( var i = 0; i < 22; i++) {
-		var netvertex = new THREE.Vector3(flatnet_vertices.array[ i*3+0 ],flatnet_vertices.array[ i*3+1 ],0);
+	
+	//we're integrating this. Need to apply transformation to first vertex, get nearest, use that as the first vertex.
+	for(var i = 0; i < 9; i++) //the first three vertices
+		rounded_net.array[i] = flatnet_vertices.array[i];
+	
+	for( var i = 0; i < 3; i++) {
+		var netvertex = new THREE.Vector3(rounded_net.array[ i*3+0 ],rounded_net.array[ i*3+1 ],0);
 		netvertex.multiplyScalar(1/LatticeScale);
-		netvertex.applyAxisAngle(centralaxis,-LatticeAngle);
-
-		net_vertices_closest_lattice_vertex[i] = index_of_closest_default_lattice_vertex(netvertex.x,netvertex.y);
+		netvertex.applyAxisAngle(z_central_axis,-LatticeAngle);
+		
+		var rounded_index = index_of_closest_default_lattice_vertex(netvertex.x,netvertex.y);
+		netvertex.copy(squarelattice_vertices[ rounded_index ] );
+		apply2Dmatrix(SquareToHexMatrix,netvertex);
+		
+		rounded_net.array[ i*3+0 ] = netvertex.x;
+		rounded_net.array[ i*3+1 ] = netvertex.y;		
+	}
+	
+	deduce_most_of_surface_regular(1, rounded_net);
+	
+	for( var i = 0; i < 22; i++){
+		net_vertices_closest_lattice_vertex[i] = index_of_closest_default_lattice_vertex(rounded_net.array[i*3+0],rounded_net.array[i*3+1]);
+	}
+	
+	
+	if(!isMouseDown && isMouseDown_previously)
+	{
+		console.log(net_vertices_closest_lattice_vertex[1], net_vertices_closest_lattice_vertex[2], net_vertices_closest_lattice_vertex[6], 
+				net_vertices_closest_lattice_vertex[10],net_vertices_closest_lattice_vertex[14],net_vertices_closest_lattice_vertex[18])
 	}
 	
 	//speedup opportunity: this part only exists for one situation, where LatticeScale is very low and such. Could be more specific
@@ -137,6 +159,13 @@ function locate_in_squarelattice_net(vec) {
 	return 666;
 }
 
+function triangle_bordering_exterior(ourtriangle)
+{
+	if( ourtriangle === 4 || ourtriangle === 8 || ourtriangle === 12 )
+		return false;
+	else return true; //and what if it's 666?
+}
+
 function double_locate_in_squarelattice_net(vec, ourArray, startingindex) {
 	var num_found_so_far = 0;
 	for(var i = 0; i < net_triangle_vertex_indices.length / 3; i++ ) {
@@ -152,10 +181,28 @@ function double_locate_in_squarelattice_net(vec, ourArray, startingindex) {
 		}
 	}
 	
-	while(num_found_so_far < 2){ //note that putting 666 in the last one when it might just be in a normal triangle means this is ONLY for points on net edges
-		ourArray[startingindex + num_found_so_far] = 666;
-		num_found_so_far++;
+	if(num_found_so_far === 1)
+	{
+		if( point_on_triangle_boundaries(
+				vec.x,vec.y,
+				squarelatticevertex_rounded_triangle_vertex(ourArray[startingindex], 0),
+				squarelatticevertex_rounded_triangle_vertex(ourArray[startingindex], 1),
+				squarelatticevertex_rounded_triangle_vertex(ourArray[startingindex], 2),
+				true ) 
+			)
+		{
+			ourArray[startingindex + num_found_so_far] = 666; 
+			num_found_so_far++;
+		}
 	}
+	
+	if(num_found_so_far === 0)
+		ourArray[startingindex + num_found_so_far] = 666;
+	
+//	while(num_found_so_far < 2){ //if you're having this then there's no point in the check above 
+//		ourArray[startingindex + num_found_so_far] = 666;
+//		num_found_so_far++;
+//	}
 }
 
 function squarelatticevertex_rounded_triangle_vertex(triangleindex, corner){

@@ -1,11 +1,7 @@
 /*
  * TODO
  * colors
- * Get more viruses with donuts on them
- * Yo, at least they'll never be on the fucking corners!
- * so lattice points are donuts, with lines, which requires that old mess... perhaps...
  * Some spherical projection lol. I mean it is a nice visual effect. Maybe make it semi icosahedral, QS semi dodecahedral
- * Could make the virus pictures 3D? urgh, maybe in VR
  * change angles of mouse movement such that rotation is slightly more probable than it currently is
  * get rid of weird flash
  * some alpha for the circle

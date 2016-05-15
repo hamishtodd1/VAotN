@@ -10,12 +10,17 @@
  *  -Framerate independence, and maybe the detection of speed that makes things nicer or simpler
  *  -loading. You may need to stagger inits.
  *  -watch people a lot and tweak the zooming and rotating code, just because it is simple doesn't mean that it is good
+ *  -loading screen
+ *  
+ *  You still have interaction between irreg and CK, what the hell!
+ *  
  *  
  *  -make it feel good
  *  	-optimize
  *  		-reduce latency?
  *  		-loops should not evaluate array lengths every time
  *  		-could generate some things once, then not again
+ *  		-search for missing "console.log"s, those are old debug things and may have wasteful ifs.
  *  	-all the effects in camerastuff
  *  	-test on different setups
  *  	-make work in different resolutions/respond to resize.
@@ -179,4 +184,21 @@ function ChangeScene(new_mode) {
 				scene.add(Paria_models[i]);
 			break;
 	}
+}
+
+function init() {
+	init_CK_and_irreg();
+	init_cubicLattice_stuff();
+	initialize_QS_stuff();	
+	initialize_protein();
+	init_DNA_cage();
+	init_static_capsid();
+	initialize_formation_atom();
+	init_pariacoto();
+	
+	//------------------need this so there's something in there for the first frame
+	ourclock.getDelta();
+	
+	INITIALIZED = 1;
+	attempt_launch();
 }
