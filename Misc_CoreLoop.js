@@ -11,6 +11,19 @@
  *  -loading. You may need to stagger inits.
  *  -watch people a lot and tweak the zooming and rotating code, just because it is simple doesn't mean that it is good
  *  -loading screen
+ *  -nicer design for button
+ *  -If webgl doesn’t load, recommend a different browser
+ *  -you don't have to have every node on the tree clickable
+ *  
+ *  -so our plan for integrating rotation and touch controls is to have a separate object which, when grabbed, opens up the things
+ *  -no increase in ontological parsimony since you have the button for irreg anyway.
+ *  -the problem with them all following your mouse is that you can't turn them around completely.
+ *  
+ *  -figure out how you're going to do the whole thing's progressive state
+ *  	So we have one variable saying how far they've come. For a demo, if that number is greater than any of the ones that relate to it, then it's free reign
+ *  	Do you want people to be able to skip back and forth?
+ *  	Having the state be "stored" as the time through the video is probably the way to go. That's people's intuition, and will allow them to navigate.
+ *  	You can probably work out ways to constrain it so it works.
  *  
  *  You still have interaction between irreg and CK, what the hell!
  *  
@@ -138,8 +151,8 @@ function ChangeScene(new_mode) {
 //				scene.add(surfperimeter_spheres[i]);
 				scene.add(surfperimeter_cylinders[i]);
 			}
-			for( var i = 0; i < blast_cylinders.length; i++)
-				scene.add(blast_cylinders[i]);
+//			for( var i = 0; i < blast_cylinders.length; i++)
+//				scene.add(blast_cylinders[i]);
 			
 			for(var i = 4; i < 8; i++)
 				scene.add(picture_objects[i]);

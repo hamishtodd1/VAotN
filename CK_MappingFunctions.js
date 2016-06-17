@@ -126,6 +126,8 @@ function map_from_lattice_to_surface(vec, net_triangle_index) {
 	vec.x += surface_vertices.array[(net_triangle_index+2) * 3 + 0];
 	vec.y += surface_vertices.array[(net_triangle_index+2) * 3 + 1];
 	vec.z += surface_vertices.array[(net_triangle_index+2) * 3 + 2];
+	
+//	if(capsidopenness === 0 ) vec.setLength(1/LatticeScale);
 }
 
 //obviously, much speedup opportunities

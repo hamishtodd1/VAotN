@@ -4,6 +4,8 @@
  * For every edge the numbers are worked out in realtime
  * When virus is clicked, move to that state slowly
  * 
+ * easier on the spherical projection?
+ * 
  * Is there some way you could change the way you spherically project so that the fat rhombs on the smallest ones aren't so squashed?
  * The ones where you inserted something aren't so hot either. Could have special cases.
  * 
@@ -17,7 +19,7 @@
 
 //Make pentagons flash when you say "based on pentagonal symmetry"
 
-//HMMMM COULD JUST HAVE BLOCKERS AROUND THE PENTAGON. When you fade back, is there any way for them to continue obscure, but not obscure the parts that are fading in?
+//Could have blockers around the pentagon. When you fade back, is there any way for them to continue obscure, but not obscure the parts that are fading in?
 
 /* And you can reduce the number of extra vertices required by half. You could probably work out all the edge positions using the triangles
  * 

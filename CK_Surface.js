@@ -1,14 +1,12 @@
 /*
  * TODO
  * colors
- * Some spherical projection lol. I mean it is a nice visual effect. Maybe make it semi icosahedral, QS semi dodecahedral
  * change angles of mouse movement such that rotation is slightly more probable than it currently is
  * get rid of weird flash
- * some alpha for the circle
+ * some alpha for the boundaries of the circle
  * click on lattice, little flash and explosion. Bigger flash when they let go
  * remove flatlattice crap
- * 
- * make the pentagons fade to a different color when surface closes?
+ * Maybe take a few frames to snap it, THEN let it start closing
  */
 
 function UpdateCapsid() {
@@ -16,7 +14,7 @@ function UpdateCapsid() {
 	
 	var magnitudespeed = 0.018;
 	
-	if(isMouseDown)
+	if( isMouseDown )
 		capsidopeningspeed = magnitudespeed;
 	else
 		capsidopeningspeed = -magnitudespeed;

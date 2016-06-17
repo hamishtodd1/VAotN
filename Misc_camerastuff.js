@@ -86,6 +86,8 @@ function UpdateCamera()
 	//could have the camera move over to focus on something that you hover your mouse over
 	//give the net a flashy rim, that points ust come in through. Make it look like the capsid "cracks" open
 	//don't just shake, sway
+	//an invisible lamp on your mouse that impacts the surfaces you touch
+	//Ask Ben before working on ANYTHING
 	
 	
 

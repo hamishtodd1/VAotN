@@ -74,6 +74,8 @@ function irreg_deduce_surface(openness ){
 }
 
 function CheckIrregButton(){
+	//The button should be big when the thing is open and small when it's not. You don't need that texture and it might confuse. Make it glow and flash
+	//or maybe it should be a jointed line itself?
 	//TODO change this if button size changes
 //	console.log()
 	if(isMouseDown && !isMouseDown_previously && MousePosition.distanceTo(picture_objects[17].position) < 0.3 ){
