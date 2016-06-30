@@ -76,16 +76,6 @@ function UpdateWorld() {
 			Map_To_Quasisphere();
 			Update_pictures_in_scene();
 			break;
-			
-		case CUBIC_LATTICE_MODE:
-			update_animationprogress();
-			update_3DLattice();
-			break;
-			
-		case FINAL_FORMATION_MODE:
-			update_3DLattice();
-//			update_formation_atom();
-			update_Pariacoto();
 	}
 }
 
@@ -123,7 +113,7 @@ function ChangeScene(new_mode) {
 	
 	camera_changes_for_mode_switch();
 	
-	//this is the one variable that seems to be conserved; at least if it isn't, then make it so.
+	//this is the one variable that seems to be conserved; at least if it isn't, then make it so. But thaaaaat is why you get weird jitters when you change mode!
 	capsidopenness = 0;
 	
 	switch(MODE){
@@ -181,37 +171,5 @@ function ChangeScene(new_mode) {
 //			scene.add(quasiquasilattice);
 //			scene.add(stablepointslattice);
 			break;
-		
-		case CUBIC_LATTICE_MODE:
-			scene.add(slider);
-			scene.add(progress_bar);
-			break;
-			
-		case FINAL_FORMATION_MODE:
-			paria_animation_progress = 0;
-			animation_progress = 1;
-			for(var i = 0; i< lights.length; i++)
-				scene.add( lights[i] );
-			scene.add(QC_atoms);
-			for(var i = 0; i< Paria_models.length; i++)
-				scene.add(Paria_models[i]);
-			break;
 	}
-}
-
-function init() {
-	init_CK_and_irreg();
-	init_cubicLattice_stuff();
-	initialize_QS_stuff();	
-	initialize_protein();
-	init_DNA_cage();
-	init_static_capsid();
-	initialize_formation_atom();
-	init_pariacoto();
-	
-	//------------------need this so there's something in there for the first frame
-	ourclock.getDelta();
-	
-	INITIALIZED = 1;
-	attempt_launch();
 }

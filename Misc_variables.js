@@ -13,8 +13,6 @@ var STATIC_DNA_MODE = 2;
 var CK_MODE = 3;
 var IRREGULAR_MODE = 4;
 var QC_SPHERE_MODE = 5;
-var CUBIC_LATTICE_MODE = 6;
-var FINAL_FORMATION_MODE = 7;
 	
 var MODE = 3;
 
@@ -33,10 +31,12 @@ var renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize( window_width, window_height );
 renderer.setClearColor( 0xffffff, 1);
 document.body.appendChild( renderer.domElement );
+console.log(renderer.domElement )
 var ytplayer;
 
 var INITIALIZED = 0;
 var PICTURES_LOADED = 0;
+var YOUTUBE_READY = 0;
 
 THREE.TextureLoader.prototype.crossOrigin = '';
 
@@ -157,12 +157,6 @@ var progress_bar;
 var slider;
 var slider_grabbed = false;
 
-//-----------formationatom stuff
-var QC_atoms = Array(2000);
-var QCatom_positions;
-var outermost_QCatom_indices = Array(0,0,0,	0,0,0,	0,0,0,	0,0,0);
-var animation_beginning_second = 17*60+3; //or whatever
-var formation_animation_numbers = new Float32Array(23 * 60 * 3);
 
 //-----------no longer formation atom stuff
 

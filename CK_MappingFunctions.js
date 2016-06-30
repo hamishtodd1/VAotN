@@ -25,7 +25,7 @@ function Update_net_variables() {
 	
 	//we're integrating this. Need to apply transformation to first vertex, get nearest, use that as the first vertex.
 	for(var i = 0; i < 9; i++) //the first three vertices
-		rounded_net.array[i] = flatnet_vertices.array[i];
+		rounded_net.array[i] = setvirus_flatnet_vertices[3][i];
 	
 	for( var i = 0; i < 3; i++) {
 		var netvertex = new THREE.Vector3(rounded_net.array[ i*3+0 ],rounded_net.array[ i*3+1 ],0);
@@ -82,12 +82,12 @@ function Update_net_variables() {
 		surface_triangle_side_unit_vectors[i][1].normalize();
 		
 		var flatnet_triangle_side_unit_vector0 = new THREE.Vector2(
-				flatnet_vertices.array[side0vertex_index*3 + 0] - flatnet_vertices.array[(i+2)*3 + 0],
-				flatnet_vertices.array[side0vertex_index*3 + 1] - flatnet_vertices.array[(i+2)*3 + 1]			
+				setvirus_flatnet_vertices[3][side0vertex_index*3 + 0] - setvirus_flatnet_vertices[3][(i+2)*3 + 0],
+				setvirus_flatnet_vertices[3][side0vertex_index*3 + 1] - setvirus_flatnet_vertices[3][(i+2)*3 + 1]			
 			);
 		var flatnet_triangle_side_unit_vector1 = new THREE.Vector2(
-				flatnet_vertices.array[side1vertex_index*3 + 0] - flatnet_vertices.array[(i+2)*3 + 0],
-				flatnet_vertices.array[side1vertex_index*3 + 1] - flatnet_vertices.array[(i+2)*3 + 1]
+				setvirus_flatnet_vertices[3][side1vertex_index*3 + 0] - setvirus_flatnet_vertices[3][(i+2)*3 + 0],
+				setvirus_flatnet_vertices[3][side1vertex_index*3 + 1] - setvirus_flatnet_vertices[3][(i+2)*3 + 1]
 			);
 		flatnet_triangle_side_unit_vector0.normalize();
 		flatnet_triangle_side_unit_vector1.normalize();
@@ -108,8 +108,8 @@ function map_XY_from_lattice_to_surface(x,y, net_triangle_index) {
 
 function map_from_lattice_to_surface(vec, net_triangle_index) {
 	//you could have an "if net_triangle_index === 666 return x y"?
-	vec.x -= flatnet_vertices.array[(net_triangle_index+2)*3 + 0];
-	vec.y -= flatnet_vertices.array[(net_triangle_index+2)*3 + 1];
+	vec.x -= setvirus_flatnet_vertices[3][(net_triangle_index+2)*3 + 0];
+	vec.y -= setvirus_flatnet_vertices[3][(net_triangle_index+2)*3 + 1];
 	
 	var side0_component_length = vec.x * shear_matrix[net_triangle_index][0] + vec.y * shear_matrix[net_triangle_index][1];
 	var side1_component_length = vec.x * shear_matrix[net_triangle_index][2] + vec.y * shear_matrix[net_triangle_index][3];
@@ -137,9 +137,9 @@ function locate_in_net() {
 	for(var i = 0; i < 20; i++ ) {			
 		if( point_in_triangle(
 				x,y,
-				flatnet_vertices.array[net_triangle_vertex_indices[i*3+0] * 3 + 0], flatnet_vertices.array[net_triangle_vertex_indices[i*3+0] * 3 + 1],
-				flatnet_vertices.array[net_triangle_vertex_indices[i*3+1] * 3 + 0], flatnet_vertices.array[net_triangle_vertex_indices[i*3+1] * 3 + 1],
-				flatnet_vertices.array[net_triangle_vertex_indices[i*3+2] * 3 + 0], flatnet_vertices.array[net_triangle_vertex_indices[i*3+2] * 3 + 1],
+				setvirus_flatnet_vertices[3][net_triangle_vertex_indices[i*3+0] * 3 + 0], setvirus_flatnet_vertices[3][net_triangle_vertex_indices[i*3+0] * 3 + 1],
+				setvirus_flatnet_vertices[3][net_triangle_vertex_indices[i*3+1] * 3 + 0], setvirus_flatnet_vertices[3][net_triangle_vertex_indices[i*3+1] * 3 + 1],
+				setvirus_flatnet_vertices[3][net_triangle_vertex_indices[i*3+2] * 3 + 0], setvirus_flatnet_vertices[3][net_triangle_vertex_indices[i*3+2] * 3 + 1],
 				true) )
 			return i;
 	}

@@ -1,26 +1,11 @@
 //not allowed to do anything with camera outside of here! Including read from its position!
 function camera_changes_for_mode_switch(){
-	if(MODE == CUBIC_LATTICE_MODE || MODE=== FINAL_FORMATION_MODE ){
-		//We could make it shift from perspective to orthographic when the mouse is down, to mimic diffraction, or would that be too complex? If you're going to do it, mention it in the text.
-		var CLScale = 4.5;
-		camera.position.z = min_cameradist * CLScale;
-		camera.cameraO.left =-playing_field_width / 2 * CLScale;
-		camera.cameraO.right = playing_field_width / 2 * CLScale;
-		camera.cameraO.top = playing_field_height / 2 * CLScale;
-		camera.cameraO.bottom =-playing_field_height / 2 * CLScale;
-		
-		camera.updateProjectionMatrix();
-	}
-	else{
-		camera.position.z = min_cameradist;
-		camera.cameraO.left =-playing_field_width / 2;
-		camera.cameraO.right = playing_field_width / 2;
-		camera.cameraO.top = playing_field_height / 2;
-		camera.cameraO.bottom =-playing_field_height / 2;
-		camera.updateProjectionMatrix();
-		
-		//need to sort out those cameraO things too
-	}
+	camera.position.z = min_cameradist;
+	camera.cameraO.left =-playing_field_width / 2;
+	camera.cameraO.right = playing_field_width / 2;
+	camera.cameraO.top = playing_field_height / 2;
+	camera.cameraO.bottom =-playing_field_height / 2;
+	camera.updateProjectionMatrix();
 	
 	switch(MODE){
 		case STATIC_PROTEIN_MODE:
@@ -38,12 +23,6 @@ function camera_changes_for_mode_switch(){
 		case QC_SPHERE_MODE:
 			camera.toPerspective();
 			break;
-		case CUBIC_LATTICE_MODE:
-			camera.toOrthographic();
-			break;
-		case FINAL_FORMATION_MODE:
-			camera.toOrthographic();
-			break;
 	}
 	
 	//was trying to get pictures on top
@@ -51,10 +30,6 @@ function camera_changes_for_mode_switch(){
 //		renderer.sortObjects = false;
 //	else
 //		renderer.sortObjects = true;
-	
-	//this is for just in case we've just left CK
-	camera.position.x = 0;
-	camera.updateProjectionMatrix();
 }
 
 function UpdateCamera() 
