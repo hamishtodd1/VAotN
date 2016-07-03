@@ -46,13 +46,6 @@ function Update_net_variables() {
 		net_vertices_closest_lattice_vertex[i] = index_of_closest_default_lattice_vertex(rounded_net.array[i*3+0],rounded_net.array[i*3+1]);
 	}
 	
-	
-	if(!isMouseDown && isMouseDown_previously)
-	{
-		console.log(net_vertices_closest_lattice_vertex[1], net_vertices_closest_lattice_vertex[2], net_vertices_closest_lattice_vertex[6], 
-				net_vertices_closest_lattice_vertex[10],net_vertices_closest_lattice_vertex[14],net_vertices_closest_lattice_vertex[18])
-	}
-	
 	//speedup opportunity: this part only exists for one situation, where LatticeScale is very low and such. Could be more specific
 	for(var i = 0; i<net_triangle_vertex_indices.length / 3; i++){
 		if(		net_vertices_closest_lattice_vertex[net_triangle_vertex_indices[i*3+0]] == net_vertices_closest_lattice_vertex[net_triangle_vertex_indices[i*3+1]]

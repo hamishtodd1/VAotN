@@ -8,10 +8,7 @@ function camera_changes_for_mode_switch(){
 	camera.updateProjectionMatrix();
 	
 	switch(MODE){
-		case STATIC_PROTEIN_MODE:
-			camera.toOrthographic();
-			break;
-		case STATIC_DNA_MODE:
+		case BOCAVIRUS_MODE:
 			camera.toOrthographic();
 			break;
 		case CK_MODE:

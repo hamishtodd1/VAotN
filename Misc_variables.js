@@ -8,13 +8,12 @@ var icosahedron_dihedral_angle = Math.acos(-Math.sqrt(5) / 3);
 
 //--------------Structurally fundamental
 var NOTHING_MODE = 0;
-var STATIC_PROTEIN_MODE = 1;
-var STATIC_DNA_MODE = 2; 
-var CK_MODE = 3;
-var IRREGULAR_MODE = 4;
-var QC_SPHERE_MODE = 5;
+var BOCAVIRUS_MODE = 1; 
+var CK_MODE = 2;
+var IRREGULAR_MODE = 3;
+var QC_SPHERE_MODE = 4;
 	
-var MODE = 3;
+var MODE = BOCAVIRUS_MODE;
 
 //--------------Technologically fundamental
 var playing_field_width = 7*HS3;
@@ -31,7 +30,6 @@ var renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize( window_width, window_height );
 renderer.setClearColor( 0xffffff, 1);
 document.body.appendChild( renderer.domElement );
-console.log(renderer.domElement )
 var ytplayer;
 
 var INITIALIZED = 0;
@@ -133,29 +131,15 @@ var Forced_edges;
 var NUM_QUASICUTOUT_EDGES = 30; 
 
 //------------3D penrose stuff
-var animation_playing_automatically = true;
-
 var Quasi_meshes = Array(5);
 var meshes_original_numbers = Array(5);
 var outlines_original_numbers = Array(5);
 var Quasi_outlines = Array(5);
 var prism_triangle_indices = new Uint16Array([0, 2, 1, 2, 3, 1, 2, 4, 3, 4, 5, 3]);
 var normalized_virtualdodeca_vertices = Array(20);
-var normalized_virtualico_vertices = Array(20);
 
 var icosahedra_directions = Array(12);
 
-
-var golden_rhombohedra = Array(20);
-var goldenicos = Array(12);
-var golden_triacontahedra = Array(20);
-var golden_stars = Array(12);
-var ico_stars = Array(12);
-var animation_progress = 0;
-var previous_animation_progress = animation_progress; 
-var progress_bar;
-var slider;
-var slider_grabbed = false;
 
 
 //-----------no longer formation atom stuff
@@ -229,7 +213,6 @@ var LatticeGrabbed = false;
 var vertices_derivations;
 var minimum_angles = new Array(22); //between these two, we derive the polyhedron and surface
 
-var circle;
 
 var IsRoundedVertex;
 var IsProblemVertex;
@@ -237,9 +220,6 @@ var problemArrays;
 var solutionArrays;
 
 //-----------------------Buttons
-var VARYINGSURFACE_OPENMODE_BUTTON = 0;
-var BOCAVIRUS_BUTTON = 1;
-var T4_BUTTON = 2;
 var setvirus_flatnet_vertices = Array(4);
 
 //---------------------------buttons no more
@@ -279,7 +259,8 @@ var OldMousePosition = new THREE.Vector2(0,0);
 var Mouse_delta = new THREE.Vector2(0,0);
 
 //----protein and bocavirus stuff
-var proteinlattice;
+var neo_bocavirus_proteins = Array(60);
+
 var protein_vertex_indices = Array(number_of_proteins_in_lattice);
 
 var number_of_vertices_in_protein;

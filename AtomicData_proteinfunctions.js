@@ -19,6 +19,11 @@ function fix_protein_to_anchors(
 	var basis_vec0 = new THREE.Vector3();
 	//not normalizing (or anything like normalizing) this causes a kind of distortion in "z", but that is probably ok
 	basis_vec0.crossVectors(basis_vec1, basis_vec2);
+	basis_vec0.setLength(basis_vec1.length())
+	
+	basis_vec0.normalize();
+	basis_vec1.normalize();
+	basis_vec2.normalize();
 	
 	for(var i = 0; i < master_protein.geometry.attributes.position.array.length / 3; i++){
 		myprotein.geometry.attributes.position.array[i*3+0] = atom_vertices_components[i*3+0] * basis_vec0.x + atom_vertices_components[i*3+1] * basis_vec1.x + atom_vertices_components[i*3+2] * basis_vec2.x;
@@ -31,35 +36,6 @@ function fix_protein_to_anchors(
     myprotein.geometry.attributes.position.needsUpdate = true;
 }
 
-//this function won't alter the passed vectors
-function fix_meshprotein_to_anchors(
-		desired_corner0x,desired_corner0y,desired_corner0z,
-		desired_corner1x,desired_corner1y,desired_corner1z,
-		desired_corner2x,desired_corner2y,desired_corner2z,
-		proteinindex)
-{
-	var basis_vec1 = new THREE.Vector3(desired_corner1x - desired_corner0x,desired_corner1y - desired_corner0y,desired_corner1z - desired_corner0z);
-	var basis_vec2 = new THREE.Vector3(desired_corner2x - desired_corner0x,desired_corner2y - desired_corner0y,desired_corner2z - desired_corner0z);
-	var basis_vec0 = new THREE.Vector3();
-	//not normalizing (or anything like normalizing) this causes a kind of distortion in "z", but that is probably ok
-	basis_vec0.crossVectors(basis_vec1, basis_vec2);
-	
-	for(var i = 0; i < master_protein.geometry.attributes.position.array.length / 3; i++) {
-		proteinlattice.geometry.attributes.position.array[(number_of_vertices_in_protein * proteinindex + i )*3+0] = atom_vertices_components[i*3+0] * basis_vec0.x + atom_vertices_components[i*3+1] * basis_vec1.x + atom_vertices_components[i*3+2] * basis_vec2.x + desired_corner0x;
-		proteinlattice.geometry.attributes.position.array[(number_of_vertices_in_protein * proteinindex + i )*3+1] = atom_vertices_components[i*3+0] * basis_vec0.y + atom_vertices_components[i*3+1] * basis_vec1.y + atom_vertices_components[i*3+2] * basis_vec2.y + desired_corner0y;
-		proteinlattice.geometry.attributes.position.array[(number_of_vertices_in_protein * proteinindex + i )*3+2] = atom_vertices_components[i*3+0] * basis_vec0.z + atom_vertices_components[i*3+1] * basis_vec1.z + atom_vertices_components[i*3+2] * basis_vec2.z + desired_corner0z;
-	}
-}
-
-function fix_meshprotein_to_anchors_vecs(desired_corner0,desired_corner1,desired_corner2, myprotein)
-{
-	fix_meshprotein_to_anchors(
-			desired_corner0.x,desired_corner0.y,desired_corner0.z,
-			desired_corner1.x,desired_corner1.y,desired_corner1.z,
-			desired_corner2.x,desired_corner2.y,desired_corner2.z,
-			myprotein);
-}
-
 function initialize_protein(){
 	number_of_vertices_in_protein = protein_vertices_numbers.length / 3;
 	
@@ -69,14 +45,18 @@ function initialize_protein(){
 	
 	var threefold_axis = new THREE.Vector3(1,1,1);
 	threefold_axis.normalize();
+	
+	//TODO this is where it becomes about 5.
 	for(var i = 0; i < protein_vertices_numbers.length / 3 / 3; i++){
 		var point = new THREE.Vector3(	protein_vertices_numbers[i*3+0],
 										protein_vertices_numbers[i*3+1],
 										protein_vertices_numbers[i*3+2]);
+		
 		point.applyAxisAngle(threefold_axis, TAU / 3);
 		protein_vertices_numbers[i*3 + 0 + protein_vertices_numbers.length / 3] = point.x;
 		protein_vertices_numbers[i*3 + 1 + protein_vertices_numbers.length / 3] = point.y;
 		protein_vertices_numbers[i*3 + 2 + protein_vertices_numbers.length / 3] = point.z;
+		
 		point.applyAxisAngle(threefold_axis, TAU / 3);
 		protein_vertices_numbers[i*3 + 0 + 2*protein_vertices_numbers.length / 3] = point.x;
 		protein_vertices_numbers[i*3 + 1 + 2*protein_vertices_numbers.length / 3] = point.y;
@@ -94,10 +74,9 @@ function initialize_protein(){
 	master_protein.geometry.computeFaceNormals();
 	master_protein.geometry.computeVertexNormals();
 	
-	/* for vector (x,y,z), perp distance from the plane perp to the vector (1,1,1) through the origin = abs(x+y+z) / sqrt(3)
+	/* for vector (x,y,z), perp distance from the plane perp to the vector (1,1,1) through the origin is abs(x+y+z) / sqrt(3)
 	 * It is somewhat arbitrary to define that as the center though. It is a spherical sort of thing after all
 	 * In theory you should be able to multiply the below by a scalar without changing bocavirus.
-	 * You may want to do this in order to make larger viruses more contiguous.
 	 */
 	var protein_vertical_center = 0;
 	for(var i = 0; i < protein_vertices_numbers.length / 9; i++)
@@ -111,8 +90,7 @@ function initialize_protein(){
 		if(i==0) anchorpointpositions[i].set(1,PHI,0);
 		if(i==1) anchorpointpositions[i].set(PHI,0,1);
 		if(i==2) anchorpointpositions[i].set(0,1,PHI);
-		anchorpointpositions[i].normalize();
-		anchorpointpositions[i].multiplyScalar(protein_vertical_center * Math.sin(TAU/5) / (Math.sqrt(3)/12*(3+Math.sqrt(5))));
+		anchorpointpositions[i].setLength(protein_vertical_center * Math.sin(TAU/5) / (Math.sqrt(3)/12*(3+Math.sqrt(5))));
 	}
 	
 	//to get the components, we need the inverse of the matrix of its current basis vectors
@@ -122,6 +100,11 @@ function initialize_protein(){
 	basis_vec2.sub(anchorpointpositions[0]);
 	var basis_vec0 = new THREE.Vector3();
 	basis_vec0.crossVectors(basis_vec1, basis_vec2);
+	
+	basis_vec0.normalize();
+	basis_vec1.normalize();
+	basis_vec2.normalize();
+	
 	var basis_matrix = new THREE.Matrix4();
 	basis_matrix.set(	basis_vec0.x,basis_vec1.x,basis_vec2.x,	0,
 						basis_vec0.y,basis_vec1.y,basis_vec2.y,	0,
@@ -144,48 +127,100 @@ function initialize_protein(){
 		atom_vertices_components[i*3+2] = master_protein.geometry.attributes.position.array[i*3+0] * conversion_matrix.elements[2] + master_protein.geometry.attributes.position.array[i*3+1] * conversion_matrix.elements[5] + master_protein.geometry.attributes.position.array[i*3+2] * conversion_matrix.elements[8];
 	}
 	
-	proteinlattice = new THREE.Mesh( new THREE.BufferGeometry(), master_protein.material.clone());
-	proteinlattice.geometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array(protein_vertices_numbers.length * number_of_proteins_in_lattice), 3 ) );
-	proteinlattice.geometry.setIndex( new THREE.BufferAttribute( new Uint16Array(coarse_protein_triangle_indices.length * number_of_proteins_in_lattice ), 1 ) );
-	for(var i = 0; i < number_of_proteins_in_lattice; i++){
-		for(var j = 0; j < coarse_protein_triangle_indices.length; j++){
-			proteinlattice.geometry.index[i*coarse_protein_triangle_indices.length + j] = coarse_protein_triangle_indices[j] + number_of_vertices_in_protein * i; 
+	var bocavirus_surface = new THREE.Mesh(new THREE.BufferGeometry, new THREE.MeshBasicMaterial());
+	bocavirus_surface.geometry.addAttribute('position',new THREE.BufferAttribute( new Float32Array( 22 * 3 ), 3 ));
+
+	var bocavirus_firstriangle_vertices = Array(3);
+	bocavirus_firstriangle_vertices[0] = new THREE.Vector3(0, 		1,   PHI);
+	bocavirus_firstriangle_vertices[1] = new THREE.Vector3(0,		-1,  PHI);
+	bocavirus_firstriangle_vertices[2] = new THREE.Vector3( PHI,	0, 	 1);
+	for(var i = 0; i < bocavirus_firstriangle_vertices.length; i++){
+		bocavirus_firstriangle_vertices[i].multiplyScalar(1.45);
+		bocavirus_surface.geometry.attributes.position.setXYZ(i,
+			bocavirus_firstriangle_vertices[i].x,
+			bocavirus_firstriangle_vertices[i].y,
+			bocavirus_firstriangle_vertices[i].z);
+	}	
+	deduce_most_of_surface_regular(0, bocavirus_surface.geometry.attributes.position);
+	for(var i = 0; i<20; i++){
+		for(var j = 0; j<3; j++){
+			bocavirus_vertices[i*3+j] = new THREE.Vector3(
+				bocavirus_surface.geometry.attributes.position.array[net_triangle_vertex_indices[i*3+j]*3+0],
+				bocavirus_surface.geometry.attributes.position.array[net_triangle_vertex_indices[i*3+j]*3+1],
+				bocavirus_surface.geometry.attributes.position.array[net_triangle_vertex_indices[i*3+j]*3+2]);
+			initial_bocavirus_vertices[i*3+j] = bocavirus_vertices[i*3+j].clone();
 		}
 	}
 	
-	for(var i = 0; i < protein_vertex_indices.length; i++){
-		protein_vertex_indices[i] = new Uint16Array(3);
+	for(var i = 0; i<bocavirus_proteins.length; i++){
+		bocavirus_proteins[i] = new THREE.Mesh( master_protein.geometry.clone(), master_protein.material.clone());
+		
+		fix_protein_to_anchors_vecs(
+				bocavirus_vertices[i*3+0],
+				bocavirus_vertices[i*3+1],
+				bocavirus_vertices[i*3+2],
+				bocavirus_proteins[i]);
 	}
-	var rightmost_index = 0;
-	var lowest_unused_protein_index = 0;
-	for(var layer = 0; layer < number_of_hexagon_rings; layer++){
-		var original_slicelayer_rightmostindex = rightmost_index;
-		for(var slice = 0; slice < 6; slice++){
-			var nextslicelayer_rightmostindex = original_slicelayer_rightmostindex + 6 * layer + slice * (layer+1); //this is fine
-			if(layer == 0) nextslicelayer_rightmostindex += 1;
-			for(var tri = 0; tri <= layer; tri++){	
-				protein_vertex_indices[lowest_unused_protein_index][0] = rightmost_index + tri;
-				protein_vertex_indices[lowest_unused_protein_index][1] = nextslicelayer_rightmostindex + tri;
-				protein_vertex_indices[lowest_unused_protein_index][2] = nextslicelayer_rightmostindex + tri + 1;
+	
+//	var ourvertexindex = 180;
+//	indicatorblobs[0].position.set(
+//		bocavirus_proteins[0].geometry.attributes.position.array[ourvertexindex*3+0],
+//		bocavirus_proteins[0].geometry.attributes.position.array[ourvertexindex*3+1],
+//		bocavirus_proteins[0].geometry.attributes.position.array[ourvertexindex*3+2] );
+//	bocavirus_proteins[0].localToWorld(indicatorblobs[0].position);
+	
+	var normalized_virtualico_vertices = Array(12);
+	normalized_virtualico_vertices[0] = new THREE.Vector3(0, 		1, 	PHI);
+	normalized_virtualico_vertices[1] = new THREE.Vector3( PHI,	0, 	1);
+	normalized_virtualico_vertices[2] = new THREE.Vector3(0,		-1, PHI);
+	normalized_virtualico_vertices[3] = new THREE.Vector3(-PHI,	0, 	1);
+	normalized_virtualico_vertices[4] = new THREE.Vector3(-1, 	PHI,0);
+	normalized_virtualico_vertices[5] = new THREE.Vector3( 1, 	PHI,0);
+	normalized_virtualico_vertices[6] = new THREE.Vector3( PHI,	0,	-1);
+	normalized_virtualico_vertices[7] = new THREE.Vector3( 1,		-PHI,0);
+	normalized_virtualico_vertices[8] = new THREE.Vector3(-1,		-PHI,0);
+	normalized_virtualico_vertices[9] = new THREE.Vector3(-PHI,	0,	-1);
+	normalized_virtualico_vertices[10] = new THREE.Vector3(0, 	1,	-PHI);
+	normalized_virtualico_vertices[11] = new THREE.Vector3(0,		-1,	-PHI);
+	
+	
+	
+	for(var capsomer_index = 0; capsomer_index < 12; capsomer_index++)
+	{
+		for(var protein_triangle_index = 0; protein_triangle_index < 20; protein_triangle_index++)
+		{
+			for(var i = 0; i < 3; i++)
+			{
+				var vi = 100 + i * bocavirus_proteins[protein_triangle_index].geometry.attributes.position.array.length / 3 / 3;
+				var indicative_vertex = new THREE.Vector3(
+					bocavirus_proteins[protein_triangle_index].geometry.attributes.position.array[vi*3+0],
+					bocavirus_proteins[protein_triangle_index].geometry.attributes.position.array[vi*3+1],
+					bocavirus_proteins[protein_triangle_index].geometry.attributes.position.array[vi*3+2] );
 				
-				if(tri == layer && slice == 5){//it connects back to the first
-					protein_vertex_indices[lowest_unused_protein_index][0] -= layer * 6;
-					protein_vertex_indices[lowest_unused_protein_index][2] -= (layer+1) * 6;
-				}
-				lowest_unused_protein_index++;
-
-				if(tri != layer ){
-					protein_vertex_indices[lowest_unused_protein_index][0] = rightmost_index + tri;
-					protein_vertex_indices[lowest_unused_protein_index][1] = nextslicelayer_rightmostindex + tri + 1;
-					protein_vertex_indices[lowest_unused_protein_index][2] = rightmost_index + tri + 1;
-					
-					if(tri == layer-1 && slice == 5) protein_vertex_indices[lowest_unused_protein_index][2] -= layer * 6; //it connects back to the first
-					
-					lowest_unused_protein_index++;
-				}
-			}
-			rightmost_index += layer;
+				bocavirus_proteins[protein_triangle_index].localToWorld(indicative_vertex);
+				
+				var dist = normalized_virtualico_vertices[capsomer_index].distanceTo(indicative_vertex);
+				if(dist < 1.1)
+					console.log(dist, protein_triangle_index * 3 + i );
+				
+				//you could have them all be separate
+//				neo_bocavirus_proteins[]
+				
+			}	
 		}
-		if(layer == 0)rightmost_index++;
+		
+		console.log("done")
+	}
+	
+	{
+		lights[0] = new THREE.PointLight( 0xffffff, 0.6 );
+		lights[1] = new THREE.PointLight( 0xffffff, 0.6 );
+		lights[2] = new THREE.PointLight( 0xffffff, 0.6 );
+		lights[3] = new THREE.PointLight( 0xffffff, 0.6 );
+		
+		lights[0].position.set( 0, 100, 30 );
+		lights[1].position.set( 100, 0, 30 );
+		lights[2].position.set( -100, 0, 30 );
+		lights[3].position.set( 0, -100, 30 );
 	}
 }

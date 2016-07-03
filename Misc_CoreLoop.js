@@ -41,12 +41,8 @@
 
 function UpdateWorld() {
 	update_mouseblob();
-	switch(MODE){
-		case STATIC_PROTEIN_MODE:
-			update_bocavirus();
-			break;
-		
-		case STATIC_DNA_MODE:
+	switch(MODE){		
+		case BOCAVIRUS_MODE:
 			update_bocavirus();
 			break;
 			
@@ -97,19 +93,21 @@ function render() {
 }
 
 //eventually we'll add some trigger to this that makes it reasonable to call every frame
-function ChangeScene(new_mode) {	
+//should probably not have scene.add or scene.remove anywhere outside this. It probably doesn't affect performance
+function ChangeScene(new_mode) {
+	//don't go changing this outside of here.
 	MODE = new_mode;
 	
+	//everyone out
 	for( var i = scene.children.length - 1; i >= 0; i--){
 		var obj = scene.children[i];
 		scene.remove(obj);
 	}
-//	scene.add( circle );
 	
-//	if(showdebugstuff){
-//		for(var i = 0; i<indicatorblobs.length; i++)
-//			scene.add(indicatorblobs[i]);
-//	}
+	if(showdebugstuff){
+		for(var i = 0; i<indicatorblobs.length; i++)
+			scene.add(indicatorblobs[i]);
+	}
 	
 	camera_changes_for_mode_switch();
 	
@@ -117,14 +115,7 @@ function ChangeScene(new_mode) {
 	capsidopenness = 0;
 	
 	switch(MODE){
-		case STATIC_PROTEIN_MODE:
-			for(var i = 0; i<bocavirus_proteins.length; i++)
-				scene.add(bocavirus_proteins[i]);
-			for(var i = 0; i< lights.length; i++)
-				scene.add( lights[i] );
-			break;
-		
-		case STATIC_DNA_MODE:
+		case BOCAVIRUS_MODE:
 			for(var i = 0; i<bocavirus_proteins.length; i++)
 				scene.add(bocavirus_proteins[i]);
 			for(var i = 0; i< lights.length; i++)

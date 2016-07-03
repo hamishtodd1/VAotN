@@ -44,91 +44,14 @@ function update_bocavirus() {
 		initial_bocavirus_vertices[i].applyAxisAngle(bocavirus_MovementAxis,bocavirus_MovementAngle);
 		bocavirus_vertices[i].copy(initial_bocavirus_vertices[i]);
 	}
-	if(MODE==STATIC_PROTEIN_MODE){
-		capsidopenness=0;
-		for(var i = 0; i<bocavirus_proteins.length; i++){
-			bocavirus_proteins[i].material.opacity = 1;
-		}
-	}
-	else if(MODE == STATIC_DNA_MODE){
-		capsidopenness+=0.0115;
-		if(capsidopenness > 1)
-			capsidopenness = 1;
-		var time_to_go_transparent = 0.42;
-		for(var i = 0; i<bocavirus_proteins.length; i++){
-			if(capsidopenness > time_to_go_transparent)
-				bocavirus_proteins[i].material.opacity = 1 - (capsidopenness-time_to_go_transparent) / (1-time_to_go_transparent);
-			
-			var extension_vector = new THREE.Vector3();
-			extension_vector.add(initial_bocavirus_vertices[i*3+0]);
-			extension_vector.add(initial_bocavirus_vertices[i*3+1]);
-			extension_vector.add(initial_bocavirus_vertices[i*3+2]);
-			extension_vector.normalize();
-			extension_vector.multiplyScalar(capsidopenness*capsidopenness*5);
-			
-			for(var j = 0; j<3; j++)
-				bocavirus_vertices[i*3+j].add(extension_vector);
-		}		
-	}
 	
-	for(var i = 0; i<bocavirus_proteins.length; i++){
-		fix_protein_to_anchors_vecs(
-				bocavirus_vertices[i*3+0],
-				bocavirus_vertices[i*3+1],
-				bocavirus_vertices[i*3+2],
-				bocavirus_proteins[i]);		
-	}
-}
-
-//You could skew the proteins upwards, which might give clear protuberances. But those might be unnoticeable and unnecessary given nice colors
-function init_static_capsid() {
-	/*
-	 * We have its first triangle as an "object", making it easily rotateable
-	 * We deduce the surface every frame
-	 */
-	var bocavirus_surface = new THREE.Mesh(new THREE.BufferGeometry, new THREE.MeshBasicMaterial());
-	bocavirus_surface.geometry.addAttribute('position',new THREE.BufferAttribute( new Float32Array( 22 * 3 ), 3 ));
-
-	var bocavirus_firstriangle_vertices = Array(3);
-	bocavirus_firstriangle_vertices[0] = new THREE.Vector3(0, 		1,   PHI);
-	bocavirus_firstriangle_vertices[1] = new THREE.Vector3(0,		-1,  PHI);
-	bocavirus_firstriangle_vertices[2] = new THREE.Vector3( PHI,	0, 	 1);
-	for(var i = 0; i < bocavirus_firstriangle_vertices.length; i++){
-		bocavirus_firstriangle_vertices[i].multiplyScalar(1.45);
-		bocavirus_surface.geometry.attributes.position.setXYZ(i,bocavirus_firstriangle_vertices[i].x,bocavirus_firstriangle_vertices[i].y,bocavirus_firstriangle_vertices[i].z);
-	}	
-	deduce_most_of_surface_regular(0, bocavirus_surface.geometry.attributes.position);
-	for(var i = 0; i<20; i++){
-		for(var j = 0; j<3; j++){
-			bocavirus_vertices[i*3+j] = new THREE.Vector3(
-					bocavirus_surface.geometry.attributes.position.array[net_triangle_vertex_indices[i*3+j]*3+0],
-					bocavirus_surface.geometry.attributes.position.array[net_triangle_vertex_indices[i*3+j]*3+1],
-					bocavirus_surface.geometry.attributes.position.array[net_triangle_vertex_indices[i*3+j]*3+2]);
-			initial_bocavirus_vertices[i*3+j] = bocavirus_vertices[i*3+j].clone();
-		}
-	}
-	
-	for(var i = 0; i<bocavirus_proteins.length; i++){
-		bocavirus_proteins[i] = new THREE.Mesh( master_protein.geometry.clone(), master_protein.material.clone());
-		
-		fix_protein_to_anchors_vecs(
-				bocavirus_vertices[i*3+0],
-				bocavirus_vertices[i*3+1],
-				bocavirus_vertices[i*3+2],
-				bocavirus_proteins[i]);
-	}
-	
-	{
-		lights[0] = new THREE.PointLight( 0xffffff, 0.6 );
-		lights[1] = new THREE.PointLight( 0xffffff, 0.6 );
-		lights[2] = new THREE.PointLight( 0xffffff, 0.6 );
-		lights[3] = new THREE.PointLight( 0xffffff, 0.6 );
-		
-		lights[0].position.set( 0, 100, 30 );
-		lights[1].position.set( 100, 0, 30 );
-		lights[2].position.set( -100, 0, 30 );
-		lights[3].position.set( 0, -100, 30 );
-	}
+//	for(var i = 0; i<bocavirus_proteins.length; i++){
+//		fix_protein_to_anchors_vecs(
+//				bocavirus_vertices[i*3+0],
+//				bocavirus_vertices[i*3+1],
+//				bocavirus_vertices[i*3+2],
+//				bocavirus_proteins[i]);
+//	}
 }
 
 function init_DNA_cage(){
