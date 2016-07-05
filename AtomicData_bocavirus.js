@@ -40,9 +40,12 @@ function update_bocavirus() {
 	DNA_cage.rotateOnAxis(DNA_cage_axis, bocavirus_MovementAngle);
 	DNA_cage.updateMatrixWorld();
 	
-	for(var i = 0; i<bocavirus_vertices.length; i++){
-		initial_bocavirus_vertices[i].applyAxisAngle(bocavirus_MovementAxis,bocavirus_MovementAngle);
-		bocavirus_vertices[i].copy(initial_bocavirus_vertices[i]);
+	for(var i = 0; i < neo_bocavirus_proteins.length; i++)
+	{
+		var tempaxis = bocavirus_MovementAxis.clone();
+		neo_bocavirus_proteins[i].worldToLocal(tempaxis);
+		neo_bocavirus_proteins[i].rotateOnAxis(tempaxis, bocavirus_MovementAngle);
+		neo_bocavirus_proteins[i].updateMatrixWorld();
 	}
 	
 //	for(var i = 0; i<bocavirus_proteins.length; i++){

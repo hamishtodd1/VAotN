@@ -116,8 +116,10 @@ function ChangeScene(new_mode) {
 	
 	switch(MODE){
 		case BOCAVIRUS_MODE:
-			for(var i = 0; i<bocavirus_proteins.length; i++)
-				scene.add(bocavirus_proteins[i]);
+			for(var i = 0; i < neo_bocavirus_proteins.length; i++)
+				scene.add(neo_bocavirus_proteins[i])
+//			for(var i = 0; i<bocavirus_proteins.length; i++)
+//				scene.add(bocavirus_proteins[i]);
 			for(var i = 0; i< lights.length; i++)
 				scene.add( lights[i] );
 			scene.add(DNA_cage);
