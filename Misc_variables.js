@@ -264,7 +264,13 @@ var neo_bocavirus_proteins = Array(60);
 var protein_vertex_indices = Array(number_of_proteins_in_lattice);
 
 var number_of_vertices_in_protein;
-var master_protein = new THREE.Mesh( new THREE.BufferGeometry(), new THREE.MeshLambertMaterial({color:0xf0f00f, transparent:true}) );
+var master_protein;
+var capsomer_protein_indices = Array(12);
+var capsomer_groups = [[0,6,9],[5,2,11],[1,4,8],[3,10,7]]; 
+	//0,6,9
+	//5,2,11
+	//1,4,8
+	//3,10,7
 var atom_vertices_components;
 var bocavirus_vertices = Array(20*3);
 var initial_bocavirus_vertices = Array(20*3);
