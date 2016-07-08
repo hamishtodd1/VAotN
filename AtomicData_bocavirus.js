@@ -288,76 +288,86 @@ function initialize_protein()
 	
 	//----------Creating the group
 	//"1"
-//	var axis1 = normalized_virtualico_vertices[0].clone();
+	var axis1 = normalized_virtualico_vertices[0].clone();
 //	axis1.add(normalized_virtualico_vertices[3]);
-//	rotate_protein_bunch(axis1, TAU / 2, 1);
-//	
+	rotate_protein_bunch(axis1, 2 * TAU / 5, 1);
+	
 //	//"2"
-//	var axis2a = normalized_virtualico_vertices[0].clone();
-//	axis2a.add(normalized_virtualico_vertices[3]);
-//	rotate_protein_bunch(axis2a, TAU / 2, 2);
-//	var axis2b = normalized_virtualico_vertices[2].clone();
-//	axis2b.add(normalized_virtualico_vertices[3]);
-//	rotate_protein_bunch(axis2b, TAU / 2, 2);
+	var axis2 = normalized_virtualico_vertices[0].clone();
+	axis2.add(normalized_virtualico_vertices[4]);
+	rotate_protein_bunch(axis2, TAU / 2, 2);
 //	
 //	//"3"
-//	var axis3 = normalized_virtualico_vertices[0].clone();
-//	axis3.add(normalized_virtualico_vertices[4]);
-//	rotate_protein_bunch(axis3, TAU / 2, 3);
-//	
+	var axis3a = normalized_virtualico_vertices[0].clone();
+	rotate_protein_bunch(axis3a, TAU / 5, 3);
+	var axis3b = normalized_virtualico_vertices[4].clone();
+	axis3b.add(normalized_virtualico_vertices[3]);
+	rotate_protein_bunch(axis3b, TAU / 2, 3);
+	
 //	//"4"
-//	var axis4a = normalized_virtualico_vertices[0].clone();
-//	axis4a.add(normalized_virtualico_vertices[3]);
-//	rotate_protein_bunch(axis4a,  TAU / 2, 4);
-//	var axis4b = normalized_virtualico_vertices[3].clone();
-//	rotate_protein_bunch(axis4b,3*TAU / 5, 4);
-//	
-//	//doubling up
-//	for(var j = 0; j < 60; j += 10)
-//	{
-//		for(var i = 5; i < 10; i++ )
-//		{
-//			var specific_da = z_central_axis.clone();
-//			neo_bocavirus_proteins[j+i].worldToLocal(specific_da);
-//			neo_bocavirus_proteins[j+i].rotateOnAxis(specific_da, TAU / 2);
-//			neo_bocavirus_proteins[j+i].updateMatrixWorld();
-//		}
-//	}
-//	
-//	var y_central_axis = new THREE.Vector3(0,1,0);
-//	for(var j = 0; j < 60; j += 20)
-//	{
-//		for(var i = 10; i < 20; i++ )
-//		{
-//			var specific_da = y_central_axis.clone();
-//			neo_bocavirus_proteins[j+i].worldToLocal(specific_da);
-//			neo_bocavirus_proteins[j+i].rotateOnAxis(specific_da, TAU / 2);
-//			neo_bocavirus_proteins[j+i].updateMatrixWorld();
-//		}
-//	}
-//	
-//	var hooray_axis = new THREE.Vector3(1,1,1);
-//	hooray_axis.normalize();
-//	for(var i = 20; i < 40; i++)
-//	{
-//		var specific_da = hooray_axis.clone();
-//		neo_bocavirus_proteins[i].worldToLocal(specific_da);
-//		neo_bocavirus_proteins[i].rotateOnAxis(specific_da, TAU / 3);
-//		neo_bocavirus_proteins[i].updateMatrixWorld();
-//		
-//		neo_bocavirus_proteins[i].material.color.b = 1;
-//		neo_bocavirus_proteins[i].material.color.r = 0;
-//	}
-//	for(var i = 40; i < 60; i++)
-//	{
-//		var specific_da = hooray_axis.clone();
-//		neo_bocavirus_proteins[i].worldToLocal(specific_da);
-//		neo_bocavirus_proteins[i].rotateOnAxis(specific_da,2*TAU / 3);
-//		neo_bocavirus_proteins[i].updateMatrixWorld();
-//		
-//		neo_bocavirus_proteins[i].material.color.b = 1;
-//		neo_bocavirus_proteins[i].material.color.g = 0;
-//	}
+	var axis4a = normalized_virtualico_vertices[0].clone();
+	axis4a.add(normalized_virtualico_vertices[4]);
+	rotate_protein_bunch(axis4a,TAU / 2, 4);
+	var axis4b = normalized_virtualico_vertices[4].clone();
+	rotate_protein_bunch(axis4b,3*TAU / 5, 4);
+	
+	//tripling the proteins, now you have 15.
+	for(var j = 0; j < 60; j += 15)
+	{
+		for(var i = 5; i < 10; i++ )
+		{
+			var specific_da = new THREE.Vector3(1,1,1);
+			specific_da.normalize();
+			neo_bocavirus_proteins[j+i].worldToLocal(specific_da);
+			neo_bocavirus_proteins[j+i].rotateOnAxis(specific_da, TAU / 3);
+			neo_bocavirus_proteins[j+i].updateMatrixWorld();
+		}
+		
+		for(var i =10; i < 15; i++ )
+		{
+			var specific_da = new THREE.Vector3(1,1,1);
+			specific_da.normalize();
+			neo_bocavirus_proteins[j+i].worldToLocal(specific_da);
+			neo_bocavirus_proteins[j+i].rotateOnAxis(specific_da, 2 * TAU / 3);
+			neo_bocavirus_proteins[j+i].updateMatrixWorld();
+		}
+	}
+	
+	for(var i = 15; i < 30; i++)
+	{
+		var specific_da = new THREE.Vector3(1,0,0);
+		neo_bocavirus_proteins[i].worldToLocal(specific_da);
+		neo_bocavirus_proteins[i].rotateOnAxis(specific_da, TAU / 2);
+		neo_bocavirus_proteins[i].updateMatrixWorld();
+		
+		neo_bocavirus_proteins[i].material.color.r = 0;
+		neo_bocavirus_proteins[i].material.color.g = 0.5;
+		neo_bocavirus_proteins[i].material.color.b = 1;
+	}
+	for(var i = 30; i < 45; i++)
+	{
+		var specific_da = new THREE.Vector3(0,1,0);
+		neo_bocavirus_proteins[i].worldToLocal(specific_da);
+		neo_bocavirus_proteins[i].rotateOnAxis(specific_da, TAU / 2);
+		neo_bocavirus_proteins[i].updateMatrixWorld();
+		
+		neo_bocavirus_proteins[i].material.color.r = 1;
+		neo_bocavirus_proteins[i].material.color.g = 0.5;
+		neo_bocavirus_proteins[i].material.color.b = 0;
+	}
+	for(var i = 45; i < 60; i++)
+	{
+		var specific_da = new THREE.Vector3(0,0,1);
+		neo_bocavirus_proteins[i].worldToLocal(specific_da);
+		neo_bocavirus_proteins[i].rotateOnAxis(specific_da, TAU / 2);
+		neo_bocavirus_proteins[i].updateMatrixWorld();
+		
+		neo_bocavirus_proteins[i].material.color.r = 1;
+		neo_bocavirus_proteins[i].material.color.g = 0;
+		neo_bocavirus_proteins[i].material.color.b = 1;
+	}
+	
+	//the thing to solve the alpha might be to not have them all in an array at all :/
 	
 	for(var capsomer_index = 0; capsomer_index < 12; capsomer_index++)
 	{
@@ -416,6 +426,7 @@ function initialize_protein()
 	}
 }
 
+//the seed index is which, in the group of five proteins in the "fundamental domain" like thing, this refers to
 function rotate_protein_bunch(ouraxis, amt, seed_index)
 {
 	neo_bocavirus_proteins[seed_index].worldToLocal(ouraxis);
