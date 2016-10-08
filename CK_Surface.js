@@ -1,20 +1,41 @@
 /*
  * TODO
+ * Ok so we're making a "close" button. Demonstrate it before showing hexagon lattice. It snaps(?), it closes, it inflates. It deflates, it opens.
+ * So should you have irreg first? Snapping and projecting do make CK a little more complex
+ * 
+ * Size limits: don't have them when they're interacting, even if they make it colossal. Bring it back when they let go, but don't snap it. It just feels overcomplicated.
+ * QS still has size limits but that's because of pattern limitation and the fact that it stays shut. It gets the GrabbableArrow too.
+ * 
+ * Couldn't you cut a football out of a football-like pattern? Such a neat idea
+ * 
+ * How about the CK "curiosity" is that you get pentagons out of a pattern of hexagons? Gives them an opportunity to notice the irreg connection
+ * 
  * colors
  * change angles of mouse movement such that rotation is slightly more probable than it currently is
- * get rid of weird flash
+ * get rid of weird flash. Probably occurring because you have some special case for keeping the hexagons visible when openness is 1
  * some alpha for the boundaries of the circle
  * click on lattice, little flash and explosion. Bigger flash when they let go
  * remove flatlattice crap
  * Maybe take a few frames to snap it, THEN let it start closing
+ * 
+ * Have black edges inside the net too
+ * 
+ * When it closes up, could have it close up in the position that all the viruses are in.
+ * 
+ * It does require training, it is a bit weird. Not everyone gets that letting go changes it.
+ * Could show the capsid closed, then open,
+ * 
+ * Could have a combination for snapping: when they make it MASSIVE or tiny, it automatically goes back when they let go
+ * But it's when they press the button that it snapes properly.
+ * Reasoning is that the size thing they'll see why, and it will look weird to have it go far like that when they press the button.
  */
 
 function UpdateCapsid() {
 	var oldcapsidopenness = capsidopenness;
 	
-	var magnitudespeed = 0.018;
+	var magnitudespeed = 0.012;
 	
-	if( isMouseDown )
+	if( IrregButton.capsidopen )
 		capsidopeningspeed = magnitudespeed;
 	else
 		capsidopeningspeed = -magnitudespeed;
@@ -30,52 +51,104 @@ function UpdateCapsid() {
 		capsidopeningspeed = 0;
 	}
 	
-//	if( (oldcapsidopenness != 0 && capsidopenness == 0) || (oldcapsidopenness == 0 && capsidopenness != 0 ) )
-	for(var i = 1; i < 8; i++)
-		picture_objects[i].material.opacity = 1 - capsidopenness;
-	
 	CK_deduce_surface(capsidopenness, surface_vertices);
 	
 	surface_vertices.needsUpdate = true;
 	
-	//when player clicks, it rotates so an axis points at them, then opens. Could be a nice anticipation, like the foot-stamp - make edges glow, or have particles from around it get sucked in
-	
-	var normalturningspeed = TAU/5/2; //this is the amount you want to do in a second
-	normalturningspeed *= delta_t;	
-	
-	if(capsidopenness ===0) {
-		surfaceangle += normalturningspeed;
-	}
-	else { //we want to get surfaceangle to zero
-		while(surfaceangle > TAU / 10)
-			surfaceangle -= TAU/5; //unnoticeable
-		
-		//when capsidopenness = 1, we want turningspeed to be -surfaceangle. We also want it to be a minimum of TAU/5/2 
-		var turningspeed = Math.pow(capsidopenness, 5) * -surfaceangle;
-		if(Math.abs(turningspeed) < normalturningspeed) {
-			if(turningspeed > 0)
-				turningspeed = normalturningspeed;
-			else
-				turningspeed = -normalturningspeed;
+	//-------Rotation. If you're open you see nothing because the quaternion is slerped to the open_quaternion
+	if(capsidopenness === 0)
+	{
+		if( !IrregButton.capsidopen ) 
+		{
+			surfaceangle = Mouse_delta.length() / 2.3;
+			
+			surface_rotationaxis.set(-Mouse_delta.y, Mouse_delta.x, 0);
+			surface.worldToLocal(surface_rotationaxis);
+			surface_rotationaxis.normalize();
 		}
+		else
+			surfaceangle *= 0.93;
+		//TODO swap it around so it doesn't have to rotate that much when opening
 		
-		surfaceangle += turningspeed;
-		
-		if(Math.abs(surfaceangle) <= Math.abs(turningspeed) )
-			surfaceangle = 0;
+		surface.rotateOnAxis(surface_rotationaxis,surfaceangle);
+		for(var i = 0; i < surfperimeter_cylinders.length; i++ )
+			surfperimeter_cylinders[i].rotateOnAxis(surface_rotationaxis,surfaceangle);
+		surface.updateMatrixWorld();
+		for(var i = 0; i < surfperimeter_cylinders.length; i++ )
+			surfperimeter_cylinders[i].updateMatrixWorld()
 	}
 	
-	var idle_axis = new THREE.Vector3( 	surface_vertices.array[6*3+0] - surface_vertices.array[19*3+0],
-									surface_vertices.array[6*3+1] - surface_vertices.array[19*3+1],
-									surface_vertices.array[6*3+2] - surface_vertices.array[19*3+2]);
-	idle_axis.normalize();
+	//when you're opening, move towards this certain quaternion
+	if( IrregButton.capsidopen )
+	{
+		var open_quaternion = new THREE.Quaternion(0,0,0,1);
+		var interpolationfactor = 0.03 + 0.97 * Math.pow(capsidopenness,10); //may want to massively reduce this power
+		
+		surface.quaternion.slerp(open_quaternion, interpolationfactor); //if capsidopenness = 1 we want it to be entirely the open quaternion, i.e. t = 1
+		for(var i = 0; i < surfperimeter_cylinders.length; i++ )
+			surfperimeter_cylinders[i].quaternion.slerp(open_quaternion, interpolationfactor);
+	}
+	else if( capsidopenness !== 0 ) { //while you're closing, move towards this certain quaternion
+		//we'd like to have something about making it look like the picture, but there's an unfortunate dependence on which of the six states can give you CMV
+		var closed_quaternion = new THREE.Quaternion();
+		var truncated_latticeAngle = LatticeAngle;
+		while( truncated_latticeAngle < 0 )
+			truncated_latticeAngle += TAU;
+		while( truncated_latticeAngle > TAU )
+			truncated_latticeAngle -= TAU;
+		if( Math.abs( truncated_latticeAngle - 0.7137243 ) < 0.1 )
+			closed_quaternion.set(-0.253408169337206, 0.027135037557069655, 0.0840263953918781, 0.96332110655139);
+		if( Math.abs( truncated_latticeAngle - 1.76092194 ) < 0.1 )
+			closed_quaternion.set(-0.265881135161026, 0.001549389187642092, -0.020181975326924, 0.96379329175426);
+		if( Math.abs( truncated_latticeAngle - 2.808119463 ) < 0.1 )
+			closed_quaternion.set(-0.247214685644899, -0.02639585945717817, -0.124304951581996, 0.96059171181996);
+		if( Math.abs( truncated_latticeAngle - (-2.42786829 + TAU) ) < 0.1 )
+			closed_quaternion.set(0.3053824464601475, -0.03619975061311337, 0.0804235151960733, 0.94813669776729);
+		if( Math.abs( truncated_latticeAngle - (-1.38067069 + TAU) ) < 0.1 )
+			closed_quaternion.set(0.2985449012177967, -0.00111538304141928, -0.017842511786579, 0.95422813972900);
+		if( Math.abs( truncated_latticeAngle - (-0.33347318 + TAU) ) < 0.1 )
+			closed_quaternion.set(0.28726102554023203, 0.0337422051876268, -0.1236943313920196, 0.94923246845866);
+		var interpolationfactor = 0.03 + 0.97 * Math.pow(1-capsidopenness,10); //may want to massively reduce this power
+		
+		surface.quaternion.slerp(closed_quaternion, interpolationfactor);
+		for(var i = 0; i < surfperimeter_cylinders.length; i++ )
+			surfperimeter_cylinders[i].quaternion.slerp(closed_quaternion, interpolationfactor);
+	}
+
+	surface.updateMatrixWorld();
 	
-	var central_axis = new THREE.Vector3(0,0,1);
+	//avoid the back face showing
+//	{
+//		var forwardvector = new THREE.Vector3(0,0,1);
+//		surface.worldToLocal( forwardvector );
+//		
+//		var face_centers_indices = Array(3,7,12,16,21,25,30,34,38,42);
+//		var closest_angle = surface.geometry.vertices[ 0 ].angleTo( forwardvector );
+//		var closest_index = 0;
+//		
+//		//0 is the one you swap with
+//		for(var i = 0; i < face_centers_indices.length; i++)
+//		{
+//			var potential_angle = surface.geometry.vertices[ face_centers_indices[i] ].angleTo( forwardvector );
+//			if( potential_angle < closest_angle )
+//			{
+//				closest_angle = potential_angle;
+//				closest_index = face_centers_indices[i];
+//			}
+//		}
+//		
+//		if(closest_index !== 0 )
+//		{
+//			var swap_axis = surface.geometry.vertices[ closest_index ].clone();
+//			swap_axis.add( surface.geometry.vertices[ 0 ] );
+//			swap_axis.normalize();
+//			surface.rotateOnAxis( swap_axis, Math.PI );
+//		}
+//	}
 	
 	for( var i = 0; i < 22; i++){
 		var d = get_vector(i, SURFACE);
-		d.applyAxisAngle(idle_axis, surfaceangle);
-		d.applyAxisAngle(central_axis, -LatticeAngle);
+		d.applyAxisAngle( z_central_axis, -LatticeAngle);
 		d.multiplyScalar(Lattice_ring_density_factor/LatticeScale);
 		surface_vertices.setXYZ(i, d.x,d.y,d.z);
 	}
@@ -122,15 +195,49 @@ function deduce_first_triangle(openness, vertices_numbers, rotation) {
 	return Math.acos(v2.dot(top_planar) / v2.length() / top_planar.length());
 }
 
-function CK_deduce_surface(openness, vertices_numbers){
+function CK_deduce_surface(openness){
 	//you need to just rotate it so that the first two points are in the same 2D locations as the 2D ones.
 	//the first three vertices
 	{		
-		var triangle_projected_angle = deduce_first_triangle(openness, vertices_numbers, 0);
-		deduce_first_triangle(openness, vertices_numbers, 2.5 * triangle_projected_angle - TAU/3);
+		var triangle_projected_angle = deduce_first_triangle(openness, surface_vertices, 0);
+		deduce_first_triangle(openness, surface_vertices, 2.5 * triangle_projected_angle - TAU/3);
 	}
 	
-	deduce_most_of_surface_regular(openness, vertices_numbers); //to use the flatnet all you need to do is take away the _regular
+	var bend_angle = Math.acos(-Math.sqrt(5)/3);
+	bend_angle = bend_angle + openness * (TAU/2 - bend_angle);
+	
+	var a = new THREE.Vector3(
+			surface_vertices.array[0 * 3 + 0],
+			surface_vertices.array[0 * 3 + 1],
+			surface_vertices.array[0 * 3 + 2]);	
+	var b = new THREE.Vector3(
+			surface_vertices.array[1 * 3 + 0],
+			surface_vertices.array[1 * 3 + 1],
+			surface_vertices.array[1 * 3 + 2]);
+	var edgelength = a.distanceTo(b);
+		
+	for( var i = 3; i < 22; i++) {
+		var a_index = vertices_derivations[i][0];
+		var b_index = vertices_derivations[i][1];
+		var c_index = vertices_derivations[i][2];
+			
+		var a = new THREE.Vector3(
+			surface_vertices.array[a_index * 3 + 0],
+			surface_vertices.array[a_index * 3 + 1],
+			surface_vertices.array[a_index * 3 + 2]);	
+		var b = new THREE.Vector3(
+			surface_vertices.array[b_index * 3 + 0],
+			surface_vertices.array[b_index * 3 + 1],
+			surface_vertices.array[b_index * 3 + 2]);
+		var c = new THREE.Vector3(
+			surface_vertices.array[c_index * 3 + 0],
+			surface_vertices.array[c_index * 3 + 1],
+			surface_vertices.array[c_index * 3 + 2]);
+		
+		var d = bent_down_quad_corner(a,b,c,bend_angle,0.5 * edgelength, HS3 * edgelength);
+		
+		surface_vertices.setXYZ(i, d.x,d.y,d.z);
+	}
 }
 
 function ziplocation(a1,a2,b1,b2,zipwidth){

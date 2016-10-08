@@ -5,15 +5,11 @@
  * -label the button
  * -make things fade in in a certain order that suggests its operation
  * -transition to clicked virus is smooth even if capsid is closed
+ * -red highlight should flash
  * 
- * if the player has clicked on the button 8 times,  the capsid appears?
+ * To avoid triangle inversion, recast the whole thing in terms of that one vertex at the top center of the W. Work out how the triangle bounds constrain it
  * 
- * Slideyness:
- * -could watch Casey's stuff
- * -big problem is that you have to take account of the associated vertices too.
- * -it's something like "find the closest point to your mouse position in a polygon" - that's a solved problem
- * -It's a polygon bounded (at least) by a few edges you know. But then also this crazy curve you don't. It may not be that crazy
- * -you can proooobably work it out mathematically. List the angular constraints and the formulae
+ * While moving vertices back in place, you can sort of check for convergence "for free"
  */
 
 function move_vertices(vertex_tobechanged, starting_movement_vector, initial_changed_vertex)
@@ -229,7 +225,8 @@ function manipulate_vertices() {
 		return;
 	}
 	
-	theyknowyoucanchangevertices = 1;
+	if( Story_states[Storypage].unpause_on_vertex_knowledge && !MousePosition.equals(OldMousePosition) ) //might be that they sort of swooped in, but eh
+		theyknowyoucanchangevertices = 1; //there is a good argument for not letting them unpause. They might just click and think that's it
 	
 	//log the current positions
 	var net_log = new Array(66);
@@ -367,7 +364,7 @@ function manipulate_vertices() {
 			for( var i = 0; i < 66; i++)
 				flatnet_vertices.array[i] = manipulation_surface.geometry.attributes.position.array[i];
 			
-			Disable_pictures();
+			Disable_virus_pictures();
 				
 			//now we need the "height" of the capsid
 			for(var i = 0; i<9; i++)
@@ -387,5 +384,35 @@ function manipulate_vertices() {
 			varyingsurface_spheres[vertex_tobechanged].material.color.g = 0;
 			varyingsurface_spheres[vertex_tobechanged].material.color.b = 0;
 		}
+	}
+	
+	var wedgeaxis = new THREE.Vector3();
+	var intended_x_axis = new THREE.Vector3();
+	var current_x_axis = new THREE.Vector3();
+	for(var i = 0; i < wedges.length; i++)
+	{
+		current_x_axis.set( 1, 0, 0 );
+		wedges[i].position.set( 0, 0, 0 );
+		wedges[i].updateMatrixWorld();
+		wedges[i].localToWorld( current_x_axis );
+		
+		wedges[i].position.set( 
+				flatnet_vertices.array[ wedges_assigned_vertices[i*2+0] * 3 + 0 ],
+				flatnet_vertices.array[ wedges_assigned_vertices[i*2+0] * 3 + 1 ],
+				0 );
+		
+		intended_x_axis.set(
+			flatnet_vertices.array[ wedges_assigned_vertices[i*2+1] * 3 + 0 ],
+			flatnet_vertices.array[ wedges_assigned_vertices[i*2+1] * 3 + 1 ],
+			0 );
+		intended_x_axis.sub( wedges[i].position );
+		
+		wedgeaxis.crossVectors( intended_x_axis, current_x_axis );
+		wedgeaxis.normalize();
+		wedges[i].rotateOnAxis( wedgeaxis, -intended_x_axis.angleTo( current_x_axis ) );
+		
+		wedges[i].position.z = -0.01;
+		
+		//next do the little center for QS. Is there a TrapeziumGeometry for the blades?
 	}
 }

@@ -1,4 +1,68 @@
 function init_CK_and_irreg(){
+	wedges_assigned_vertices = new Uint16Array([
+	                            		0, 1,
+	                            		2, 7,
+	                            		6, 11,
+	                            		10, 15,
+	                            		14, 19 ]);
+	
+	//make wedges. glue their positive x vector to the side of what you want
+	var master_wedge = new THREE.Mesh(new THREE.Geometry(), new THREE.MeshBasicMaterial({color:0x000000, transparent: true}));
+	var num_arc_segments = 16;
+	var wedge_radius = 0.35;
+	var outline_width = 0.03;
+	var outside_vec = new THREE.Vector3(wedge_radius,0,0);
+	var inside_vec = new THREE.Vector3(wedge_radius - outline_width,0,0);
+	
+	master_wedge.geometry.vertices.push(outside_vec.clone() );
+	master_wedge.geometry.vertices.push( inside_vec.clone() );	
+	for(var i = 0; i < num_arc_segments; i++ )
+	{
+		outside_vec.applyAxisAngle(z_central_axis, -TAU / 6 / num_arc_segments);
+		inside_vec.applyAxisAngle(z_central_axis, -TAU / 6 / num_arc_segments);
+		master_wedge.geometry.vertices.push(outside_vec.clone() );
+		master_wedge.geometry.vertices.push( inside_vec.clone() );
+		
+		master_wedge.geometry.faces.push(new THREE.Face3(i*2+0,i*2+3,i*2+2));
+		master_wedge.geometry.faces.push(new THREE.Face3(i*2+0,i*2+1,i*2+3));
+	}
+	
+	var extras_index = master_wedge.geometry.vertices.length;
+	
+	master_wedge.geometry.vertices.push( new THREE.Vector3() );
+	
+	var inside_corner = new THREE.Vector3(outline_width,0,0);
+	inside_corner.multiplyScalar(2);
+	inside_corner.applyAxisAngle(z_central_axis, -TAU / 12 );
+	master_wedge.geometry.vertices.push( inside_corner );
+	
+	var start_corner = master_wedge.geometry.vertices[1].clone();
+	start_corner.y -= outline_width;
+	master_wedge.geometry.vertices.push( start_corner );
+	
+	var end_corner = master_wedge.geometry.vertices[1].clone();
+	end_corner.y += outline_width;
+	end_corner.applyAxisAngle(z_central_axis, -TAU / 6 );
+	master_wedge.geometry.vertices.push( end_corner );
+	
+	//central, inside corner, start, end 
+	master_wedge.geometry.faces.push(new THREE.Face3( extras_index + 0,extras_index + 1,1));
+	master_wedge.geometry.faces.push(new THREE.Face3( extras_index + 1,extras_index + 2,1));
+	
+	master_wedge.geometry.faces.push(new THREE.Face3( extras_index + 0, extras_index - 1, extras_index + 3 ));
+	master_wedge.geometry.faces.push(new THREE.Face3( extras_index + 0, extras_index + 3, extras_index + 1 ));
+	
+	//little gap
+	var offset = master_wedge.geometry.vertices[ extras_index + 1 ].clone();
+	offset.multiplyScalar(1);
+	
+	for(var i = 0; i < master_wedge.geometry.vertices.length; i++ )
+		master_wedge.geometry.vertices[i].add( offset );
+	
+	wedges = Array(5);
+	for(var i = 0; i < wedges.length; i++ )
+		wedges[i] = master_wedge.clone();
+	
 	vertices_derivations = new Array(
 		[666,666,666],
 		[666,666,666],
@@ -64,15 +128,92 @@ function init_CK_and_irreg(){
 	//a test case
 	//0, 0, 0, 0.5055593848228455, -0.3021232783794403, 0, 0.5911332964897156, 0.3222222328186035, 0, 1.044405460357666, 0.01323286909610033, 0, 2.2832748889923096, 1.100820779800415, 0, 2.598076343536377, 0.8999999761581421, 0, -0.008866691030561924, 0.644444465637207, 0, 0.7629072666168213, 2.1769635677337646, 0, 0.485552579164505, 2.3700923919677734, 0, 0.7794228196144104, 2.549999952316284, 0, -0.786644458770752, 0.4555555582046509, 0, -1.2561057806015015, 1.9354549646377563, 0, -1.5600461959838867, 1.4909697771072388, 0, -1.5588456392288208, 2.0999999046325684, 0, -0.9199777841567993, -0.5666666626930237, 0, -2.070040464401245, 0.3034752309322357, 0, -1.9071744680404663, -0.36338236927986145, 0, -2.598076343536377, 0, 0, -0.008866691030561924, -0.5888888835906982, 0, -1.5895979404449463, -1.3199701309204102, 0, -0.0051744794473052025, -1.213233232498169, 0, -1.5588456392288208, -2.0999999046325684, 0
 	
-	//Phi29, T4 TODO
-	setvirus_flatnet_vertices[0] = new Float32Array([
-0, 0, 0, 0.6843200325965881, -0.392500638961792, 0, 0.6800221800804138, 0.41111111640930176, 0, 1.9160001277923584, 0.10361196100711823, 0, 1.9020333290100098, 0.883360743522644, 0, 2.598076105117798, 0.5, 0, 0.0022444201167672873, 0.7777777910232544, 0, 0.882046639919281, 1.7055288553237915, 0, 0.19132769107818604, 2.1130542755126953, 0, 0.8660253882408142, 2.5, 0, -0.6644222736358643, 0.4000000059604645, 0, -1.059597134590149, 1.609167456626892, 0, -1.7462496757507324, 1.2245951890945435, 0, -1.7320507764816284, 2, 0, -0.6644222736358643, -0.3888888955116272, 0, -1.9194563627243042, -0.12459423393011093, 0, -1.9290770292282104, -0.8809624314308167, 0, -2.598076105117798, -0.5, 0, 0.0022444201167672873, -0.7888888716697693, 0, -0.870602011680603, -1.7301485538482666, 0, -0.18394945561885834, -2.103611946105957, 0, -0.8660253882408142, -2.5, 0
-	]);
-	setvirus_flatnet_vertices[1] = new Float32Array([
-0, 0, 0, 0.6843200325965881, -0.392500638961792, 0, 0.6800221800804138, 0.41111111640930176, 0, 1.9160001277923584, 0.10361196100711823, 0, 1.9020333290100098, 0.883360743522644, 0, 2.598076105117798, 0.5, 0, 0.0022444201167672873, 0.7777777910232544, 0, 0.882046639919281, 1.7055288553237915, 0, 0.19132769107818604, 2.1130542755126953, 0, 0.8660253882408142, 2.5, 0, -0.6644222736358643, 0.4000000059604645, 0, -1.059597134590149, 1.609167456626892, 0, -1.7462496757507324, 1.2245951890945435, 0, -1.7320507764816284, 2, 0, -0.6644222736358643, -0.3888888955116272, 0, -1.9194563627243042, -0.12459423393011093, 0, -1.9290770292282104, -0.8809624314308167, 0, -2.598076105117798, -0.5, 0, 0.0022444201167672873, -0.7888888716697693, 0, -0.870602011680603, -1.7301485538482666, 0, -0.18394945561885834, -2.103611946105957, 0, -0.8660253882408142, -2.5, 0
-	]);
-	//HIV
+	//T4
 	var S3 = Math.sqrt(3);
+	var S13 = Math.sqrt(13);
+	
+	//NEXT THING TO DO IS RECHECK THESE GUYS. Selection in at 11:06
+	
+	var T4_arm_points = Array(4);
+	var horizontal_arm_segment = 21/2 * Math.sqrt(3/13);
+	var vertical_segment = Math.sqrt(31) * 17 / (2*Math.sqrt(403) );
+	console.log(S13, HS3*S13, S13/2 );
+	
+	T4_arm_points[0] = new THREE.Vector3(HS3*S13, S13/2, 0 );
+	T4_arm_points[1] = new THREE.Vector3(HS3*S13 + horizontal_arm_segment, -S13/2 + vertical_segment, 0 );
+	T4_arm_points[2] = new THREE.Vector3(HS3*S13 + horizontal_arm_segment,  S13/2 + vertical_segment, 0 );
+	T4_arm_points[3] = new THREE.Vector3( S3*S13 + horizontal_arm_segment,  		vertical_segment, 0 );
+	for(var i = 0; i < T4_arm_points.length; i++)
+		console.log(T4_arm_points[i])
+	
+	setvirus_flatnet_vertices[0] = new Float32Array([
+	    0, 0, 0,
+		HS3 * S13, -S13/2, 0,
+	  	   
+  	    0,0,0, 0,0,0, 0,0,0, 0,0,0,
+  	    0,0,0, 0,0,0, 0,0,0, 0,0,0,
+  	    0,0,0, 0,0,0, 0,0,0, 0,0,0,
+  	    0,0,0, 0,0,0, 0,0,0, 0,0,0,
+  	    0,0,0, 0,0,0, 0,0,0, 0,0,0
+	]);
+	
+	var T4factor = Math.sqrt(7);
+	
+	var T4point = new THREE.Vector3();
+  	for(var i = 0; i < 5; i++)
+  	{
+  		for(var j = 0; j < 4; j++)
+  		{
+  			T4point.copy(T4_arm_points[j]);
+  			T4point.applyAxisAngle(z_central_axis, i * TAU / 6 ); //or positive?
+  			
+  			if(i=== 0 && j === 3 )
+  				T4factor /= T4point.length(); 
+  			
+  			setvirus_flatnet_vertices[0][ (2 + i*4+j) *3+0] = T4point.x;
+  			setvirus_flatnet_vertices[0][ (2 + i*4+j) *3+1] = T4point.y;
+  			setvirus_flatnet_vertices[0][ (2 + i*4+j) *3+2] = T4point.z;
+  		}
+  	}
+  	
+  	
+  	for(var i = 0; i < setvirus_flatnet_vertices[0].length; i++ )
+  		setvirus_flatnet_vertices[0][i] *= T4factor;
+  	
+	
+	//phi29
+	setvirus_flatnet_vertices[1] = new Float32Array([
+  	   0, 0, 0, 
+  	   3 *3/11*HS3,-9/22,0,
+  	   
+  	   0,0,0, 0,0,0, 0,0,0, 0,0,0,
+  	   0,0,0, 0,0,0, 0,0,0, 0,0,0,
+  	   0,0,0, 0,0,0, 0,0,0, 0,0,0,
+  	   0,0,0, 0,0,0, 0,0,0, 0,0,0,
+  	   0,0,0, 0,0,0, 0,0,0, 0,0,0
+  	]);
+  	
+  	var phi29_arm_points = Array(4);
+  	phi29_arm_points[0] = new THREE.Vector3(3 *3/11*HS3, 9/22, 0);
+  	phi29_arm_points[1] = new THREE.Vector3(8 *3/11*HS3, 	0, 0);
+  	phi29_arm_points[2] = new THREE.Vector3(8 *3/11*HS3,18/22, 0);
+  	phi29_arm_points[3] = new THREE.Vector3(11*3/11*HS3, 9/22, 0);
+  	
+  	var p29point = new THREE.Vector3();
+  	for(var i = 0; i < 5; i++)
+  	{
+  		for(var j = 0; j < 4; j++)
+  		{
+  			p29point.copy(phi29_arm_points[j]);
+  			p29point.applyAxisAngle(z_central_axis, i * TAU / 6 ); //or positive?
+  			
+  			setvirus_flatnet_vertices[1][ (2 + i*4+j) *3+0] = p29point.x;
+  			setvirus_flatnet_vertices[1][ (2 + i*4+j) *3+1] = p29point.y;
+  			setvirus_flatnet_vertices[1][ (2 + i*4+j) *3+2] = p29point.z;
+  		}
+  	}
+	
+	//HIV
 	setvirus_flatnet_vertices[2] = new Float32Array([
  		0,0,0,
  		S3,-1,0,
@@ -185,21 +326,21 @@ function init_CK_and_irreg(){
 	//-------------stuff that goes in the scene
 	{		
 		var surfacematerial = new THREE.MeshBasicMaterial({
-			color: 0x00ffff,
+			color: 0x1EFCF3,
 			side:	THREE.DoubleSide,
 			shading: THREE.FlatShading //TODO add light source or whatever you need
 		});
 		
-		surface_vertices = new THREE.BufferAttribute( surface_vertices_numbers, 3 );
+		surface_vertices = new THREE.BufferAttribute( new Float32Array(22*3), 3 );
 		
 		surface_geometry = new THREE.BufferGeometry();
 		surface_geometry.setIndex(new THREE.BufferAttribute( net_triangle_vertex_indices, 1 ) );
 		surface_geometry.addAttribute( 'position', surface_vertices );
 
 		surface = new THREE.Mesh( surface_geometry, surfacematerial );
-		surface.scale.x = 0.995;
-		surface.scale.y = 0.995;
-		surface.scale.z = 0.995;
+//		surface.scale.x = 0.995;
+//		surface.scale.y = 0.995;
+//		surface.scale.z = 0.995;
 		
 		var material1 = new THREE.LineBasicMaterial({
 			color: 0x0000ff
@@ -393,7 +534,7 @@ function init_CK_and_irreg(){
 		}
 	}
 	
-	CK_deduce_surface(capsidopenness, surface_vertices);
+	CK_deduce_surface(capsidopenness);
 	for( var i = 0; i < 20; i++) {
 		surface_triangle_side_unit_vectors[i] = new Array(2);
 		surface_triangle_side_unit_vectors[i][0] = new THREE.Vector3();
@@ -676,7 +817,13 @@ function init_CK_and_irreg(){
 	}
 		
 	{
-		HexagonLattice = new THREE.Mesh(new THREE.Geometry(), new THREE.MeshBasicMaterial({vertexColors:THREE.FaceColors}));
+		HexagonLattice = new THREE.Mesh(new THREE.Geometry(), new THREE.MeshBasicMaterial({vertexColors:THREE.FaceColors,
+	        polygonOffset: true,
+	        polygonOffsetFactor: -1.0, //adding this stuff to get it imposed on the surface. There is this silly 0.995 solution you've used, get rid of that
+	        polygonOffsetUnits: -4.0
+//	        depthWrite: false, depthTest: false
+	        }));
+//	    HexagonLattice.renderOrder = 1; //yay, works
 		squarelattice_hexagonvertices = Array(6 * 2 * number_of_lattice_points); //only 2 points per corner
 		for(var i = 0; i < squarelattice_hexagonvertices.length; i++ )
 			squarelattice_hexagonvertices[i] = new THREE.Vector3();

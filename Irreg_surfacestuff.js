@@ -19,6 +19,8 @@ function irreg_deduce_surface(openness ){
 	var vertex1 = new THREE.Vector3(flatnet_vertices.array[1*3+0],flatnet_vertices.array[1*3+1],flatnet_vertices.array[1*3+2]);
 	var vertex2 = new THREE.Vector3(flatnet_vertices.array[2*3+0],flatnet_vertices.array[2*3+1],flatnet_vertices.array[2*3+2]);
 	
+//	console.log(vertex0,vertex1,vertex2)
+	
 	var flatnet_midgap = vertex1.clone();
 	flatnet_midgap.applyAxisAngle(central_rotationaxis, -TAU/12 );
 	
@@ -78,35 +80,51 @@ function CheckIrregButton(){
 	//or maybe it should be a jointed line itself?
 	//TODO change this if button size changes
 //	console.log()
-	if(isMouseDown && !isMouseDown_previously && MousePosition.distanceTo(picture_objects[17].position) < 0.3 ){
+	
+	if(!IrregButton.visible)
+		return;
+	
+	if(isMouseDown && !isMouseDown_previously && MousePosition.distanceTo(IrregButton.position) < 0.3 ){
 		var squashed_size = 0.9;
-		picture_objects[17].scale.set(squashed_size,squashed_size,squashed_size);
-		picture_objects[18].scale.set(squashed_size,squashed_size,squashed_size);
+		IrregButton.scale.set(squashed_size,squashed_size,squashed_size);
+		
+		IrregButton.pulsing = 0;
 	}
-	if(!isMouseDown && picture_objects[17].scale.x < 1){
-		if(picture_objects[17].capsidopen){
+	if(!isMouseDown && (IrregButton.scale.x < 1 && !IrregButton.pulsing ) ){
+		if(IrregButton.capsidopen)
+		{
 			settle_manipulationsurface_and_flatnet();
-			picture_objects[17].capsidopen = 0;
-			scene.remove(picture_objects[17]);
-			scene.add(picture_objects[18]);
+			IrregButton.capsidopen = 0;
 		}
-		else {
-			picture_objects[17].capsidopen = 1;
-			scene.remove(picture_objects[18]);
-			scene.add(picture_objects[17]);
-		}
-		picture_objects[17].scale.set(1,1,1);
-		picture_objects[18].scale.set(1,1,1);
+		else
+			IrregButton.capsidopen = 1;
+		
+		IrregButton.scale.set(1,1,1);
 	}
+	
+	if( IrregButton.pulsing ) 
+	{
+		IrregButton.pulse += 0.1
+		var buttonscale = 1 + 0.26 * Math.sin(IrregButton.pulse);
+		IrregButton.scale.set(buttonscale,buttonscale,buttonscale);
+//		IrregButton.material.color.r = buttonscale;
+	}
+	
+	IrregButton.material.map = random_textures[ 1 + IrregButton.capsidopen ];
 }
 
 function update_varyingsurface() {
-	if(picture_objects[17].capsidopen)
+	if(IrregButton.capsidopen)
 		capsidopeningspeed = 0.018;
 	else
 		capsidopeningspeed = -0.018;
 	
 	capsidopenness += capsidopeningspeed;
+	
+	var wedgesopacity = (capsidopenness - 1 ) * 4 + 1;
+	if( wedgesopacity < 0 ) wedgesopacity = 1;
+	for( var i = 0; i < wedges.length; i++ )
+		wedges[i].material.opacity = wedgesopacity;
 	
 	if(capsidopenness > 1) {
 		capsidopenness = 1;
@@ -131,13 +149,13 @@ function update_varyingsurface() {
 	//we rotate by a quaternion if user moves
 	if(capsidopenness == 0 ){
 		//we do mouse movement thing
-		if( isMouseDown) {			
+		if( IrregButton.scale.x === 1 ) {			
 			var MovementAxis = new THREE.Vector3(-Mouse_delta.y, Mouse_delta.x, 0);
 			MovementAxis.normalize();
 			
 			varyingsurface.worldToLocal(MovementAxis);
 			var extraquaternion = new THREE.Quaternion();
-			extraquaternion.setFromAxisAngle( MovementAxis, Mouse_delta.length() );
+			extraquaternion.setFromAxisAngle( MovementAxis, Mouse_delta.length() * 1.2 );
 			
 			varyingsurface.quaternion.multiply(extraquaternion);
 			for( var i = 0; i < varyingsurface_cylinders.length; i++)

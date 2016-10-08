@@ -1,40 +1,15 @@
-//not allowed to do anything with camera outside of here! Including read from its position!
-function camera_changes_for_mode_switch(){
-	camera.position.z = min_cameradist;
-	camera.cameraO.left =-playing_field_width / 2;
-	camera.cameraO.right = playing_field_width / 2;
-	camera.cameraO.top = playing_field_height / 2;
-	camera.cameraO.bottom =-playing_field_height / 2;
-	camera.updateProjectionMatrix();
-	
-	switch(MODE){
-		case BOCAVIRUS_MODE:
-			camera.toOrthographic();
-			break;
-		case CK_MODE:
-			camera.toPerspective();
-			break;
-		case IRREGULAR_MODE:
-			camera.toPerspective();
-			break;
-		case QC_SPHERE_MODE:
-			camera.toPerspective();
-			break;
-	}
-	
-	//was trying to get pictures on top
-//	if(MODE === QC_SPHERE_MODE)
-//		renderer.sortObjects = false;
-//	else
-//		renderer.sortObjects = true;
-}
+//not allowed to do anything with camera outside of here!
+//you don't need it to be a combined camera any more
 
+var camera_default_position = new THREE.Vector3(0,0,min_cameradist);
+	
 function UpdateCamera() 
 {
 	//vertical_fov = 2 * Math.atan(playing_field_height/(2*camera.position.z));
 	//camera.fov = vertical_fov * 360 / TAU;
 	camera.updateMatrix();
 	camera.updateMatrixWorld();
+	
 	
 	//watch the vlambeer / juice it or lose it videos again when in need of inspiration
 	//weird visual touches will improve it too, like Bret's tiny shadows. Shadows/shininess in general... could try to detect speed... :(
@@ -69,4 +44,13 @@ function UpdateCamera()
 	
 	//can you think of a way to engineer a situation where you really DON'T want to click on certain vertices? Would be interesting for a bit
 	
+}
+
+function camera_changes_for_mode_switch(){	
+	//was trying to get pictures on top
+//	if(MODE === QC_SPHERE_MODE)
+//		renderer.sortObjects = false;
+//	else
+//		renderer.sortObjects = true;
+	camera.position.copy( camera_default_position );
 }

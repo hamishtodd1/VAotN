@@ -1,221 +1,191 @@
 /*
  * TODO
- * -colors
- * -very minor jitter (?) on DNA and maybe protein
- * -pentagon caps, not triangle.
- * 
- * -lots of pictures
--bocavirus zooms out
--bocavirus colors change
--bocavirus pentamers flash
  * 
  * -lights
  * 
- * "twelve sides" glow. 4 groups of 3, around tetrahedral axes.
- * "clusters of five", same glow for the three clusters nearest the camera
  */
 
-/*
- * Springy DNA - really worth doing, the first interactive thing they see
- * for every strand, basis vectors at both their ends, plus another basis vector that is the cross product of those basis vectors
- * When the player rotates, it gives momentum to the dodeca vertices. They're trapped in a narrow cone. 
- */
+var flash_colors;
+var flash_time = 76.6;
+var unflash_time = 3.8;
+
+//camera
+var movement_duration = 2.2;
+var pullback_start_time = 142.8;
+var cell_move_time = 145.6;
+var zoomin_start_time = 149.8;
+var cell_fadeout_start_time = zoomin_start_time + movement_duration / 2;
+var fade_starting_time = 152;
+var Transcriptase_ogling_time = 169.5;
+var second_pullback_start_time = 179.4;
+var whole_thing_finish_time = 203.3;
 
 function update_bocavirus() {
-	//if you're on DNA_CAGE_MODE then we unfold, if you're on STATIC_PROTEIN_MODE we fold.
+	//-------camera Story stuff
+	if( our_CurrentTime < pullback_start_time || cell_fadeout_start_time + movement_duration < our_CurrentTime)
+		EggCell.visible = false;
+	else
+		EggCell.visible = true;
 	
-	//Potential speedup: merge proteins
+	var cell_eaten_bocavirus_position = new THREE.Vector3( EggCell_initialposition.x - ( EggCell_initialposition.x - EggCell_radius ) * 2, 0, 0);
+	var Transcriptase_ogling_position = new THREE.Vector3(playing_field_dimension,0,min_cameradist);
+	var Transcriptase_DNAcage_visible_position = new THREE.Vector3( playing_field_dimension / 2, 0, min_cameradist * 2 );
 	
+	var rightmost_visible_x = EggCell_initialposition.x + EggCell_radius;
+	var leftmost_visible_x = cell_eaten_bocavirus_position.x - EggCell_radius;
+	var CEPx = ( rightmost_visible_x + leftmost_visible_x ) / 2;
+	var CEPz = ( rightmost_visible_x - leftmost_visible_x ) / 2 / Math.tan( camera.fov / 360 * TAU / 2 );
+	var Cell_virus_visible_position = new THREE.Vector3( CEPx, 0, CEPz );
+	
+	if( our_CurrentTime < pullback_start_time )
+		camera.position.set(0,0,min_cameradist);
+	else if( our_CurrentTime < pullback_start_time + movement_duration )
+		camera.position.copy( move_smooth_vectors(camera_default_position, Cell_virus_visible_position, movement_duration, our_CurrentTime - pullback_start_time) );
+	else if( our_CurrentTime < zoomin_start_time )
+		camera.position.copy(Cell_virus_visible_position);
+	else if( our_CurrentTime < zoomin_start_time + movement_duration )
+		camera.position.copy( move_smooth_vectors(Cell_virus_visible_position, camera_default_position, movement_duration, our_CurrentTime - zoomin_start_time) );
+	else if( our_CurrentTime < Transcriptase_ogling_time )
+		camera.position.copy(camera_default_position);
+	else if( our_CurrentTime < Transcriptase_ogling_time + movement_duration )
+		camera.position.copy( move_smooth_vectors(camera_default_position, Transcriptase_ogling_position, movement_duration, our_CurrentTime - Transcriptase_ogling_time) );
+	else if( our_CurrentTime < second_pullback_start_time )
+		camera.position.copy(Transcriptase_ogling_position);
+	else if( our_CurrentTime < second_pullback_start_time + movement_duration )
+		camera.position.copy( move_smooth_vectors(Transcriptase_ogling_position, Transcriptase_DNAcage_visible_position, movement_duration, our_CurrentTime - second_pullback_start_time) );
+	else if( our_CurrentTime < whole_thing_finish_time )
+		camera.position.copy( Transcriptase_DNAcage_visible_position );
+	else
+		camera.position.copy( camera_default_position );
+	
+	EggCell.position.copy( move_smooth_vectors( EggCell_initialposition, cell_eaten_bocavirus_position, movement_duration, our_CurrentTime - cell_move_time ) );
+	
+	var fadeout_duration = movement_duration / 2;
+	if( our_CurrentTime <= cell_fadeout_start_time )
+		EggCell.material.opacity = 1;
+	if( cell_fadeout_start_time < our_CurrentTime && our_CurrentTime < cell_fadeout_start_time + fadeout_duration )
+		EggCell.material.opacity = 1 - ( our_CurrentTime - cell_fadeout_start_time) / fadeout_duration;
+	if( cell_fadeout_start_time + fadeout_duration < our_CurrentTime )
+		EggCell.material.opacity = 0;
+	
+	//-------Rotation
 	if(isMouseDown) {
 		bocavirus_MovementAngle = Mouse_delta.length() / 3;
 		bocavirus_MovementAxis.set(-Mouse_delta.y, Mouse_delta.x, 0);
 		bocavirus_MovementAxis.normalize();
+		
+		if( !Mouse_delta.equals( new THREE.Vector3() ) && rotation_understanding % 2 === 0 )
+			rotation_understanding++;
 	}
 	else {
 		bocavirus_MovementAngle *= 0.93;
 	}
+	if(!isMouseDown && rotation_understanding % 2 === 1)
+		rotation_understanding++;
 	
-	var DNA_cage_axis = bocavirus_MovementAxis.clone();
-	DNA_cage.worldToLocal(DNA_cage_axis);
-	DNA_cage.rotateOnAxis(DNA_cage_axis, bocavirus_MovementAngle);
-	DNA_cage.updateMatrixWorld();
-	
-	for(var i = 0; i < neo_bocavirus_proteins.length; i++)
-	{
-		var tempaxis = bocavirus_MovementAxis.clone();
-		neo_bocavirus_proteins[i].worldToLocal(tempaxis);
-		neo_bocavirus_proteins[i].rotateOnAxis(tempaxis, bocavirus_MovementAngle);
-		neo_bocavirus_proteins[i].updateMatrixWorld();
-	}
+	var neo_bocavirus_axis = bocavirus_MovementAxis.clone();
+	neo_bocavirus.updateMatrixWorld();
+	neo_bocavirus.worldToLocal(neo_bocavirus_axis);
+	neo_bocavirus_axis.normalize();
+	neo_bocavirus.rotateOnAxis(neo_bocavirus_axis, bocavirus_MovementAngle);
+	neo_bocavirus.updateMatrixWorld();
 
-	//transparency stuff
-//	var fade_starting_time = 10;
-//	var time_taken_for_fade = 8;
-//	var proportion_through = ( our_CurrentTime - fade_starting_time ) / time_taken_for_fade;
-//	if(proportion_through < 0)
-//		proportion_through = 0;
-//	if(proportion_through > 1)
-//		proportion_through = 1;
-//	proportion_through *= 4;
-//	for(var i = 0; i < capsomer_groups.length; i++)
+	//-------Colors
+	//it takes a while. Could instead do them in fours. The two at the top and bottom, two on the left and right, two on the front and back
+	var fadeto_time = 0.66;
+	var fadeback_time = fadeto_time;
+	var coloredness;
+	if( our_CurrentTime < flash_time )
+		coloredness = 0;
+	else if( our_CurrentTime < flash_time + fadeto_time )
+		coloredness = (our_CurrentTime - flash_time) / fadeto_time;
+	else if( our_CurrentTime < unflash_time )
+		coloredness = 1;
+	else if( our_CurrentTime < unflash_time + fadeback_time )
+		coloredness = 1 - ( our_CurrentTime - unflash_time ) / fadeback_time;
+	else
+		coloredness = 0;
+	var default_r = 1;
+	var default_g = 1;
+	var default_b = 0;
+//	for(var i = 0; i < neo_bocavirus_proteins.length; i++)
 //	{
-//		var ouralpha = 1 - (proportion_through - i);
-//		if( ouralpha > 1)
-//			ouralpha = 1;
-//		if( ouralpha < 0)
-//			ouralpha = 0;
+//		var our_r = coloredness * flash_colors[i][0] + (1-coloredness) * default_r;
+//		var our_g = coloredness * flash_colors[i][1] + (1-coloredness) * default_g;
+//		var our_b = coloredness * flash_colors[i][2] + (1-coloredness) * default_b;
 //		
-//		for(var j = 0; j < capsomer_groups[i].length; j++)
-//		{
-//			var ourcapsomer = capsomer_groups[i][j];
-//			for(var k = 0; k < capsomer_protein_indices[ ourcapsomer ].length; k++ )
-//			{
-//				neo_bocavirus_proteins[ capsomer_protein_indices[ourcapsomer][k] ].material.opacity = ouralpha;
-//			}
-//		}
+//		neo_bocavirus_proteins[i].material.color.r = our_r;
+//		neo_bocavirus_proteins[i].material.color.g = our_g;
+//		neo_bocavirus_proteins[i].material.color.b = our_b;
 //	}
 }
 
-function init_DNA_cage(){
-	DNA_cage = new THREE.LineSegments( new THREE.BufferGeometry(), new THREE.LineBasicMaterial({color: 0xf0f00f,vertexColors: THREE.VertexColors}), THREE.LineSegmentsPieces);
-	 
-	var avg = new THREE.Vector3();
-	for(var i = 0; i<DNA_vertices_numbers.length / 3; i++){
-		avg.x += DNA_vertices_numbers[i*3+0];
-		avg.y += DNA_vertices_numbers[i*3+1];
-		avg.z += DNA_vertices_numbers[i*3+2];
-	}
-	avg.multiplyScalar(3/DNA_vertices_numbers.length);
-	var scaleFactor = 0.87*2.3/109; //chosen quite arbitrarily, can change a lot
-	for(var i = 0; i<DNA_vertices_numbers.length / 3; i++){
-		DNA_vertices_numbers[i*3+0] -= avg.x;
-		DNA_vertices_numbers[i*3+1] -= avg.y;
-		DNA_vertices_numbers[i*3+2] -= avg.z;
-		
-		DNA_vertices_numbers[i*3+0] *= scaleFactor;
-		DNA_vertices_numbers[i*3+1] *= scaleFactor;
-		DNA_vertices_numbers[i*3+2] *= scaleFactor;
-	}
-	
-	
-	var yaw_correction_rotation = -0.076; //gotten "heuristically"
-	var pitch_correction_rotation = 0.07;
-	for(var i = 0; i<60; i++){
-		var strand_avg = new THREE.Vector3();
-		for(var j = 0; j<50; j++){
-			strand_avg.x += DNA_vertices_numbers[(i*50+j)*3+0];
-			strand_avg.y += DNA_vertices_numbers[(i*50+j)*3+1];
-			strand_avg.z += DNA_vertices_numbers[(i*50+j)*3+2];
-		}
-		strand_avg.multiplyScalar( 1 / 50);
-		
-		var yaw_correction_axis = strand_avg.clone();
-		yaw_correction_axis.normalize(); //not a great way of doing it.
-		for(var j = 0; j<50; j++){
-			var ourpoint = new THREE.Vector3(DNA_vertices_numbers[(i*50+j)*3+0],DNA_vertices_numbers[(i*50+j)*3+1],DNA_vertices_numbers[(i*50+j)*3+2]);
-			ourpoint.applyAxisAngle(yaw_correction_axis,yaw_correction_rotation);
-			
-			DNA_vertices_numbers[(i*50+j)*3+0] = ourpoint.x;
-			DNA_vertices_numbers[(i*50+j)*3+1] = ourpoint.y;
-			DNA_vertices_numbers[(i*50+j)*3+2] = ourpoint.z;
-		}
+var EggCell_radius = 50;
+var EggCell_initialposition = new THREE.Vector3( EggCell_radius + playing_field_dimension,0,0);
 
-		//so what would be nice would be to rotate them a bit so that you remove those kinks. Some cross product.
-		var firstbackbonepoint_index = i * 50;
-		var lastbackbonepoint_index = i * 50 + 48;
-		var firstbackbonepoint_to_lastbackbonepoint = new THREE.Vector3(
-			DNA_vertices_numbers[lastbackbonepoint_index*3+0]-DNA_vertices_numbers[firstbackbonepoint_index*3+0],
-			DNA_vertices_numbers[lastbackbonepoint_index*3+1]-DNA_vertices_numbers[firstbackbonepoint_index*3+1],
-			DNA_vertices_numbers[lastbackbonepoint_index*3+2]-DNA_vertices_numbers[firstbackbonepoint_index*3+2]);
-		var pitch_axis_origin = firstbackbonepoint_to_lastbackbonepoint.clone();
-		pitch_axis_origin.multiplyScalar(0.5);
-		pitch_axis_origin.x += DNA_vertices_numbers[firstbackbonepoint_index*3+0];
-		pitch_axis_origin.y += DNA_vertices_numbers[firstbackbonepoint_index*3+1];
-		pitch_axis_origin.z += DNA_vertices_numbers[firstbackbonepoint_index*3+2];
-		var pitch_axis = new THREE.Vector3();
-		pitch_axis.crossVectors(pitch_axis_origin,firstbackbonepoint_to_lastbackbonepoint);
-		pitch_axis.normalize();
-		
-		for(var j = 0; j<50; j++){
-			var ourpoint = new THREE.Vector3(DNA_vertices_numbers[(i*50+j)*3+0],DNA_vertices_numbers[(i*50+j)*3+1],DNA_vertices_numbers[(i*50+j)*3+2]);
-			ourpoint.sub(pitch_axis_origin);
-			ourpoint.applyAxisAngle(pitch_axis,pitch_correction_rotation);
-			ourpoint.add(pitch_axis_origin);
-			
-			DNA_vertices_numbers[(i*50+j)*3+0] = ourpoint.x;
-			DNA_vertices_numbers[(i*50+j)*3+1] = ourpoint.y;
-			DNA_vertices_numbers[(i*50+j)*3+2] = ourpoint.z;
-		}
-	}
-	
-
-	
-	DNA_cage.geometry.addAttribute( 'position', new THREE.BufferAttribute( DNA_vertices_numbers, 3 ) );
-	
-	
-	var DNA_colors = new Float32Array(DNA_vertices_numbers.length);
-	var DNA_line_pairs = new Uint16Array(DNA_vertices_numbers.length / 3 * 2);
-	
-	for(var i = 0; i<60;i++){ //each of the 60 strands has 50 "atoms"
-		for(var j = 0; j<50; j++){
-			if(j==49){
-				var closest_quadrance_so_far = 10000;
-				var closest_index_so_far = 666;
-				
-				for( var k = 0; k < 60; k++){
-					if(k==i)
-						continue;
-					
-					if(quadrance_between_DNA_points(i*50+j,k*50) < closest_quadrance_so_far){
-						closest_index_so_far = k*50;
-						closest_quadrance_so_far = quadrance_between_DNA_points(i*50+j,k*50);
-					}
-					if(quadrance_between_DNA_points(i*50+j,k*50+48) < closest_quadrance_so_far){
-						closest_index_so_far = k*50+48;
-						closest_quadrance_so_far = quadrance_between_DNA_points(i*50+j,k*50+48);
-					}
-				}
-				
-				//imaginary backbone
-				DNA_line_pairs[ 2*(i*50+j) ] = i*50+j-1;
-				DNA_line_pairs[2*(i*50+j)+1] = closest_index_so_far;
-				
-				//color is a base
-				DNA_colors[(i*50+j)*3+0] = 245/255; DNA_colors[(i*50+j)*3+1] = 220/255; DNA_colors[(i*50+j)*3+2] = 176/255;
-			}
-			else if(j%2==0) {//base
-				DNA_line_pairs[ 2*(i*50+j) ] = i*50+j;
-				DNA_line_pairs[2*(i*50+j)+1] = i*50+j+1;
-				
-				//color is backbone
-				DNA_colors[(i*50+j)*3+0] = 208/255; DNA_colors[(i*50+j)*3+1] = 87/255; DNA_colors[(i*50+j)*3+2] = 106/255;
-			}
-			else {//backbone
-				DNA_line_pairs[ 2*(i*50+j) ] = i*50+j-1;
-				DNA_line_pairs[2*(i*50+j)+1] = i*50+j+1;
-				
-				//color is a base
-				DNA_colors[(i*50+j)*3+0] = 245/255; DNA_colors[(i*50+j)*3+1] = 220/255; DNA_colors[(i*50+j)*3+2] = 176/255;
-			}
-		}
-	}
-	DNA_cage.geometry.addAttribute( 'color', new THREE.BufferAttribute(DNA_colors, 3) );
-	DNA_cage.geometry.setIndex( new THREE.BufferAttribute( DNA_line_pairs, 1 ) );
-	
-	//because it ain't perfect
-	DNA_cage.quaternion.set(-0.0028151799901586245, -0.03798590756432208, -0.09772936010824641, 0.9944838448969249);
-}
-
-function quadrance_between_DNA_points(index1,index2){
-	var dX = DNA_cage.geometry.attributes.position.array[index1*3+0] - DNA_cage.geometry.attributes.position.array[index2*3+0];
-	var dY = DNA_cage.geometry.attributes.position.array[index1*3+1] - DNA_cage.geometry.attributes.position.array[index2*3+1];
-	var dZ = DNA_cage.geometry.attributes.position.array[index1*3+2] - DNA_cage.geometry.attributes.position.array[index2*3+2];
-	
-	return dX*dX + dY*dY + dZ*dZ;
-}
-
-function initialize_protein()
+function init_bocavirus_stuff()
 {
+	neo_bocavirus = new THREE.Mesh( new THREE.BufferGeometry(), new THREE.MeshLambertMaterial({color:0xf0f00f, transparent:true}) );
+	//actually you want to load them in as vertices probably so you can find the right one.
+	
+	var bocavirus_proteins_positions = Array(60);
+	var master_position = new THREE.Vector3();
+	
+	for(var i = 0; i < bocavirus_proteins_positions.length; i++)
+	{
+		bocavirus_proteins_positions[i] = new THREE.Vector3();
+		
+		for(var j = 0; j < 74; j++ )
+		{
+			bocavirus_proteins_positions[i].x += Boca_vertices[(i*74+j)*3+0];
+			bocavirus_proteins_positions[i].y += Boca_vertices[(i*74+j)*3+1];
+			bocavirus_proteins_positions[i].z += Boca_vertices[(i*74+j)*3+2];
+		}
+		
+		bocavirus_proteins_positions[i].multiplyScalar( 1/74 );
+		
+		master_position.add(bocavirus_proteins_positions[i]);
+		
+		var adjusted_indices = [26,   47,  59, 55, 56,  43,  3,  15, 16];
+		var adjusted_scalars = [1.31,1.5,1.33,1.3,1.2,1.24,1.2,1.07,1.1];
+		for(var j = 0; j < adjusted_scalars.length; j++ )
+		{
+			Boca_vertices[(i*74+adjusted_indices[j])*3+0] = ( Boca_vertices[(i*74+adjusted_indices[j])*3+0] - bocavirus_proteins_positions[i].x ) * adjusted_scalars[j] + bocavirus_proteins_positions[i].x;
+			Boca_vertices[(i*74+adjusted_indices[j])*3+1] = ( Boca_vertices[(i*74+adjusted_indices[j])*3+1] - bocavirus_proteins_positions[i].y ) * adjusted_scalars[j] + bocavirus_proteins_positions[i].y;
+			Boca_vertices[(i*74+adjusted_indices[j])*3+2] = ( Boca_vertices[(i*74+adjusted_indices[j])*3+2] - bocavirus_proteins_positions[i].z ) * adjusted_scalars[j] + bocavirus_proteins_positions[i].z;
+		}
+	}
+	
+	master_position.multiplyScalar(1/60);
+	
+	for(var i = 0; i < bocavirus_proteins_positions.length; i++)
+	{
+		for(var j = 0; j < 74; j++ )
+		{
+			Boca_vertices[(i*74+j)*3+0] -= master_position.x;
+			Boca_vertices[(i*74+j)*3+1] -= master_position.y;
+			Boca_vertices[(i*74+j)*3+2] -= master_position.z;
+		}
+	}
+	
+	for(var i = 0; i < bocavirus_proteins_positions.length; i++)
+	{
+		for(var j = 0; j < 74; j++ )
+		{
+			Boca_vertices[(i*74+j)*3+0] -= master_position.x;
+			Boca_vertices[(i*74+j)*3+1] -= master_position.y;
+			Boca_vertices[(i*74+j)*3+2] -= master_position.z;
+			
+			Boca_vertices[(i*74+j)*3+0] *= 0.024;
+			Boca_vertices[(i*74+j)*3+1] *= 0.024;
+			Boca_vertices[(i*74+j)*3+2] *= 0.024;
+		}
+	}
+	
+	neo_bocavirus.geometry.addAttribute( 'position', new THREE.BufferAttribute( Boca_vertices, 3 ) );
+	neo_bocavirus.geometry.setIndex( new THREE.BufferAttribute( Boca_faces, 1 ) );
+
+	
 	var normalized_virtualico_vertices = Array(12);
 	normalized_virtualico_vertices[0] = new THREE.Vector3(0, 	1, 	PHI);
 	normalized_virtualico_vertices[1] = new THREE.Vector3( PHI,	0, 	1);
@@ -232,186 +202,213 @@ function initialize_protein()
 	for(var i = 0; i < 12; i++)
 		normalized_virtualico_vertices[i].normalize();
 	
-	//alphatest gets rid of the order thing, but also introduces a weird threshold for alpha
-	var master_protein = new THREE.Mesh( new THREE.BufferGeometry(), new THREE.MeshLambertMaterial({color:0xf0f00f, transparent:true, alphaTest: 0.001}) );
-	
-	number_of_vertices_in_protein = protein_vertices_numbers.length / 3;
-	
-	for(var i = 0; i < protein_vertices_numbers.length; i++){
-		protein_vertices_numbers[i] /= 32; 
-	}
-	
-	//TODO this is where it becomes about 5.
-	var point = new THREE.Vector3();
-	for(var i = 0; i < protein_vertices_numbers.length / 3; i++){
-		point.set(	protein_vertices_numbers[i*3+0],
-					protein_vertices_numbers[i*3+1],
-					protein_vertices_numbers[i*3+2]);
-		
-		
-	}
-	master_protein.geometry.addAttribute( 'position', new THREE.BufferAttribute( protein_vertices_numbers, 3 ) );
-	master_protein.geometry.setIndex( new THREE.BufferAttribute( coarse_protein_triangle_indices, 1 ) );
-	master_protein.geometry.computeFaceNormals();
-	master_protein.geometry.computeVertexNormals();
-	
-
-	
-	
-	var threefold_axis = new THREE.Vector3(1,1,1);
-	threefold_axis.normalize();
-	var fivefold_axis = normalized_virtualico_vertices[0].clone();
-	
-	master_protein.rotateOnAxis(threefold_axis, TAU / 3);
-	master_protein.updateMatrixWorld();
-	var tempaxis = fivefold_axis.clone();
-	master_protein.worldToLocal(tempaxis);
-	master_protein.rotateOnAxis(tempaxis, TAU / 5);
-	master_protein.updateMatrixWorld();
-	
-	for(var i = 0; i < neo_bocavirus_proteins.length; i++)
+	var example_fivefold = new THREE.Vector3(Boca_vertices[26*3+0],Boca_vertices[26*3+1],Boca_vertices[26*3+2]);
+	var their_point = new THREE.Vector3();
+	for(var i = 1; i < 60; i++)
 	{
-		neo_bocavirus_proteins[i] = new THREE.Mesh( master_protein.geometry.clone(), master_protein.material.clone() );
-		neo_bocavirus_proteins[i].rotation.copy(master_protein.rotation)
-		neo_bocavirus_proteins[i].updateMatrixWorld();
+		//we want the four closest
+		their_point.set(Boca_vertices[(i*74+26)*3+0],Boca_vertices[(i*74+26)*3+1],Boca_vertices[(i*74+26)*3+2]);
+		if(example_fivefold.distanceTo(their_point) < 0.1 )
+			example_fivefold.add(their_point);
+	}
+	console.log(example_fivefold);
+	
+	var first_axis = new THREE.Vector3();
+	first_axis.crossVectors(normalized_virtualico_vertices[0], example_fivefold);
+	first_axis.normalize();
+	var first_angle = normalized_virtualico_vertices[0].angleTo(example_fivefold);
+	var bocavec = new THREE.Vector3();
+	for(var i = 0, il = Boca_vertices.length / 3; i < il; i++)
+	{
+		bocavec.set(Boca_vertices[i*3+0],Boca_vertices[i*3+1],Boca_vertices[i*3+2]);
+		bocavec.applyAxisAngle(first_axis,-first_angle);
+		Boca_vertices[i*3+0] = bocavec.x;
+		Boca_vertices[i*3+1] = bocavec.y;
+		Boca_vertices[i*3+2] = bocavec.z;
 	}
 	
-	/*
-	 * mirroring the protein
-	 * http://gamedev.stackexchange.com/questions/43615/how-can-i-reflect-a-point-with-respect-to-the-plane
-	 * points
-	 * -1,1,1
-	 * normalized_virtualico_vertices[0]
-	 * 0,0,0
-	 */
-		
+	var example_threefold = new THREE.Vector3(Boca_vertices[43*3+0],Boca_vertices[43*3+1],Boca_vertices[43*3+2]);
+	for(var i = 1; i < 60; i++)
+	{
+		//we want the four closest
+		their_point.set(Boca_vertices[(i*74+43)*3+0],Boca_vertices[(i*74+43)*3+1],Boca_vertices[(i*74+43)*3+2]);
+		if(example_threefold.distanceTo(their_point) < 0.1 )
+			example_threefold.add(their_point);
+	}
+	console.log(example_threefold);
 	
-	//----------Creating the group
-	//"1"
-	var axis1 = normalized_virtualico_vertices[0].clone();
-//	axis1.add(normalized_virtualico_vertices[3]);
-	rotate_protein_bunch(axis1, 2 * TAU / 5, 1);
+	var projected_threefold_getter = new THREE.Vector3();
+	projected_threefold_getter.crossVectors(normalized_virtualico_vertices[0],example_threefold);
+	var projected_threefold = new THREE.Vector3();
+	projected_threefold.crossVectors(projected_threefold_getter,normalized_virtualico_vertices[0]);
 	
-//	//"2"
-	var axis2 = normalized_virtualico_vertices[0].clone();
-	axis2.add(normalized_virtualico_vertices[4]);
-	rotate_protein_bunch(axis2, TAU / 2, 2);
+	var desired_threefold = new THREE.Vector3(1,1,1);
+	var projected_desired_threefold_getter = new THREE.Vector3();
+	projected_desired_threefold_getter.crossVectors(normalized_virtualico_vertices[0],desired_threefold);
+	var projected_desired_threefold = new THREE.Vector3();
+	projected_desired_threefold.crossVectors(projected_desired_threefold_getter,normalized_virtualico_vertices[0]);
+	
+	var second_angle = projected_threefold.angleTo(projected_desired_threefold);
+	var bocavec = new THREE.Vector3();
+	for(var i = 0, il = Boca_vertices.length / 3; i < il; i++)
+	{
+		bocavec.set(Boca_vertices[i*3+0],Boca_vertices[i*3+1],Boca_vertices[i*3+2]);
+		bocavec.applyAxisAngle(normalized_virtualico_vertices[0],-second_angle);
+		Boca_vertices[i*3+0] = bocavec.x;
+		Boca_vertices[i*3+1] = bocavec.y;
+		Boca_vertices[i*3+2] = bocavec.z;
+	}
+	
+	//it looks like it could be off. Compare its screencap with your generated thing
+	
+	
+	
+//	var master_protein = neo_bocavirus;
+//	master_protein.geometry.addAttribute( 'position', new THREE.BufferAttribute( new Float32Array(74 * 3), 3 ) );
+//	master_protein.geometry.setIndex( new THREE.BufferAttribute( new Uint16Array(144*3), 1 ) );
 //	
-//	//"3"
-	var axis3a = normalized_virtualico_vertices[0].clone();
-	rotate_protein_bunch(axis3a, TAU / 5, 3);
-	var axis3b = normalized_virtualico_vertices[4].clone();
-	axis3b.add(normalized_virtualico_vertices[3]);
-	rotate_protein_bunch(axis3b, TAU / 2, 3);
-	
-//	//"4"
-	var axis4a = normalized_virtualico_vertices[0].clone();
-	axis4a.add(normalized_virtualico_vertices[4]);
-	rotate_protein_bunch(axis4a,TAU / 2, 4);
-	var axis4b = normalized_virtualico_vertices[4].clone();
-	rotate_protein_bunch(axis4b,3*TAU / 5, 4);
-	
-	//tripling the proteins, now you have 15.
-	for(var j = 0; j < 60; j += 15)
-	{
-		for(var i = 5; i < 10; i++ )
-		{
-			var specific_da = new THREE.Vector3(1,1,1);
-			specific_da.normalize();
-			neo_bocavirus_proteins[j+i].worldToLocal(specific_da);
-			neo_bocavirus_proteins[j+i].rotateOnAxis(specific_da, TAU / 3);
-			neo_bocavirus_proteins[j+i].updateMatrixWorld();
-		}
-		
-		for(var i =10; i < 15; i++ )
-		{
-			var specific_da = new THREE.Vector3(1,1,1);
-			specific_da.normalize();
-			neo_bocavirus_proteins[j+i].worldToLocal(specific_da);
-			neo_bocavirus_proteins[j+i].rotateOnAxis(specific_da, 2 * TAU / 3);
-			neo_bocavirus_proteins[j+i].updateMatrixWorld();
-		}
-	}
-	
-	for(var i = 15; i < 30; i++)
-	{
-		var specific_da = new THREE.Vector3(1,0,0);
-		neo_bocavirus_proteins[i].worldToLocal(specific_da);
-		neo_bocavirus_proteins[i].rotateOnAxis(specific_da, TAU / 2);
-		neo_bocavirus_proteins[i].updateMatrixWorld();
-		
-		neo_bocavirus_proteins[i].material.color.r = 0;
-		neo_bocavirus_proteins[i].material.color.g = 0.5;
-		neo_bocavirus_proteins[i].material.color.b = 1;
-	}
-	for(var i = 30; i < 45; i++)
-	{
-		var specific_da = new THREE.Vector3(0,1,0);
-		neo_bocavirus_proteins[i].worldToLocal(specific_da);
-		neo_bocavirus_proteins[i].rotateOnAxis(specific_da, TAU / 2);
-		neo_bocavirus_proteins[i].updateMatrixWorld();
-		
-		neo_bocavirus_proteins[i].material.color.r = 1;
-		neo_bocavirus_proteins[i].material.color.g = 0.5;
-		neo_bocavirus_proteins[i].material.color.b = 0;
-	}
-	for(var i = 45; i < 60; i++)
-	{
-		var specific_da = new THREE.Vector3(0,0,1);
-		neo_bocavirus_proteins[i].worldToLocal(specific_da);
-		neo_bocavirus_proteins[i].rotateOnAxis(specific_da, TAU / 2);
-		neo_bocavirus_proteins[i].updateMatrixWorld();
-		
-		neo_bocavirus_proteins[i].material.color.r = 1;
-		neo_bocavirus_proteins[i].material.color.g = 0;
-		neo_bocavirus_proteins[i].material.color.b = 1;
-	}
-	
-	//the thing to solve the alpha might be to not have them all in an array at all :/
-	
-	for(var capsomer_index = 0; capsomer_index < 12; capsomer_index++)
-	{
-		capsomer_protein_indices[ capsomer_index ] = Array(5);
-		
-		var lowest_unused = 0;
-		for(var j = 0; j < neo_bocavirus_proteins.length; j++)
-		{
-			var indicative_vertex = new THREE.Vector3(
-				neo_bocavirus_proteins[j].geometry.attributes.position.array[100*3+0],
-				neo_bocavirus_proteins[j].geometry.attributes.position.array[100*3+1],
-				neo_bocavirus_proteins[j].geometry.attributes.position.array[100*3+2] );
-			
-			neo_bocavirus_proteins[j].localToWorld(indicative_vertex);
-			
-			var dist = normalized_virtualico_vertices[capsomer_index].distanceTo(indicative_vertex);
-			if(dist < 2)
-			{
-				capsomer_protein_indices[capsomer_index][ lowest_unused ] = j;
-				lowest_unused++;
-			}
-		}
-	}
-	
-	//so really it is a "pentagonal hexecontahedron"
-	//you can five-color it. You could choose an order for the colors going around a capsomer, stick them on each one, then orient manually
-	//you could probably four-color it.
-	
-	
-//	for(var i = 1; i < 5; i++)
+//	for(var i = 0, il = master_protein.geometry.attributes.position.array.length; i < il; i++)
+//		master_protein.geometry.attributes.position.array[i] = neo_bocavirus.geometry.attributes.position.array[i];
+//	for(var i = 0, il = master_protein.index.array.length; i < il; i++)
+//		master_protein.geometry.index.array[i] = neo_bocavirus.geometry.index.array[i];
+//	
+//	master_protein.geometry.computeFaceNormals();
+//	master_protein.geometry.computeVertexNormals();
+//	
+//	for(var i = 0; i < neo_bocavirus_proteins.length; i++)
 //	{
-//		var tempaxis = fivefold_axis.clone();
-//		neo_bocavirus_proteins[i].worldToLocal(tempaxis);
-//		neo_bocavirus_proteins[i].rotateOnAxis(tempaxis, i * TAU / 5);
+//		neo_bocavirus_proteins[i] = new THREE.Mesh( master_protein.geometry.clone(), master_protein.material.clone() );
+//		neo_bocavirus_proteins[i].rotation.copy(master_protein.rotation)
 //		neo_bocavirus_proteins[i].updateMatrixWorld();
 //	}
 	
-	/*
-	 * Hold it so that you're looking at a yellow emblem and the 0 is on top
-	 * Work out how to generate all the yellows on the half facing towards you
-	 * Then do that for another bunch. Then rotate them all around the y central axis
-	 * 
-	 * Then get one into place for the purples, then the blues
-	 */
+//	/*
+//	 * mirroring the protein
+//	 * http://gamedev.stackexchange.com/questions/43615/how-can-i-reflect-a-point-with-respect-to-the-plane
+//	 * points
+//	 * -1,1,1
+//	 * normalized_virtualico_vertices[0]
+//	 * 0,0,0
+//	 */
+//		
+//	
+//	//----------Creating the group
+//	//"1"
+//	var axis1 = normalized_virtualico_vertices[0].clone();
+////	axis1.add(normalized_virtualico_vertices[3]);
+//	rotate_protein_bunch(axis1, 2 * TAU / 5, 1);
+//	
+////	//"2"
+//	var axis2 = normalized_virtualico_vertices[0].clone();
+//	axis2.add(normalized_virtualico_vertices[4]);
+//	rotate_protein_bunch(axis2, TAU / 2, 2);
+////	
+////	//"3"
+//	var axis3a = normalized_virtualico_vertices[0].clone();
+//	rotate_protein_bunch(axis3a, TAU / 5, 3);
+//	var axis3b = normalized_virtualico_vertices[4].clone();
+//	axis3b.add(normalized_virtualico_vertices[3]);
+//	rotate_protein_bunch(axis3b, TAU / 2, 3);
+//	
+////	//"4"
+//	var axis4a = normalized_virtualico_vertices[0].clone();
+//	axis4a.add(normalized_virtualico_vertices[4]);
+//	rotate_protein_bunch(axis4a,TAU / 2, 4);
+//	var axis4b = normalized_virtualico_vertices[4].clone();
+//	rotate_protein_bunch(axis4b,3*TAU / 5, 4);
+//	
+//	//tripling the proteins, now you have 15.
+//	for(var j = 0; j < 60; j += 15)
+//	{
+//		for(var i = 5; i < 10; i++ )
+//		{
+//			var specific_da = new THREE.Vector3(1,1,1);
+//			specific_da.normalize();
+//			neo_bocavirus_proteins[j+i].worldToLocal(specific_da);
+//			neo_bocavirus_proteins[j+i].rotateOnAxis(specific_da, TAU / 3);
+//			neo_bocavirus_proteins[j+i].updateMatrixWorld();
+//		}
+//		
+//		for(var i =10; i < 15; i++ )
+//		{
+//			var specific_da = new THREE.Vector3(1,1,1);
+//			specific_da.normalize();
+//			neo_bocavirus_proteins[j+i].worldToLocal(specific_da);
+//			neo_bocavirus_proteins[j+i].rotateOnAxis(specific_da, 2 * TAU / 3);
+//			neo_bocavirus_proteins[j+i].updateMatrixWorld();
+//		}
+//	}
+//	
+//	flash_colors = Array(60);
+//	for(var i = 0; i < flash_colors.length; i++ )
+//		flash_colors[i] = Array(3);
+//	for(var i = 0; i < 15; i++)
+//	{
+//		flash_colors[i][0] = 0;
+//		flash_colors[i][1] = 1;
+//		flash_colors[i][2] = 0;
+//	}
+//		
+//	
+//	for(var i = 15; i < 30; i++)
+//	{
+//		var specific_da = new THREE.Vector3(1,0,0);
+//		neo_bocavirus_proteins[i].worldToLocal(specific_da);
+//		neo_bocavirus_proteins[i].rotateOnAxis(specific_da, TAU / 2);
+//		neo_bocavirus_proteins[i].updateMatrixWorld();
+//		
+//		flash_colors[i][0] = 0;
+//		flash_colors[i][1] = 0.5;
+//		flash_colors[i][2] = 1;
+//	}
+//	for(var i = 30; i < 45; i++)
+//	{
+//		var specific_da = new THREE.Vector3(0,1,0);
+//		neo_bocavirus_proteins[i].worldToLocal(specific_da);
+//		neo_bocavirus_proteins[i].rotateOnAxis(specific_da, TAU / 2);
+//		neo_bocavirus_proteins[i].updateMatrixWorld();
+//		
+//		flash_colors[i][0] = 1;
+//		flash_colors[i][1] = 0.5;
+//		flash_colors[i][2] = 0;
+//	}
+//	for(var i = 45; i < 60; i++)
+//	{
+//		var specific_da = new THREE.Vector3(0,0,1);
+//		neo_bocavirus_proteins[i].worldToLocal(specific_da);
+//		neo_bocavirus_proteins[i].rotateOnAxis(specific_da, TAU / 2);
+//		neo_bocavirus_proteins[i].updateMatrixWorld();
+//		
+//		flash_colors[i][0] = 1;
+//		flash_colors[i][1] = 0;
+//		flash_colors[i][2] = 1;
+//	}
+//	
+//	for(var capsomer_index = 0; capsomer_index < 12; capsomer_index++)
+//	{
+//		capsomer_protein_indices[ capsomer_index ] = Array(5);
+//		
+//		var lowest_unused = 0;
+//		for(var j = 0; j < neo_bocavirus_proteins.length; j++)
+//		{
+//			var indicative_vertex = new THREE.Vector3(
+//				neo_bocavirus_proteins[j].geometry.attributes.position.array[100*3+0],
+//				neo_bocavirus_proteins[j].geometry.attributes.position.array[100*3+1],
+//				neo_bocavirus_proteins[j].geometry.attributes.position.array[100*3+2] );
+//			
+//			neo_bocavirus_proteins[j].localToWorld(indicative_vertex);
+//			
+//			var dist = normalized_virtualico_vertices[capsomer_index].distanceTo(indicative_vertex);
+//			if(dist < 2)
+//			{
+//				capsomer_protein_indices[capsomer_index][ lowest_unused ] = j;
+//				lowest_unused++;
+//			}
+//		}
+//	}
+	
+	neo_bocavirus.geometry.computeFaceNormals();
+	neo_bocavirus.geometry.computeVertexNormals();
 	
 	{
 		lights[0] = new THREE.PointLight( 0xffffff, 0.6 );
@@ -424,16 +421,8 @@ function initialize_protein()
 		lights[2].position.set( -100, 0, 30 );
 		lights[3].position.set( 0, -100, 30 );
 	}
-}
-
-//the seed index is which, in the group of five proteins in the "fundamental domain" like thing, this refers to
-function rotate_protein_bunch(ouraxis, amt, seed_index)
-{
-	neo_bocavirus_proteins[seed_index].worldToLocal(ouraxis);
-	ouraxis.normalize();
-	for(var i = 0; i < 12; i++)
-	{
-		neo_bocavirus_proteins[i*5+seed_index].rotateOnAxis(ouraxis, amt);
-		neo_bocavirus_proteins[i*5+seed_index].updateMatrixWorld();
-	}
+	
+	EggCell = new THREE.Mesh(new THREE.PlaneGeometry(EggCell_radius * 2,EggCell_radius * 2),
+			new THREE.MeshBasicMaterial({map:random_textures[3], transparent: true} ) );
+	EggCell.position.copy(EggCell_initialposition);
 }

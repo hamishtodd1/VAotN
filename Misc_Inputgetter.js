@@ -16,8 +16,8 @@
 //this function shouldn't actually *do* anything with the data, it's only to be read elsewhere.
 function ReadInput() {
 	OldMousePosition.copy( MousePosition );
-	MousePosition.x = (InputObject.mousex-window_width/2) * (playing_field_width / window_width);
-	MousePosition.y = -(InputObject.mousey-window_height/2) * (playing_field_height / window_height);
+	MousePosition.x = (InputObject.mousex-window_width/2) * (playing_field_dimension / window_width);
+	MousePosition.y = -(InputObject.mousey-window_height/2) * (playing_field_dimension / window_height);
 	
 	Mouse_delta.set( MousePosition.x - OldMousePosition.x, MousePosition.y - OldMousePosition.y);
 	
@@ -26,6 +26,7 @@ function ReadInput() {
 	
 	react_to_video();
 }
+
 
 document.addEventListener( 'mousedown', function(event) {
 	event.preventDefault();
@@ -49,20 +50,3 @@ document.addEventListener( 'mousemove', function(event) {
 //	InputObject.mousex = event.changedTouches[0].clientX; //only looking at the first one. TODO multi-touch!
 //	InputObject.mousey = event.changedTouches[0].clientY;
 //}
-
-function update_mouseblob(){
-	var Xdists_from_center = Array(circle.geometry.vertices.length);
-	var Ydists_from_center = Array(circle.geometry.vertices.length);
-	for(var i = 0; i < circle.geometry.vertices.length; i++) {
-		Xdists_from_center[i] = circle.geometry.vertices[i].x - circle.geometry.vertices[0].x;
-		Ydists_from_center[i] = circle.geometry.vertices[i].y - circle.geometry.vertices[0].y;
-	}
-	
-	var cursorposition = new THREE.Vector2(MousePosition.x,MousePosition.y);
-	for(var i = 0; i < circle.geometry.vertices.length; i++) {
-		circle.geometry.vertices[i].x = cursorposition.x + Xdists_from_center[i];
-		circle.geometry.vertices[i].y = cursorposition.y + Ydists_from_center[i];
-	}
-	
-	circle.geometry.verticesNeedUpdate = true;
-}

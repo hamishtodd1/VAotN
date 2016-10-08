@@ -1,8 +1,8 @@
 function init() {
 	init_CK_and_irreg();
-	initialize_QS_stuff();	
-	initialize_protein();
-	init_DNA_cage();
+	initialize_QS_stuff();
+	init_Grabbable_Arrow();
+	init_story();
 	
 	//------------------need this so there's something in there for the first frame
 	ourclock.getDelta();

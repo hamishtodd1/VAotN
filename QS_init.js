@@ -1,4 +1,5 @@
-function initialize_QS_stuff() {
+function initialize_QS_stuff()
+{	
 	cutout_vector0 = new THREE.Vector3(0,0.5/Math.sin(TAU/10),0);
 	cutout_vector1 = new THREE.Vector3(PHI/2,0.5/Math.sin(TAU/10)-Math.cos(3/20*TAU),0);
 	cutout_vector0_player = cutout_vector0.clone();
@@ -14,11 +15,6 @@ function initialize_QS_stuff() {
  		transparent: true
  	});
  	
- 	var materialy = new THREE.LineBasicMaterial({
- 		color: 0x00ffff,
- 		transparent: true,
- 		opacity: 0.5
- 	});
  	var dodeca_line_pairs = new Uint16Array([
  	    2,1,	1,11,	11,20,	20,29,	29,2,
 // 	    2,4,	4,5,	5,6,	6,1,
@@ -103,10 +99,17 @@ function initialize_QS_stuff() {
  		[666,8,47]
  	);
  	
- 	dodeca_geometry = new THREE.BufferGeometry();
- 	dodeca_geometry.addAttribute( 'position', new THREE.BufferAttribute( dodeca_vertices_numbers, 3 ) );
- 	dodeca_geometry.setIndex( new THREE.BufferAttribute( dodeca_line_pairs, 1 ) );
- 	dodeca = new THREE.LineSegments( dodeca_geometry, materialy, THREE.LineSegmentsPieces );
+ 	dodeca = new THREE.Mesh(new THREE.Geometry(),new THREE.MeshBasicMaterial);
+// 	dodeca = new THREE.LineSegments( new THREE.Geometry(), new THREE.LineBasicMaterial({
+// 		color: 0x00ffff,
+// 		transparent: true,
+// 		opacity: 0.5}), THREE.LineSegmentsPieces );
+// 	dodeca.visible = false;
+ 	dodeca.geometry.faces.push(new THREE.Face3(0,0,0));
+ 	for(var i = 0; i < 47; i++)
+ 		dodeca.geometry.vertices.push(new THREE.Vector3());
+ 	//if you want to bring dodeca back you need to work out how to redo this
+// 	dodeca.geometry.setIndex( new THREE.BufferAttribute( dodeca_line_pairs, 1 ) );
  	
  	var axis = new THREE.Vector3(0,0,-1);
 	var pentagon = Array(5);
@@ -172,7 +175,7 @@ function initialize_QS_stuff() {
 	for(var i = 0; i < stable_points.length; i++)
 		stable_points[i] = new THREE.Vector3();
 	
-//	console.log(lowest_unused_stablepoint)
+//	var lowest_unused_stablepoint = 0;
 //	for(var ourvertex = 0; ourvertex < 7; ourvertex++){
 //		//quasilattice_default_vertices.length; i++){
 //		var stablepoint_first_recording = lowest_unused_stablepoint;
@@ -269,24 +272,23 @@ function initialize_QS_stuff() {
 	var color_selection = Array(num_quasi_mesh_triangles); //actually much less because some triangles are in quads
 	for(var i = 0; i < color_selection.length; i++){
 		if(i==2 || i==4 || i==6 || i==8)
-			color_selection[i] = new THREE.Color(color_selection[i-1].r, color_selection[i-1].g, color_selection[i-1].b );
-		else if( 9 <= i && i <= 13)
-			color_selection[i] = new THREE.Color(color_selection[0].r, color_selection[0].g, color_selection[0].b );
-		else if( i === 14 || i === 15 )
-			color_selection[i] = new THREE.Color(color_selection[1].r, color_selection[1].g, color_selection[1].b );
-		else if( i === 16 || i === 17 )
-			color_selection[i] = new THREE.Color(color_selection[3].r, color_selection[3].g, color_selection[3].b );
-//		"mimic BPV pic" mode
-//		else if( i === 0 )
-//			color_selection[i] = new THREE.Color(21/256, 21/256, 21/256 );
-//		else if( i === 1)
-//			color_selection[i] = new THREE.Color(114/256,114/256,114/256 );
-//		else if( i === 3)
-//			color_selection[i] = new THREE.Color(78/256,78/256,78/256 );
-//		else if( i === 7)
-//			color_selection[i] = new THREE.Color(51/256,51/256,51/256 );
-//		else if( i === 5)
-//			color_selection[i] = new THREE.Color(66/256,66/256,66/256 );
+			color_selection[i] = color_selection[i-1];
+		else if( 9 <= i && i <= 13) //pent
+			color_selection[i] = color_selection[0];
+		else if( i === 14 || i === 15 ) //alt thin
+			color_selection[i] = color_selection[1];
+		else if( i === 16 || i === 17 ) //alt fat
+			color_selection[i] = color_selection[3];
+		else if( i === 0 )
+			color_selection[i] = new THREE.Color( 1,0.5,0.5 );
+		else if( i === 1 ) //thin
+			color_selection[i] = new THREE.Color( 0.5,0.5,1 );
+		else if( i === 3 ) //fat
+			color_selection[i] = new THREE.Color( 192/256,0.5,0.5 );
+//		else if( i === 5 ) //random shape. Shares an edge with all the existing colors
+//			color_selection[i] = new THREE.Color( 1,0.5,0.5 );
+//		else if( i === 7 ) //defect
+//			color_selection[i] = new THREE.Color( 192/256,0.5,0.5 );
 		else
 			color_selection[i] = new THREE.Color(Math.random(), Math.random(), Math.random() );
 	}
@@ -325,7 +327,7 @@ function initialize_QS_stuff() {
 	Forced_edges[15] = new Uint16Array([14,15]);
 	Forced_edges[16] = new Uint16Array([7,8, 9,10,11]);
 	Forced_edges[17] = new Uint16Array([7,8, 9,10,11]);
-	Forced_edges[18] = new Uint16Array([5,6]);
+	Forced_edges[18] = new Uint16Array([5,6, 17]);
 	Forced_edges[19] = new Uint16Array([]);
 	Forced_edges[20] = new Uint16Array([5]); //this one needs overhauling too
 	Forced_edges[21] = new Uint16Array([14,15, 5,6]);
@@ -621,12 +623,13 @@ function initialize_QS_stuff() {
 					if(k===3){	indexA = 12;		indexB = 0;		indexC = 6;		}
 					if(k===4){	indexA = 24;		indexB = 6;		indexC = 0;		}
 					
-					if(k===5){	indexA = 8;			indexB = 15;	indexC = 14;		}
+					if(k===17){	indexA = 8;			indexB = 15;	indexC = 14;		} //change the number of this
+//					if(k===18){	indexA = 9;			indexB = 14;	indexC = 15;		} //change the number of this
 					
 					if(k===9){	indexA = 18;		indexB = 0;		indexC = 12;		}
 					if(k===10){	indexA = 18;		indexB = 8;		indexC = 0;		}
 					if(k===11){	indexA = 8;			indexB = 18;	indexC = 15;		}
-				} else if(i===19){
+				} else if(i===19){ //also requires a third fat rhomb
 					if(k===0){	indexA = 12;		indexB = 14; 	indexC = 42;	}
 
 					if(k===1){	indexA = 14;		indexB = 12;	indexC = 26;	}
@@ -646,7 +649,7 @@ function initialize_QS_stuff() {
 					
 					if(k===16){	indexA = 32;		indexB = 6;		indexC = 21;	}
 					if(k===17){	indexA = 6;			indexB = 9;		indexC = 21;	}
-				} else if(i===20){
+				} else if(i===20){ //third fat rhomb
 					if(k===0){	indexA = 12;		indexB = 14; 	indexC = 42;	}
 
 					if(k===1){	indexA = 14;		indexB = 12;	indexC = 26;	}
@@ -790,7 +793,7 @@ function initialize_QS_stuff() {
 		}
 	}
 	
-	var one_fifth_stablepoints = stable_points.length / 5;
+	one_fifth_stablepoints = stable_points.length / 5;
 	//so why aren't 26 and 2
 	for(var i = 0; i < one_fifth_stablepoints; i++){
 		var rotations = Array(5);
@@ -826,8 +829,9 @@ function initialize_QS_stuff() {
 	midpoint.applyAxisAngle(axis, TAU/5);
 	cutout_vector1.copy(midpoint);
 	
-	cutout_vector0.copy(stable_points[0]);
-	cutout_vector1.copy(stable_points[0]);	
+	//we're setting it to zika
+	cutout_vector0.copy(stable_points[9]);
+	cutout_vector1.copy(stable_points[9]);	
 	cutout_vector1.applyAxisAngle(z_central_axis, -TAU/5);
 	/* 
 	 * 

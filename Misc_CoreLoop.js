@@ -1,35 +1,35 @@
-/*	
+/*
+ * TODO for IGF
+ * bocavirus colors
+ * irreg limitations :o
+ * irreg sides flash and wedges
+ * 	
  * Long term To Do
- *  -everything listed in CKsurfacestuff, bocavirus, alexandrov, quasisphere
- *  -get new form of video in (?)
+ *  -The angles in irreg can be wedges with a curve, cheese pieces. Give them a little bit of space from the angles themselves
+ * 	-everything listed in CKsurfacestuff, bocavirus, alexandrov, quasisphere, youtube stuff
  *  -get a person with a sense of color to look at everything
- *  -how about everything rotates to face your mouse when you're not clicking. 
- *  	But touchscreens? How about there's a little object they can grab to make the mouse follow them? Could train them on the bocavirus part
  *  -lighting on everything?
- *  -no 666s, you don't want pearl-clutchers. Easiest is change it to 665.
+ *  -no 666s, you don't want pearl-clutchers. Easiest is change it to 665, -1?
  *  -Framerate independence, and maybe the detection of speed that makes things nicer or simpler
- *  -loading. You may need to stagger inits.
+ *  -loading screen. You may need to stagger inits.
  *  -watch people a lot and tweak the zooming and rotating code, just because it is simple doesn't mean that it is good
- *  -loading screen
- *  -nicer design for button
- *  -If webgl doesn’t load, recommend a different browser
- *  -you don't have to have every node on the tree clickable
+ *  -button should be an animated line.
+ *  -If webgl doesn’t load (or etc), recommend a different browser or refreshing the page
  *  
- *  -so our plan for integrating rotation and touch controls is to have a separate object which, when grabbed, opens up the things
- *  -no increase in ontological parsimony since you have the button for irreg anyway.
- *  -the problem with them all following your mouse is that you can't turn them around completely.
+ *  -people on touchscreens can do without QS rotating. Pose it like HPV. Then the button is this simple thing that just opens and closes. That is a complex thing and you don't want to be making it harder with other stuff like having to hold it and be in a different state or anything
  *  
- *  -figure out how you're going to do the whole thing's progressive state
- *  	So we have one variable saying how far they've come. For a demo, if that number is greater than any of the ones that relate to it, then it's free reign
- *  	Do you want people to be able to skip back and forth?
- *  	Having the state be "stored" as the time through the video is probably the way to go. That's people's intuition, and will allow them to navigate.
- *  	You can probably work out ways to constrain it so it works.
+ *  -change the way they follow your mouse?
+ *  -bifuricate for the touchscreen
  *  
- *  You still have interaction between irreg and CK, what the hell!
+ *  -bear in mind that people can move the mouse extremely fucking fast, they take points VERY far on irreg, and scale back and forth very fast on CK
+ *  -and might not let go of the mouse
+ *  -don't humiliate yourself: if the canvas isn't running, halt the video
+ *  -make sure a good picture appears when shared on facebook and twitter
+ *  
  *  
  *  
  *  -make it feel good
- *  	-optimize
+ *  	-optimize http://www.w3schools.com/js/js_performance.asp
  *  		-reduce latency?
  *  		-loops should not evaluate array lengths every time
  *  		-could generate some things once, then not again
@@ -40,13 +40,17 @@
  */
 
 function UpdateWorld() {
-	update_mouseblob();
-	switch(MODE){		
+	circle.position.copy(MousePosition);
+	
+	switch(MODE)
+	{	
 		case BOCAVIRUS_MODE:
 			update_bocavirus();
 			break;
 			
 		case CK_MODE:
+			CheckIrregButton();
+			
 			HandleNetMovement();
 			
 			UpdateCapsid();
@@ -54,8 +58,6 @@ function UpdateWorld() {
 
 			Update_net_variables();			
 			Map_lattice();
-			
-			Update_pictures_in_scene();
 			break;
 			
 		case IRREGULAR_MODE:
@@ -68,11 +70,18 @@ function UpdateWorld() {
 			
 		case QC_SPHERE_MODE:
 			UpdateQuasiSurface();
+			UpdateGrabbableArrow();
 			MoveQuasiLattice();
 			Map_To_Quasisphere();
-			Update_pictures_in_scene();
+			break;
+			
+		case TREE_MODE:
+			update_tree();
 			break;
 	}
+	
+	//this only does anything if it needs to
+	Update_pictures_in_scene();
 }
 
 function render() {
@@ -98,6 +107,7 @@ function ChangeScene(new_mode) {
 	//don't go changing this outside of here.
 	MODE = new_mode;
 	
+	
 	//everyone out
 	for( var i = scene.children.length - 1; i >= 0; i--){
 		var obj = scene.children[i];
@@ -114,19 +124,23 @@ function ChangeScene(new_mode) {
 	//this is the one variable that seems to be conserved; at least if it isn't, then make it so. But thaaaaat is why you get weird jitters when you change mode!
 	capsidopenness = 0;
 	
-	switch(MODE){
+	switch(MODE) //probably you want to have a "mode advanced" variable which, on top of these, adds some stuff
+	{
+		case SLIDE_MODE:
+			scene.add(VisibleSlide);
+			break;
+	
 		case BOCAVIRUS_MODE:
-			for(var i = 0; i < neo_bocavirus_proteins.length; i++)
-				scene.add(neo_bocavirus_proteins[i])
-//			for(var i = 0; i<bocavirus_proteins.length; i++)
-//				scene.add(bocavirus_proteins[i]);
+			scene.add(neo_bocavirus);
 			for(var i = 0; i< lights.length; i++)
 				scene.add( lights[i] );
-			scene.add(DNA_cage);
+			scene.add(EggCell);
 			break;
 			
 		case CK_MODE:
-			scene.add(picture_objects[16]);
+			scene.add(IrregButton);
+			
+//			scene.add(CKHider); //can remove this if you have no internet
 			scene.add(HexagonLattice);
 			scene.add(surface);
 //			scene.add(surflattice);
@@ -136,33 +150,29 @@ function ChangeScene(new_mode) {
 			}
 //			for( var i = 0; i < blast_cylinders.length; i++)
 //				scene.add(blast_cylinders[i]);
-			
-			for(var i = 4; i < 8; i++)
-				scene.add(picture_objects[i]);
+//			scene.add(GrabbableArrow);
 			break;
 			
 		case IRREGULAR_MODE:
 			scene.add(manipulation_surface);
 //			scene.add(varyingsurface);
-//			scene.add(Button[0]);
 			for( var i = 0; i < varyingsurface_cylinders.length; i++)
 				scene.add(varyingsurface_cylinders[i]);
 			for( var i = 0; i < varyingsurface_spheres.length; i++)
 				scene.add(varyingsurface_spheres[i]);
-			
-			for(var i = 12; i < 16; i++)
-				scene.add(picture_objects[i]);
-			scene.add(picture_objects[18]);
+			for( var i = 0; i < wedges.length; i++ )
+				scene.add( wedges[i] );
+			scene.add(IrregButton);
 			break;
 			
 		case QC_SPHERE_MODE:
-			for(var i = 8; i < 12; i++)
-				scene.add(picture_objects[i]);
 			scene.add(dodeca);
 			if(stable_point_of_meshes_currently_in_scene !== 666) //if it is equal to this, it has yet to be derived from the cutout vectors
-				scene.add(quasicutout_meshes[stable_point_of_meshes_currently_in_scene]);
-//			scene.add(quasiquasilattice);
-//			scene.add(stablepointslattice);
+				dodeca.add(quasicutout_meshes[stable_point_of_meshes_currently_in_scene]);
+//			scene.add(GrabbableArrow);
 			break;
+			
+		case TREE_MODE:
+			add_tree_stuff_to_scene();
 	}
 }
