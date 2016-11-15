@@ -16,14 +16,14 @@ var IRREGULAR_MODE = 3;
 var QC_SPHERE_MODE = 4;
 var ENDING_MODE = 5;
 var TREE_MODE = 6;
+var HEXAGON_MODE = 7;
 	
-var MODE = 1;
+var MODE = 3;
 
 //--------------Technologically fundamental
 var playing_field_dimension = 7*HS3; //used to be that height was 6.
 var min_cameradist = 20; //get any closer and the perspective is weird
 var vertical_fov = 2 * Math.atan(playing_field_dimension/(2*min_cameradist));
-//is camera z ever really changed?
 
 var camera = new THREE.CombinedCamera(playing_field_dimension, playing_field_dimension, vertical_fov * 360 / TAU, 0.1, 1000, 0.1, 1000);
 var scene = new THREE.Scene();
@@ -51,6 +51,7 @@ var showdebugstuff = 1;
 var net_warnings = 1;
 
 var z_central_axis = new THREE.Vector3(0,0,1);
+var y_central_axis = new THREE.Vector3(0,0,1);
 
 var surfperimeter_default_radius = 0.02;
 var varyingsurface_edges_default_radius = 0.012;
@@ -93,6 +94,10 @@ var indicatorblobs = Array(10);
 //--------------Varying
 var vertex_tobechanged = 666;
 
+var irreg_flash_time = 0;
+var CK_showoff_time = 0; //more like 13:57
+var Hexagon_explosion_start_time = 0;
+
 //there's an argument for the flashing being a story state controlled thing
 var theyknowyoucanchangevertices = 0;
 var rotation_understanding = 0; //increased when they let go or when they rotate. We ask for two rotations
@@ -104,6 +109,8 @@ var capsidopeningspeed = 0;
 var surfaceangle = 0;
 var surface_rotationaxis = new THREE.Vector3();
 var surface_userquaternion = new THREE.Quaternion();
+
+var demonstration_hexagons = Array(2);
 
 //-----QS
 var QS_rotationaxis = new THREE.Vector3(1,0,0);
@@ -162,6 +169,8 @@ var varyingsurface;
 var varyingsurface_orientingradius = new Float32Array([0.95,0.95,0.95]);
 var manipulation_surface;
 var filler_points;
+
+var minimum_angle_crapifier = 1;
 
 var surface;
 var surface_vertices;
@@ -271,7 +280,8 @@ var Mouse_delta = new THREE.Vector2(0,0);
 //----protein and bocavirus stuff
 var EggCell;
 var Transcriptase;
-var neo_bocavirus_proteins = Array(60);
+var neo_bocavirus_proteins = Array(60 + 4);
+var reproduced_proteins = Array(24);
 var neo_bocavirus;
 
 var protein_vertex_indices = Array(number_of_proteins_in_lattice);

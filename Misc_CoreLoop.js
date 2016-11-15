@@ -1,24 +1,35 @@
 /*
- * TODO for IGF
- * bocavirus colors
- * irreg limitations :o
- * irreg sides flash and wedges
+ * TODO
+ * Make it feel good, eg irreg limits and CK constraints and QS not-breaking-apart and limits and line to center, and then send to Ben
+ * 
+ * Maybe worth sending to Amit as well before rerecord
+ * 
+ * irreg limits? That is a major barrier to game-like enjoyment
+ * Make use of the "now you can choose the next virus" clip
+ * Fading pics. Probably the thing to do is to specify actual chapters that consist of a fade?
+ * Test
+ * 
+ * flick to polio on football
+ * virus bucky comparison
+ * 
+ * QS actually we want to start on 15
+ * exerpt instead of tomoko fuse?
  * 	
  * Long term To Do
- *  -The angles in irreg can be wedges with a curve, cheese pieces. Give them a little bit of space from the angles themselves
+ *  -break up all the chapters into separate videos
+ *  -is the usefulness of the models not coming through?
  * 	-everything listed in CKsurfacestuff, bocavirus, alexandrov, quasisphere, youtube stuff
- *  -get a person with a sense of color to look at everything
- *  -lighting on everything?
+ *  -get a person with a sense of color to look at everything - Ario?
  *  -no 666s, you don't want pearl-clutchers. Easiest is change it to 665, -1?
- *  -Framerate independence, and maybe the detection of speed that makes things nicer or simpler
+ *  -Test with a low framerate to see what it's like and chase down remaining framerate dependence
  *  -loading screen. You may need to stagger inits.
  *  -watch people a lot and tweak the zooming and rotating code, just because it is simple doesn't mean that it is good
- *  -button should be an animated line.
  *  -If webgl doesn’t load (or etc), recommend a different browser or refreshing the page
+ *  -all objects floating in space with a shadow/lighting? Something other than meshbasicmaterial?
+ *  -Pentagons in your hexagon demo? Pentagon demo? Needs polish too
  *  
- *  -people on touchscreens can do without QS rotating. Pose it like HPV. Then the button is this simple thing that just opens and closes. That is a complex thing and you don't want to be making it harder with other stuff like having to hold it and be in a different state or anything
+ *  -people on touchscreens : pose qs like HPV. Then the button is this simple thing that just opens and closes. That is a complex thing and you don't want to be making it harder with other stuff like having to hold it and be in a different state or anything
  *  
- *  -change the way they follow your mouse?
  *  -bifuricate for the touchscreen
  *  
  *  -bear in mind that people can move the mouse extremely fucking fast, they take points VERY far on irreg, and scale back and forth very fast on CK
@@ -37,6 +48,7 @@
  *  	-all the effects in camerastuff
  *  	-test on different setups
  *  	-make work in different resolutions/respond to resize.
+ *  	-mouse position
  */
 
 function UpdateWorld() {
@@ -66,6 +78,7 @@ function UpdateWorld() {
 			manipulate_vertices();
 			update_varyingsurface();
 			//correct_minimum_angles();
+			update_wedges();
 			break;
 			
 		case QC_SPHERE_MODE:
@@ -73,15 +86,20 @@ function UpdateWorld() {
 			UpdateGrabbableArrow();
 			MoveQuasiLattice();
 			Map_To_Quasisphere();
+			update_QS_center();
 			break;
 			
 		case TREE_MODE:
 			update_tree();
 			break;
+			
+		case HEXAGON_MODE:
+			update_hexagon_demo();
+			break;
 	}
 	
 	//this only does anything if it needs to
-	Update_pictures_in_scene();
+//	Update_pictures_in_scene();
 }
 
 function render() {
@@ -107,7 +125,6 @@ function ChangeScene(new_mode) {
 	//don't go changing this outside of here.
 	MODE = new_mode;
 	
-	
 	//everyone out
 	for( var i = scene.children.length - 1; i >= 0; i--){
 		var obj = scene.children[i];
@@ -128,20 +145,23 @@ function ChangeScene(new_mode) {
 	{
 		case SLIDE_MODE:
 			scene.add(VisibleSlide);
+			scene.add( EndingMusic );
 			break;
 	
 		case BOCAVIRUS_MODE:
-			for(var i = 0; i <1; i++)
+			for(var i = 0; i <neo_bocavirus_proteins.length; i++)
 				scene.add(neo_bocavirus_proteins[i]);
 			for(var i = 0; i< lights.length; i++)
 				scene.add( lights[i] );
+			for(var i = 0; i< reproduced_proteins.length; i++)
+				scene.add( reproduced_proteins[i] );
 			scene.add(EggCell);
 			break;
 			
 		case CK_MODE:
 			scene.add(IrregButton);
 			
-//			scene.add(CKHider); //can remove this if you have no internet
+			scene.add(CKHider); //can remove this if you have no internet
 			scene.add(HexagonLattice);
 			scene.add(surface);
 //			scene.add(surflattice);
@@ -170,10 +190,16 @@ function ChangeScene(new_mode) {
 			scene.add(dodeca);
 			if(stable_point_of_meshes_currently_in_scene !== 666) //if it is equal to this, it has yet to be derived from the cutout vectors
 				dodeca.add(quasicutout_meshes[stable_point_of_meshes_currently_in_scene]);
+			scene.add(QS_center);
 //			scene.add(GrabbableArrow);
 			break;
 			
 		case TREE_MODE:
 			add_tree_stuff_to_scene();
+			break;
+			
+		case HEXAGON_MODE:
+			for(var i = 0; i < demonstration_hexagons.length; i++)
+				scene.add(demonstration_hexagons[i]);
 	}
 }

@@ -1,20 +1,29 @@
-function check_triangle_inversion(verticesarray, description_string){
+function check_triangle_inversions(verticesarray, description_string){
 	for(var i = 0; i < 20; i++){
-		var cornerAindex = net_triangle_vertex_indices[ i * 3 + 0 ];
-		var cornerBindex = net_triangle_vertex_indices[ i * 3 + 1 ];
-		var cornerCindex = net_triangle_vertex_indices[ i * 3 + 2 ];
-		
-		if( point_to_the_right_of_line(	
-				verticesarray[ 0 + 3 * cornerAindex ],verticesarray[ 1 + 3 * cornerAindex ],
-				verticesarray[ 0 + 3 * cornerBindex ],verticesarray[ 1 + 3 * cornerBindex ],
-				verticesarray[ 0 + 3 * cornerCindex ],verticesarray[ 1 + 3 * cornerCindex ]
-			)){
+		if( check_single_triangle_inversion(i, verticesarray) )
+		{
 			if(net_warnings)console.log(description_string, " triangle inverted");
 			return 0;
 		}
 	}
 	
 	return 1;
+}
+
+function check_single_triangle_inversion(triangle_index, verticesarray)
+{
+	var cornerAindex = net_triangle_vertex_indices[ triangle_index * 3 + 0 ];
+	var cornerBindex = net_triangle_vertex_indices[ triangle_index * 3 + 1 ];
+	var cornerCindex = net_triangle_vertex_indices[ triangle_index * 3 + 2 ];
+	
+	if( point_to_the_right_of_line(	
+			verticesarray[ 0 + 3 * cornerAindex ],verticesarray[ 1 + 3 * cornerAindex ],
+			verticesarray[ 0 + 3 * cornerBindex ],verticesarray[ 1 + 3 * cornerBindex ],
+			verticesarray[ 0 + 3 * cornerCindex ],verticesarray[ 1 + 3 * cornerCindex ]
+		))
+		return 1; //triangle is inverted
+	else
+		return 0;
 }
 
 function check_defects(coords_array) {

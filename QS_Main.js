@@ -80,7 +80,7 @@ function UpdateQuasiSurface()
 //	dodeca.localToWorld(dodeca_indicator_direction);
 	
 	//-----inflation
-	var dodeca_squashingspeed = 0.022;
+	var dodeca_squashingspeed = 0.022 * delta_t / 0.016;
 	if(isMouseDown)
 		dodeca_faceflatness += dodeca_squashingspeed;
 	else
@@ -92,6 +92,24 @@ function UpdateQuasiSurface()
 		dodeca_faceflatness = 0;
 	
 //	deduce_dodecahedron(0);
+}
+
+function update_QS_center()
+{
+	QS_center.position.z = camera.position.z - 6;
+	
+	var opacitychangerate = 0.035 * delta_t / 0.016;
+	if(isMouseDown)
+	{
+		QS_center.material.opacity += opacitychangerate;
+		if(QS_center.material.opacity > 1)
+			QS_center.material.opacity = 1;
+	}
+	else {
+		QS_center.material.opacity -= 0.02;
+		if(QS_center.material.opacity < 0)
+			QS_center.material.opacity = 0;
+	}
 }
 
 function MoveQuasiLattice()
@@ -152,6 +170,7 @@ function MoveQuasiLattice()
 					OldMouseAngle = 0;
 				
 				var LatticeAngleChange = OldMouseAngle - MouseAngle;
+				QS_center.rotation.z -= LatticeAngleChange;
 				
 				var QuasiLatticeAngle = Math.atan2(cutout_vector0_player.y, cutout_vector0_player.x);
 				var newQuasiLatticeAngle = QuasiLatticeAngle + LatticeAngleChange;
@@ -179,7 +198,6 @@ function MoveQuasiLattice()
 	}
 	
 	var modulated_CSP = closest_stable_point_index % (stable_points.length / 5);
-	console.log(closest_stable_point_index) //or maybe it's because
 	var closest_i = 666;
 	var closest_dist = 1000;
 	var testcutout = new THREE.Vector3();
